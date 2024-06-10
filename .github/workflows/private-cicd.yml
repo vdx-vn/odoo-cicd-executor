@@ -1,0 +1,49 @@
+name: Execute CICD for private Odoo repo
+on:
+    workflow_dispatch:
+        inputs:
+            repo:
+                description: "Private repo name"
+                required: true
+                type: string
+            action:
+                description: "Related action"
+                required: true
+                default: "test"
+                type: choice
+                options:
+                    - test
+                    - deploy
+            source_branch:
+                description: "Source branch"
+                required: true
+                type: string
+            target_branch:
+                description: "Target branch"
+                required: true
+                type: string
+            commit_sha:
+                description: "Commit SHA"
+                required: false
+                type: string
+            pr_number:
+                description: "Pull request number"
+                required: false
+                type: string
+            pr_url:
+                description: "Pull request url"
+                required: false
+                type: string
+
+jobs:
+    call_common_cicd:
+        uses: ./.github/workflows/common-cicd.yml
+        with:
+            repo_name: ${{ inputs.repo }}
+            action: ${{ inputs.action }}
+            source_branch: ${{ inputs.source_branch }}
+            target_branch: ${{ inputs.target_branch }}
+            commit_sha: ${{ inputs.commit_sha }}
+            pr_number: ${{ inputs.pr_number }}
+            pr_url: ${{ inputs.pr_url }}
+        secrets: inherit
