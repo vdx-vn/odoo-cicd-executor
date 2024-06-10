@@ -48,6 +48,5 @@ jobs:
             - name: Build & Publish image
               run: |
                   cd ${{ env.BUILD_PATH }}
-                  cp ${{ env.REPO_PATH }}/requirements.txt .
                   docker build -t ${{ env.ODOO_IMAGE_TAG }} .
                   docker push ${{ env.ODOO_IMAGE_TAG }}
