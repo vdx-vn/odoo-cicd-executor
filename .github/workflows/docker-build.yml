@@ -8,19 +8,20 @@ on:
             commit_sha:
                 required: true
                 type: string
-            target_branch:
+            default_branch:
                 required: true
                 type: string
 
 env:
     REPO_PATH: ${{ github.workspace }}
     BUILD_PATH: ${{ github.workspace }}/.build
+    x: ${{github.event.repository.default_branch}}
 
 jobs:
     build:
         name: build
         runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{github.event.repository.default_branch}}
+        environment: ${{inputs.repo_name}}/${{inputs.default_branch}}
         steps:
             - name: Checkout private repo
               uses: actions/checkout@v4
