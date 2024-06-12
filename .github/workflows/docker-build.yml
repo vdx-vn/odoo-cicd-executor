@@ -40,6 +40,7 @@ jobs:
             - name: Build & Publish image
               run: |
                   echo ${{inputs.default_branch}}
+                  echo ${{github.event.repository.default_branch}}
                   cd ${{ env.BUILD_PATH }}
                   docker build -t ${{ env.ODOO_IMAGE_TAG }} .
                   docker push ${{ env.ODOO_IMAGE_TAG }}
