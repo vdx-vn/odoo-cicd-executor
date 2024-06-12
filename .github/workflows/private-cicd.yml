@@ -1,4 +1,4 @@
-name: Execute CICD for private Odoo repo
+run-name: Repository ${{inputs.repo}} - Execute CICD
 on:
     workflow_dispatch:
         inputs:
