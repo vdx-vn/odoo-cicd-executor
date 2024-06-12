@@ -15,7 +15,6 @@ on:
 env:
     REPO_PATH: ${{ github.workspace }}
     BUILD_PATH: ${{ github.workspace }}/.build
-    x: ${{github.event.repository.default_branch}}
 
 jobs:
     build:
