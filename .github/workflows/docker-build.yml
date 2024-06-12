@@ -8,7 +8,7 @@ on:
             commit_sha:
                 required: true
                 type: string
-            target_branch:
+            default_branch:
                 required: true
                 type: string
 
@@ -16,25 +16,17 @@ env:
     REPO_PATH: ${{ github.workspace }}
     BUILD_PATH: ${{ github.workspace }}/.build
 
-    # ==== Repository secrets ====
-    SSH_KEY_GITHUB: ${{secrets.SSH_KEY_GITHUB}}
-    DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-    DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    # ===== Environment variables =====
-    ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
-
 jobs:
     build:
         name: build
         runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        environment: ${{inputs.repo_name}}/${{inputs.default_branch}}
         steps:
             - name: Checkout private repo
               uses: actions/checkout@v4
               with:
                   repository: ${{ inputs.repo_name }}
-                  ssh-key: ${{ env.SSH_KEY_GITHUB }}
+                  ssh-key: ${{ secrets.SSH_KEY_GITHUB }}
                   path: ${{ env.REPO_PATH }}
                   ref: ${{ inputs.commit_sha }}
                   fetch-depth: 1
@@ -42,11 +34,11 @@ jobs:
             - name: Login to Docker Hub
               uses: docker/login-action@v3
               with:
-                  username: ${{ env.DOCKERHUB_USERNAME }}
-                  password: ${{ env.DOCKERHUB_TOKEN }}
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Build & Publish image
               run: |
                   cd ${{ env.BUILD_PATH }}
-                  docker build -t ${{ env.ODOO_IMAGE_TAG }} .
-                  docker push ${{ env.ODOO_IMAGE_TAG }}
+                  docker build -t ${{ vars.ODOO_IMAGE_TAG }} .
+                  docker push ${{ vars.ODOO_IMAGE_TAG }}
