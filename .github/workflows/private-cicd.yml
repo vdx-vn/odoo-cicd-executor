@@ -1,4 +1,4 @@
-run-name: Repository ${{inputs.repo}} - Execute CICD
+run-name: ${{inputs.repo}} - Execute CICD
 on:
     workflow_dispatch:
         inputs:

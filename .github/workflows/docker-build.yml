@@ -1,4 +1,4 @@
-run-name: Repository ${{inputs.repo_name}} - Build docker image
+run-name: ${{inputs.repo_name}} - Build docker image
 on:
     workflow_dispatch:
         inputs:
