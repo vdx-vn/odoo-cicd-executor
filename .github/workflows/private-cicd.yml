@@ -1,4 +1,4 @@
-run-name: ${{inputs.repo}} - ${{inputs.action}}
+run-name: ${{inputs.repo}} - ${{inputs.action}} on ${{inputs.target_branch}} branch
 on:
     workflow_dispatch:
         inputs:
