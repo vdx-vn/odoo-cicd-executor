@@ -253,7 +253,6 @@ jobs:
         needs: [unit-test-at-install, unit-test-post-install, integration-test]
         env:
             SERVER_DEPLOY_SCRIPT_PATH: /tmp/odoo/cicd/${{inputs.repo_name}}/${{inputs.target_branch}}/deploy.sh
-            SSH_PRIVATE_KEY_GITHUB: /tmp/odoo/cicd/${{inputs.repo_name}}/${{inputs.target_branch}}/github_privatekey
             commit_context: CI/CD - Deploy to Server
         steps:
             - name: Set commit status as pending
@@ -285,18 +284,6 @@ jobs:
                   target: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
                   strip_components: 4
 
-            - name: "Upload GitHub private key authen to Server"
-              env:
-                  private_key_for_github_authen: ${{ secrets.PRIVATE_KEY_FOR_GITHUB_AUTHEN }}
-                  ssh_key: ${{ secrets.SERVER_PRIVATE_KEY }}
-              run: |
-                  keyfile_path=/tmp/$(date +%s)
-                  private_key_dir=$(dirname $SSH_PRIVATE_KEY_GITHUB)
-                  bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$ssh_key" "$keyfile_path"
-                  bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$private_key_for_github_authen" "$SSH_PRIVATE_KEY_GITHUB"
-                  ssh -o StrictHostKeyChecking=no -p ${{ env.SERVER_SSH_PORT }} -i "$keyfile_path" ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} "mkdir -p $private_key_dir"
-                  scp -o StrictHostKeyChecking=no -P ${{ env.SERVER_SSH_PORT }} -i $keyfile_path "$SSH_PRIVATE_KEY_GITHUB" ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:$private_key_dir
-
             - name: "Deploy to server"
               id: deploy_to_server
               uses: appleboy/ssh-action@v1.0.0
@@ -310,7 +297,7 @@ jobs:
                   key: ${{ secrets.SERVER_PRIVATE_KEY }}
                   port: ${{ env.SERVER_SSH_PORT }}
                   script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SSH_PRIVATE_KEY_GITHUB }}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}"
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}"
 
             - name: The Deploy step has failed
               if: ${{ failure() }}
