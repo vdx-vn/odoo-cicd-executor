@@ -90,9 +90,10 @@ jobs:
                       console.log(context.repo.owner);
                       console.log(context.repo.repo);
                       console.log(context.sha);
+                      const { INPUT_REPO, INPUT_SHA } = process.env
 
-                      console.log(github.getInput('repo'));
-                      console.log(github.getInput('sha'));
+                      console.log(INPUT_REPO);
+                      console.log(INPUT_SHA);
 
                       const response = await github.rest.checks.create({
                           owner: context.repo.owner,
