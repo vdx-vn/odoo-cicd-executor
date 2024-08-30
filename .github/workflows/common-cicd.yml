@@ -90,11 +90,8 @@ jobs:
                   debug: true
                   github-token: ${{ secrets.PAT_COMMIT_STATUS }}
                   script: |
-                      console.log(context.repo.owner);
-                      console.log(context.repo.repo);
-                      console.log(context.sha);
-                      let { commit_context, repo_name, commit_sha } = process.env
-                      const {owner, repo} = repo_name.split('/');
+                      const { commit_context, repo_name, commit_sha } = process.env
+                      const {owner, repo} = repo_name.split('/')
 
                       console.log(owner);
                       console.log(repo);
