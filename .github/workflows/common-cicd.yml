@@ -92,8 +92,10 @@ jobs:
                   script: |
                       // TODO: convert this function to another file and import here to reduce length of file
                       const inputs = ${{ toJSON(inputs) }};
-                      const {owner, repo} = inputs.repo_name.split('/');
+                      const repo_data = inputs.repo_name.split('/');
                       const commit_sha = inputs.commit_sha;
+                      const owner = repo_data[0];
+                      const repo = repo_data[1];
 
                       console.log(owner);
                       console.log(repo);
