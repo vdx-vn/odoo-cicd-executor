@@ -101,7 +101,7 @@ jobs:
                           owner: owner,
                           repo: repo,
                           head_sha: commit_sha,
-                          name: commit_context,
+                          name: "Oh yeah luon",
                           status: "in_progress"
                       });
 
