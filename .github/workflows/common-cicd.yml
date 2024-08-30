@@ -109,3 +109,10 @@ jobs:
                       });
 
                       return response.data.id;
+            - name: run check with import script
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.PAT_COMMIT_STATUS }}
+                  script: |
+                      const {default: createRunCheck} = await import('${{ github.workspace }}/.github/src/script.js')
+                      await createRunCheck()
