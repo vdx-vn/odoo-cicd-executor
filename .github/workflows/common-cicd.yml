@@ -90,6 +90,7 @@ jobs:
                   debug: true
                   github-token: ${{ secrets.PAT_COMMIT_STATUS }}
                   script: |
+                      # TODO: convert this function to another file and import here to reduce length of file
                       const inputs = ${{ toJSON(inputs) }};
                       const {owner, repo} = inputs.repo_name.split('/');
                       const commit_sha = inputs.commit_sha;
