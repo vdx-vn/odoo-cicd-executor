@@ -70,7 +70,8 @@ env:
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
 
     # ======= INPUT for actions/github-script ========
-
+    INPUT_REPO: ${{inputs.repo_name}}
+    INPUT_SHA: ${{inputs.commit_sha}}
 jobs:
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
@@ -89,10 +90,9 @@ jobs:
                       console.log(context.repo.owner);
                       console.log(context.repo.repo);
                       console.log(context.sha);
-                      const repo = ${{inputs.repo_name}};
-                      const sha = ${{inputs.commit_sha}};
-                      console.log(repo);
-                      console.log(sha);
+
+                      console.log(github.getInput('repo'));
+                      console.log(github.getInput('sha'));
 
                       const response = await github.rest.checks.create({
                           owner: context.repo.owner,
