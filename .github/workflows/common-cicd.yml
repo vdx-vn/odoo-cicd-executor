@@ -109,6 +109,8 @@ jobs:
                       });
 
                       return response.data.id;
+
+            - uses: actions/checkout@v3
             - name: run check with import script
               uses: actions/github-script@v7
               with:
