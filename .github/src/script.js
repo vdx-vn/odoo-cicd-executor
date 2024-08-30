@@ -1,6 +1,5 @@
-export default function createRunCheck() {
-    const inputs = ${{ toJSON(inputs) }};
-    const repo_data = inputs.repo_name.split('/');
+export async function createRunCheck(inputs) {
+    const repo_data = inputs.repo_name.split("/");
     const commit_sha = inputs.commit_sha;
     const owner = repo_data[0];
     const repo = repo_data[1];
@@ -13,9 +12,8 @@ export default function createRunCheck() {
         repo: repo,
         head_sha: commit_sha,
         name: "Oh yeah luon",
-        status: "in_progress"
+        status: "in_progress",
     });
 
     return response.data.id;
 }
-    
