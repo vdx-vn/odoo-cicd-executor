@@ -69,6 +69,8 @@ env:
     SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
 
+    # ======= INPUT for actions/github-script ========
+
 jobs:
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
@@ -78,256 +80,26 @@ jobs:
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
-            - name: Set commit status as pending
-              uses: myrotvorets/set-commit-status-action@master
+            - name: Create check based on image size
+              id: create-status-check
+              uses: actions/github-script@v6
               with:
-                  repo: ${{ inputs.repo_name }}
-                  sha: ${{ inputs.commit_sha }}
-                  token: ${{ secrets.PAT_GITHUB }}
-                  status: pending
-                  context: ${{ env.commit_context }}
-
-            - name: Checkout private repo
-              uses: actions/checkout@v4
-              with:
-                  repository: ${{ env.REPOSITORY }}
-                  ssh-key: ${{ env.SSH_KEY_GITHUB }}
-                  path: ${{ env.REPO_PATH }}
-                  ref: ${{ inputs.commit_sha }}
-                  fetch-depth: 1
-
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-            - name: Run Unit test cases
-              id: run_post_install_unit_test
-              run: |
-                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
-
-            - name: Set final commit status
-              if: ${{always()}}
-              uses: myrotvorets/set-commit-status-action@master
-              with:
-                  repo: ${{ inputs.repo_name }}
-                  sha: ${{ inputs.commit_sha }}
-                  token: ${{ secrets.PAT_GITHUB }}
-                  status: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
-                  context: ${{ env.commit_context }}
-
-    unit-test-post-install:
-        name: ${{inputs.repo_name}} - Unit test post install
-        runs-on: ubuntu-latest
-        env:
-            commit_context: CI/CD - Unit Test Post Install
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.action == 'test' || inputs.action == 'deploy'
-        steps:
-            - name: Set commit status as pending
-              uses: myrotvorets/set-commit-status-action@master
-              with:
-                  repo: ${{ inputs.repo_name }}
-                  sha: ${{ inputs.commit_sha }}
-                  token: ${{ secrets.PAT_GITHUB }}
-                  status: pending
-                  context: ${{ env.commit_context }}
-
-            - name: Checkout private repo
-              uses: actions/checkout@v4
-              with:
-                  repository: ${{ env.REPOSITORY }}
-                  ssh-key: ${{ env.SSH_KEY_GITHUB }}
-                  path: ${{ env.REPO_PATH }}
-                  ref: ${{ inputs.commit_sha }}
-                  fetch-depth: 1
-
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-            - name: Run Unit test cases
-              id: run_post_install_unit_test
-              run: |
-                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "post_install"
-
-            - name: Set final commit status
-              if: ${{always()}}
-              uses: myrotvorets/set-commit-status-action@master
-              with:
-                  repo: ${{ inputs.repo_name }}
-                  sha: ${{ inputs.commit_sha }}
-                  token: ${{ secrets.PAT_GITHUB }}
-                  status: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
-                  context: ${{ env.commit_context }}
-
-    integration-test:
-        name: ${{inputs.repo_name}} - Integration test
-        runs-on: ubuntu-latest
-        if: inputs.action == 'deploy'
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        env:
-            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.tar.gz
-            SERVER_BACKUP_FOLDER: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
-            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.tar.gz
-            GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
-            commit_context: CI/CD - Integration Test
-
-        steps:
-            - name: Set commit status as pending
-              uses: myrotvorets/set-commit-status-action@master
-              with:
-                  repo: ${{ inputs.repo_name }}
-                  sha: ${{ inputs.commit_sha }}
-                  token: ${{ secrets.PAT_GITHUB }}
-                  status: pending
-                  context: ${{ env.commit_context }}
-
-            - name: Checkout private repo
-              uses: actions/checkout@v4
-              with:
-                  repository: ${{ env.REPOSITORY }}
-                  ssh-key: ${{ env.SSH_KEY_GITHUB }}
-                  path: ${{ env.REPO_PATH }}
-                  ref: ${{ inputs.commit_sha }}
-                  fetch-depth: 1
-
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-            - name: "Upload backup script file to server"
-              uses: appleboy/scp-action@v0.1.7
-              with:
-                  host: ${{ env.SERVER_HOST }}
-                  username: ${{ env.SERVER_USER }}
-                  key: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  port: ${{ env.SERVER_SSH_PORT }}
-                  source: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
-                  target: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-                  strip_components: 4
-
-            - name: "Backup Odoo on server"
-              uses: appleboy/ssh-action@v1.0.0
-              with:
-                  host: ${{ env.SERVER_HOST }}
-                  username: ${{ env.SERVER_USER }}
-                  key: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  port: ${{ env.SERVER_SSH_PORT }}
-                  command_timeout: 30m
+                  debug: true
                   script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
+                      console.log(context.repo.owner);
+                      console.log(context.repo.repo);
+                      console.log(context.sha);
+                      const repo = ${{inputs.repo_name}};
+                      const sha = ${{inputs.commit_sha}};
+                      console.log(repo);
+                      console.log(sha);
 
-            - name: "Download backup file"
-              env:
-                  ssh_key: ${{ secrets.SERVER_PRIVATE_KEY }}
-              run: |
-                  keyfile_path=${{ github.workspace }}/$(date +%s)_key
-                  bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$ssh_key" "$keyfile_path"
-                  scp -o StrictHostKeyChecking=no -P ${{ env.SERVER_SSH_PORT }} -i $keyfile_path ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_LATEST_BACKUP_FILE_PATH }} ${{ env.LOCAL_BACKUP_FILE_PATH }}
+                      const response = await github.rest.checks.create({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          head_sha: context.sha,
+                          name: "oh yeahhhhh",
+                          status: "in_progress"
+                      });
 
-            - name: "Run Integration test"
-              id: run_integration_test
-              run: |
-                  bash $CICD_SCRIPTS_PATH/run-integration-test.sh ${{env.LOCAL_BACKUP_FILE_PATH}}
-
-            - name: Set final commit status
-              if: ${{always()}}
-              uses: myrotvorets/set-commit-status-action@master
-              with:
-                  repo: ${{ inputs.repo_name }}
-                  sha: ${{ inputs.commit_sha }}
-                  token: ${{ secrets.PAT_GITHUB }}
-                  status: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
-                  context: ${{ env.commit_context }}
-
-    deploy-server:
-        name: ${{inputs.repo_name}} - Deploy server
-        runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [unit-test-at-install, unit-test-post-install, integration-test]
-        env:
-            SERVER_DEPLOY_SCRIPT_PATH: /tmp/odoo/cicd/${{inputs.repo_name}}/${{inputs.target_branch}}/deploy.sh
-            SSH_PRIVATE_KEY_GITHUB: /tmp/odoo/cicd/${{inputs.repo_name}}/${{inputs.target_branch}}/github_privatekey
-            commit_context: CI/CD - Deploy to Server
-        steps:
-            - name: Set commit status as pending
-              uses: myrotvorets/set-commit-status-action@master
-              with:
-                  repo: ${{ inputs.repo_name }}
-                  sha: ${{ inputs.commit_sha }}
-                  token: ${{ secrets.PAT_GITHUB }}
-                  status: pending
-                  context: ${{ env.commit_context }}
-
-            - name: Checkout private repo
-              uses: actions/checkout@v4
-              with:
-                  repository: ${{ env.REPOSITORY }}
-                  ssh-key: ${{ env.SSH_KEY_GITHUB }}
-                  path: ${{ env.REPO_PATH }}
-                  ref: ${{ inputs.commit_sha }}
-                  fetch-depth: 1
-
-            - name: "Upload deploy script file to server"
-              uses: appleboy/scp-action@v0.1.7
-              with:
-                  host: ${{ env.SERVER_HOST }}
-                  username: ${{ env.SERVER_USER }}
-                  key: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  port: ${{ env.SERVER_SSH_PORT }}
-                  source: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
-                  target: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-                  strip_components: 4
-
-            - name: "Upload GitHub private key authen to Server"
-              env:
-                  private_key_for_github_authen: ${{ secrets.PRIVATE_KEY_FOR_GITHUB_AUTHEN }}
-                  ssh_key: ${{ secrets.SERVER_PRIVATE_KEY }}
-              run: |
-                  keyfile_path=/tmp/$(date +%s)
-                  private_key_dir=$(dirname $SSH_PRIVATE_KEY_GITHUB)
-                  bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$ssh_key" "$keyfile_path"
-                  bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$private_key_for_github_authen" "$SSH_PRIVATE_KEY_GITHUB"
-                  ssh -o StrictHostKeyChecking=no -p ${{ env.SERVER_SSH_PORT }} -i "$keyfile_path" ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} "mkdir -p $private_key_dir"
-                  scp -o StrictHostKeyChecking=no -P ${{ env.SERVER_SSH_PORT }} -i $keyfile_path "$SSH_PRIVATE_KEY_GITHUB" ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:$private_key_dir
-
-            - name: "Deploy to server"
-              id: deploy_to_server
-              uses: appleboy/ssh-action@v1.0.0
-              env:
-                  SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
-                  SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
-                  SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
-              with:
-                  host: ${{ env.SERVER_HOST }}
-                  username: ${{ env.SERVER_USER }}
-                  key: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  port: ${{ env.SERVER_SSH_PORT }}
-                  script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SSH_PRIVATE_KEY_GITHUB }}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}"
-
-            - name: The Deploy step has failed
-              if: ${{ failure() }}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "failed"
-
-            - name: The Deploy step has successful
-              if: ${{ success() }}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "success"
-
-            - name: Set final commit status
-              if: ${{always()}}
-              uses: myrotvorets/set-commit-status-action@master
-              with:
-                  repo: ${{ inputs.repo_name }}
-                  sha: ${{ inputs.commit_sha }}
-                  token: ${{ secrets.PAT_GITHUB }}
-                  status: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
-                  context: ${{ env.commit_context }}
+                      return response.data.id;
