@@ -79,6 +79,7 @@ jobs:
         env:
             commit_context: CI/CD - Unit Test At Install
             repo_name: ${{inputs.repo_name}}
+            commit_sha: ${{inputs.commit_sha}}
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
@@ -92,7 +93,7 @@ jobs:
                       console.log(context.repo.owner);
                       console.log(context.repo.repo);
                       console.log(context.sha);
-                      let { repo_name } = process.env
+                      let { repo_name, commit_sha } = process.env
                       const {owner, repo} = repo_name.split('/');
 
                       console.log(owner);
@@ -101,7 +102,7 @@ jobs:
                       const response = await github.rest.checks.create({
                           owner: owner,
                           repo: repo,
-                          head_sha: INPUT_SHA,
+                          head_sha: commit_sha,
                           name: "oh yeahhhhh",
                           status: "in_progress"
                       });
