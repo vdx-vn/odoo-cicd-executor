@@ -93,7 +93,7 @@ jobs:
                       console.log(context.repo.owner);
                       console.log(context.repo.repo);
                       console.log(context.sha);
-                      let { repo_name, commit_sha } = process.env
+                      let { commit_context, repo_name, commit_sha } = process.env
                       const {owner, repo} = repo_name.split('/');
 
                       console.log(owner);
@@ -103,7 +103,7 @@ jobs:
                           owner: owner,
                           repo: repo,
                           head_sha: commit_sha,
-                          name: "oh yeahhhhh",
+                          name: commit_context,
                           status: "in_progress"
                       });
 
