@@ -22,7 +22,7 @@ export async function updateRunCheck(github, inputs, check_run_id, status = "com
     const owner = repo_data[0];
     const repo = repo_data[1];
 
-    const response = await github.rest.checks.update({
+    await github.rest.checks.update({
         owner,
         repo,
         check_run_id,
