@@ -71,6 +71,9 @@ env:
     SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
 
+# fixme: run check didn't show on merge commit
+#  try to add commit status or something to CI/CD flow
+
 jobs:
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
