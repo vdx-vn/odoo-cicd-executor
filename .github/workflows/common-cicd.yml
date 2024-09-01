@@ -87,7 +87,6 @@ jobs:
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
-                      const {createRunCheck} = await import('${{ github.workspace }}/.github/src/script.js')
                       const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
                       const inputs = ${{ toJSON(inputs) }}
                       return await script.createRunCheck(github, inputs, "Unit test at install", "in_progress")
@@ -121,11 +120,11 @@ jobs:
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
-                      const {updateRunCheck} = await import('${{ github.workspace }}/.github/src/script.js')
+                      const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
                       const run_check_id = "${{steps.create-run-check.outputs.result}}"
                       const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
                       console.log(run_check_id)
                       console.log(conclusion)
 
                       const inputs = ${{ toJSON(inputs) }}
-                      return await updateRunCheck(github, inputs, run_check_id, status="completed", conclusion)
+                      return await script.updateRunCheck(github, inputs, run_check_id, status="completed", conclusion)
