@@ -115,6 +115,11 @@ jobs:
             #   with:
             #       path: ${{ github.sha }}
 
+            - name: check folder
+              run: |
+                  ls -lah ${{github.workspace}}
+                  ls -lah ${{github.workspace}}/.github/src
+
             - uses: actions/github-script@v7
               id: update-run-check
               with:
