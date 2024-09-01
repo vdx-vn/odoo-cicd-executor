@@ -75,15 +75,12 @@ jobs:
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
         runs-on: ubuntu-latest
-        env:
-            commit_context: CI/CD - Unit Test At Install
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
             - uses: actions/checkout@v4
 
             - uses: actions/github-script@v7
-              name: Create Run Check
               id: create-run-check
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
@@ -92,7 +89,7 @@ jobs:
                       const inputs = ${{ toJSON(inputs) }}
                       return await script.createRunCheck(github, inputs, "Unit test at install", "in_progress")
 
-            - name: Checkout private repo
+            - name: Checkout Odoo source repository
               uses: actions/checkout@v4
               with:
                   repository: ${{ env.REPOSITORY }}
@@ -116,10 +113,59 @@ jobs:
               with:
                   path: ${{github.workspace}}/script/
 
-            # - name: check folder
-            #   run: |
-            #       ls -lah ${{github.workspace}}
-            #       ls -lah ${{github.workspace}}/.github/src
+            - uses: actions/github-script@v7
+              id: update-run-check
+              with:
+                  debug: true
+                  github-token: ${{ env.APP_ACCESS_TOKEN }}
+                  script: |
+                      const {default: script} = await import('${{github.workspace}}/script/.github/src/script.js')
+                      const run_check_id = "${{steps.create-run-check.outputs.result}}"
+                      const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
+
+                      const inputs = ${{ toJSON(inputs) }}
+                      return await script.updateRunCheck(github, inputs, run_check_id, status="completed", conclusion)
+
+    unit-test-post-install:
+        name: ${{inputs.repo_name}} - Unit test post install
+        runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        if: inputs.action == 'test' || inputs.action == 'deploy'
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/github-script@v7
+              id: create-run-check
+              with:
+                  github-token: ${{ env.APP_ACCESS_TOKEN }}
+                  script: |
+                      const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
+                      const inputs = ${{ toJSON(inputs) }}
+                      return await script.createRunCheck(github, inputs, "Unit test post install", "in_progress")
+
+            - name: Checkout Odoo source repository
+              uses: actions/checkout@v4
+              with:
+                  repository: ${{ env.REPOSITORY }}
+                  ssh-key: ${{ env.SSH_KEY_GITHUB }}
+                  path: ${{ env.REPO_PATH }}
+                  ref: ${{ inputs.commit_sha }}
+                  fetch-depth: 1
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Run Unit test cases
+              id: run_post_install_unit_test
+              run: |
+                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "post_install"
+
+            - uses: actions/checkout@v4
+              with:
+                  path: ${{github.workspace}}/script/
 
             - uses: actions/github-script@v7
               id: update-run-check
@@ -130,8 +176,6 @@ jobs:
                       const {default: script} = await import('${{github.workspace}}/script/.github/src/script.js')
                       const run_check_id = "${{steps.create-run-check.outputs.result}}"
                       const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
-                      console.log(run_check_id)
-                      console.log(conclusion)
 
                       const inputs = ${{ toJSON(inputs) }}
                       return await script.updateRunCheck(github, inputs, run_check_id, status="completed", conclusion)
