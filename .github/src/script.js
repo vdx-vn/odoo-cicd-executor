@@ -15,5 +15,3 @@ export async function createRunCheck(github, inputs, name, status = "in_progress
 
     return response.data.id;
 }
-
-module.exports = { createRunCheck };
