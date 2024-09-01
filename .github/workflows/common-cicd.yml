@@ -88,8 +88,9 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {createRunCheck} = await import('${{ github.workspace }}/.github/src/script.js')
+                      const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
                       const inputs = ${{ toJSON(inputs) }}
-                      return await createRunCheck(github, inputs, "Unit test at install", "in_progress")
+                      return await script.createRunCheck(github, inputs, "Unit test at install", "in_progress")
 
             - name: Checkout private repo
               uses: actions/checkout@v4
