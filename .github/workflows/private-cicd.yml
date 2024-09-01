@@ -37,7 +37,8 @@ on:
 
 jobs:
     call_common_cicd:
-        uses: ./.github/workflows/common-cicd.yml
+        #FIXME: update correct path for resuable workflows
+        uses: xmars4/vdx-vn-odoo-cicd-executor/.github/workflows/common-cicd.yml@dev
         with:
             repo_name: ${{ inputs.repo }}
             action: ${{ inputs.action }}

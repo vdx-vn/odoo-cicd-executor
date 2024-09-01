@@ -1,20 +1,19 @@
-// fixme: make all value from workflow available here to prevent put all param to function
-export async function createRunCheck(github, inputs) {
+export async function createRunCheck(github, inputs, name, status = "in_progress") {
+    // https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#create-a-check-run
     const repo_data = inputs.repo_name.split("/");
     const commit_sha = inputs.commit_sha;
     const owner = repo_data[0];
     const repo = repo_data[1];
 
-    console.log(owner);
-    console.log(repo);
-
     const response = await github.rest.checks.create({
-        owner: owner,
-        repo: repo,
+        owner,
+        repo,
         head_sha: commit_sha,
-        name: "Oh yeah luon",
-        status: "in_progress",
+        name,
+        status,
     });
 
     return response.data.id;
 }
+
+module.exports = { createRunCheck };

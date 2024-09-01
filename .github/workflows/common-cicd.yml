@@ -51,6 +51,7 @@ env:
     PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    APP_ACCESS_TOKEN: ${{ secrets.APP_ACCESS_TOKEN }}
 
     # ==== Environment secrets =====
     TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
@@ -83,40 +84,12 @@ jobs:
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
-            - name: Create check based on image size
-              id: create-status-check
-              uses: actions/github-script@v6
-              with:
-                  debug: true
-                  github-token: ${{ secrets.PAT_COMMIT_STATUS }}
-                  script: |
-                      // TODO: convert this function to another file and import here to reduce length of file
-                      const inputs = ${{ toJSON(inputs) }};
-                      const repo_data = inputs.repo_name.split('/');
-                      const commit_sha = inputs.commit_sha;
-                      const owner = repo_data[0];
-                      const repo = repo_data[1];
-
-                      console.log(owner);
-                      console.log(repo);
-
-                      const response = await github.rest.checks.create({
-                          owner: owner,
-                          repo: repo,
-                          head_sha: commit_sha,
-                          name: "Oh yeah luon",
-                          status: "in_progress"
-                      });
-
-                      return response.data.id;
-
             - uses: actions/checkout@v3
-            - name: run check with import script
-              uses: actions/github-script@v7
+            - uses: actions/github-script@v7
+              id: create-run-check
               with:
-                  github-token: ${{ secrets.PAT_COMMIT_STATUS }}
+                  github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
-
                       const {createRunCheck} = await import('${{ github.workspace }}/.github/src/script.js')
-                      const inputs = ${{ toJSON(inputs) }};
-                      await createRunCheck(inputs)
+                      const inputs = ${{ toJSON(inputs) }}
+                      return await createRunCheck(github, inputs, "Unit test at install", "in_progress")
