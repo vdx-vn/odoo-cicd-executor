@@ -114,7 +114,7 @@ jobs:
 
             - uses: actions/checkout@v4
               with:
-                  path: ${{env.JS_SCRIPT_PATH}}
+                  path: ${{github.workspace}}/script/
 
             # - name: check folder
             #   run: |
@@ -127,7 +127,7 @@ jobs:
                   debug: true
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
-                      const {default: script} = await import('${{env.JS_SCRIPT_PATH}}/.github/src/script.js')
+                      const {default: script} = await import('${{github.workspace}}/script/.github/src/script.js')
                       const run_check_id = "${{steps.create-run-check.outputs.result}}"
                       const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
                       console.log(run_check_id)
