@@ -110,7 +110,6 @@ jobs:
               id: run_post_install_unit_test
               run: |
                   bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
-                  sudo rm -rf ${{github.workspace}}
 
             - uses: actions/checkout@v4
 
