@@ -120,7 +120,7 @@ jobs:
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
-                      const {updateRunCheck} = await import('${{ github.workspace }}/.github/src2/script-2.js')
+                      const {updateRunCheck} = await import('${{ github.workspace }}/.github/src/script.js')
                       const run_check_id = "${{steps.create-run-check.outputs.result}}"
                       const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
                       console.log(run_check_id)
