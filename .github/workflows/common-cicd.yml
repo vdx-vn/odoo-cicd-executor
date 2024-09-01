@@ -111,7 +111,7 @@ jobs:
             #   run: |
             #       bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
 
-            # - uses: actions/checkout@v4
+            - uses: actions/checkout@v4
             #   with:
             #       path: ${{ github.sha }}
 
