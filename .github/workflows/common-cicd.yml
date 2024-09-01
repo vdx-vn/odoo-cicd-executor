@@ -110,6 +110,8 @@ jobs:
                   bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
 
             - uses: actions/checkout@v4
+              with:
+                  path: ${{ github.sha }}
             - uses: actions/github-script@v7
               id: update-run-check
               with:
