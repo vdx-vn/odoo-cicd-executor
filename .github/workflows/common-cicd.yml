@@ -89,25 +89,25 @@ jobs:
                       const inputs = ${{ toJSON(inputs) }}
                       return await createRunCheck(github, inputs, "Unit test at install", "in_progress")
 
-            # - name: Checkout private repo
-            #   uses: actions/checkout@v4
-            #   with:
-            #       repository: ${{ env.REPOSITORY }}
-            #       ssh-key: ${{ env.SSH_KEY_GITHUB }}
-            #       path: ${{ env.REPO_PATH }}
-            #       ref: ${{ inputs.commit_sha }}
-            #       fetch-depth: 1
+            - name: Checkout private repo
+              uses: actions/checkout@v4
+              with:
+                  repository: ${{ env.REPOSITORY }}
+                  ssh-key: ${{ env.SSH_KEY_GITHUB }}
+                  path: ${{ env.REPO_PATH }}
+                  ref: ${{ inputs.commit_sha }}
+                  fetch-depth: 1
 
-            # - name: Login to Docker Hub
-            #   uses: docker/login-action@v3
-            #   with:
-            #       username: ${{ secrets.DOCKERHUB_USERNAME }}
-            #       password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            # - name: Run Unit test cases
-            #   id: run_post_install_unit_test
-            #   run: |
-            #       bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
+            - name: Run Unit test cases
+              id: run_post_install_unit_test
+              run: |
+                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
 
             - uses: actions/github-script@v7
               id: update-run-check
