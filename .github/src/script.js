@@ -11,6 +11,11 @@ async function createRunCheck(github, inputs, name, status = "in_progress") {
         head_sha: commit_sha,
         name,
         status,
+        output: {
+            title: name,
+            summary: "",
+            text: "",
+        },
     });
 
     return response.data.id;
