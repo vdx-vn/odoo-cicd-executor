@@ -115,10 +115,10 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const run_check_id = "${{steps.create-run-check.outputs.result}}";
-                      const status = ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
+                      const conclusion = ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
                       const {updateRunCheck} = await import('${{ github.workspace }}/.github/src/script.js')
                       const inputs = ${{ toJSON(inputs) }}
-                      return await updateRunCheck(github, inputs, run_check_id, status)
+                      return await updateRunCheck(github, inputs, run_check_id, status="completed", conclusion)
 
             # - name: Set final commit status
             #   if: ${{always()}}
