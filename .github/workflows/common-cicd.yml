@@ -100,25 +100,23 @@ jobs:
                   ref: ${{ inputs.commit_sha }}
                   fetch-depth: 1
 
-            # - name: Login to Docker Hub
-            #   uses: docker/login-action@v3
-            #   with:
-            #       username: ${{ secrets.DOCKERHUB_USERNAME }}
-            #       password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            # - name: Run Unit test cases
-            #   id: run_post_install_unit_test
-            #   run: |
-            #       bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
+            - name: Run Unit test cases
+              id: run_post_install_unit_test
+              run: |
+                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
 
             - uses: actions/checkout@v4
-            #   with:
-            #       path: ${{ github.sha }}
 
-            - name: check folder
-              run: |
-                  ls -lah ${{github.workspace}}
-                  ls -lah ${{github.workspace}}/.github/src
+            # - name: check folder
+            #   run: |
+            #       ls -lah ${{github.workspace}}
+            #       ls -lah ${{github.workspace}}/.github/src
 
             - uses: actions/github-script@v7
               id: update-run-check
