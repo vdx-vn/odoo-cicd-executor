@@ -31,4 +31,4 @@ async function updateRunCheck(github, inputs, check_run_id, status = "completed"
     });
 }
 
-export { createRunCheck, updateRunCheck };
+export default { createRunCheck, updateRunCheck };
