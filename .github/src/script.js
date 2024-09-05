@@ -5,11 +5,11 @@ async function createRunCheck(github, context, inputs, name, status = "in_progre
     const owner = repo_data[0];
     const repo = repo_data[1];
     console.log(context);
-    console.log(context.server_url);
+    console.log(context.serverUrl);
+    console.log(context.repository.full_name);
     console.log(context.repository);
-    console.log(context.repository);
-    console.log(context.run_id);
-    const check_url = `${context.server_url}/${context.repository}/actions/runs/${context.run_id}`;
+    console.log(context.runId);
+    const check_url = `${context.serverUrl}/${context.repository}/actions/runs/${context.runId}`;
     console.log("url ", check_url);
 
     const response = await github.rest.checks.create({
