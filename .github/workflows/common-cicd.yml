@@ -91,7 +91,6 @@ jobs:
                   script: |
                       const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
                       const inputs = ${{ toJSON(inputs) }}
-                      const context = ${{toJSON(context)}}
                       return await script.createRunCheck(github, context, inputs, "Unit test at install", "in_progress")
 
             - name: Checkout Odoo source repository
