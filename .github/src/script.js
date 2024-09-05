@@ -4,6 +4,11 @@ async function createRunCheck(github, inputs, name, status = "in_progress") {
     const commit_sha = inputs.commit_sha;
     const owner = repo_data[0];
     const repo = repo_data[1];
+    console.log(github);
+    console.log(github.server_url);
+    console.log(github.repository);
+    console.log(github.repository);
+    console.log(github.run_id);
     const check_url = `${github.server_url}/${github.repository}/actions/runs/${github.run_id}`;
     console.log("url ", check_url);
 
