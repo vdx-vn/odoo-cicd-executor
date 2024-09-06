@@ -12,6 +12,8 @@ async function createRunCheck({ ...kwargs }) {
     const name = kwargs.name;
     const status = kwargs.status || "in_progress";
 
+    console.log();
+
     const response = await github.rest.checks.create({
         owner,
         repo,
