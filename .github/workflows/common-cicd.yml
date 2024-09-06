@@ -85,7 +85,7 @@ jobs:
 
             # fixme : rewrite these to reusable workflow or something
             - uses: actions/github-script@v7
-              id: try-create-run-check-bro
+              id: create-run-check
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
@@ -123,7 +123,7 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {default: script} = await import('${{github.workspace}}/script/.github/src/script.js')
-                      const run_check_id = "${{steps.try-create-run-check-bro.outputs.result}}"
+                      const run_check_id = "${{steps.create-run-check.outputs.result}}"
                       const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
 
                       const inputs = ${{ toJSON(inputs) }}
@@ -138,7 +138,7 @@ jobs:
             - uses: actions/checkout@v4
 
             - uses: actions/github-script@v7
-              id: try-create-run-check-bro
+              id: create-run-check
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
@@ -176,7 +176,7 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {default: script} = await import('${{github.workspace}}/script/.github/src/script.js')
-                      const run_check_id = "${{steps.try-create-run-check-bro.outputs.result}}"
+                      const run_check_id = "${{steps.create-run-check.outputs.result}}"
                       const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
 
                       const inputs = ${{ toJSON(inputs) }}
@@ -197,7 +197,7 @@ jobs:
             - uses: actions/checkout@v4
 
             - uses: actions/github-script@v7
-              id: try-create-run-check-bro
+              id: create-run-check
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
@@ -265,7 +265,7 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {default: script} = await import('${{github.workspace}}/script/.github/src/script.js')
-                      const run_check_id = "${{steps.try-create-run-check-bro.outputs.result}}"
+                      const run_check_id = "${{steps.create-run-check.outputs.result}}"
                       const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
 
                       const inputs = ${{ toJSON(inputs) }}
@@ -284,7 +284,7 @@ jobs:
             - uses: actions/checkout@v4
 
             - uses: actions/github-script@v7
-              id: try-create-run-check-bro
+              id: create-run-check
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
@@ -359,7 +359,7 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {default: script} = await import('${{github.workspace}}/script/.github/src/script.js')
-                      const run_check_id = "${{steps.try-create-run-check-bro.outputs.result}}"
+                      const run_check_id = "${{steps.create-run-check.outputs.result}}"
                       const conclusion = "${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
 
                       const inputs = ${{ toJSON(inputs) }}
