@@ -90,8 +90,7 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
-                      const inputs = ${{ toJSON(inputs) }}
-                      return await script.createRunCheck(github, context, inputs, "Unit test at install", "in_progress")
+                      return await script.createRunCheck({github, context, core, name: "Unit test at install"})
 
             - name: Checkout Odoo source repository
               uses: actions/checkout@v4
@@ -143,8 +142,7 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
-                      const inputs = ${{ toJSON(inputs) }}
-                      return await script.createRunCheck(github, context, inputs, "Unit test post install", "in_progress")
+                      return await script.createRunCheck({github, context, core, name: "Unit test post install"})
 
             - name: Checkout Odoo source repository
               uses: actions/checkout@v4
@@ -202,8 +200,7 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
-                      const inputs = ${{ toJSON(inputs) }}
-                      return await script.createRunCheck(github, inputs, "Integration Test", "in_progress")
+                      return await script.createRunCheck({github, context, core, name: "Integration Test"})
 
             - name: Checkout Odoo source repository
               uses: actions/checkout@v4
@@ -289,8 +286,7 @@ jobs:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   script: |
                       const {default: script} = await import('${{ github.workspace }}/.github/src/script.js')
-                      const inputs = ${{ toJSON(inputs) }}
-                      return await script.createRunCheck(github, inputs, "Deploy to Server", "in_progress")
+                      return await script.createRunCheck({github, context, core, name: "Deploy to Server"})
 
             - name: Checkout Odoo source repository
               uses: actions/checkout@v4

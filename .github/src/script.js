@@ -1,12 +1,15 @@
-async function createRunCheck(github, context, inputs, name, status = "in_progress") {
+async function createRunCheck({ ...kwargs }) {
     // https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#create-a-check-run
-    const repo_data = inputs.repo_name.split("/");
-    const commit_sha = inputs.commit_sha;
+    const github = kwargs.github;
+    const context = kwargs.context;
+    const core = kwargs.core;
+    const repo_data = core.getInput("repo_name").split("/");
+    const commit_sha = core.getInput("commit_sha");
     const owner = repo_data[0];
     const repo = repo_data[1];
     const check_url = `${context.serverUrl}/${context.payload.repository.full_name}/actions/runs/${context.runId}`;
-    console.log(core);
-    console.log(glob);
+    const name = kwargs.name;
+    const status = kwargs.status || "in_progress";
 
     const response = await github.rest.checks.create({
         owner,
