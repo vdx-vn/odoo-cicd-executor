@@ -12,7 +12,16 @@ async function createRunCheck({ ...kwargs }) {
     const name = kwargs.name;
     const status = kwargs.status || "in_progress";
 
-    console.log();
+    console.log(github);
+    console.log(context);
+    console.log(core);
+    console.log(repo_data);
+    console.log(commit_sha);
+    console.log(owner);
+    console.log(repo);
+    console.log(check_url);
+    console.log(name);
+    console.log(status);
 
     const response = await github.rest.checks.create({
         owner,

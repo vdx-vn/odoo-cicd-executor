@@ -71,6 +71,10 @@ env:
     SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
 
+    # ===== Handle Input for actions/github-script ======
+    INPUT_REPO_NAME: ${{inputs.repo_name}}
+    INPUT_COMMIT_SHA: ${{inputs.commit_sha}}
+
 # fixme: run check didn't show on merge commit
 #  try to add commit status or something to CI/CD flow
 
