@@ -1,5 +1,6 @@
 async function createRunCheck({ ...kwargs }) {
     // https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#create-a-check-run
+    console.log(kwargs);
     const github = kwargs.github;
     const context = kwargs.context;
     const core = kwargs.core;
