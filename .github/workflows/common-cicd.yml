@@ -251,7 +251,7 @@ jobs:
                   key: ${{ secrets.SERVER_PRIVATE_KEY }}
                   port: ${{ env.SERVER_SSH_PORT }}
                   script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SSH_PRIVATE_KEY_GITHUB }}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}"
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}"
 
             - name: The Deploy step has failed
               if: ${{ failure() }}
