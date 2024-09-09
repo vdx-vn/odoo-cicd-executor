@@ -23,7 +23,7 @@ runs:
               github-token: ${{inputs.github-token}}
               script: |
                   console.log('==================== data ================ aa ===========')
-                  const name = ${{inputs.name}}
+                  const name = "${{inputs.name}}"
 
                   const repo_data = core.getInput("repo_name").split("/");
                   const commit_sha = core.getInput("commit_sha");
