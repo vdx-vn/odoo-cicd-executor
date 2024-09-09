@@ -23,22 +23,25 @@ on:
             pr_url:
                 required: false
                 type: string
+            checkout_path:
+                required: false
+                type: string
+                default: ${{github.workspace}}/.odoo/source
 
 env:
     # Common variables
-    REPO_PATH: ${{ github.workspace }}
+    REPO_PATH: ${{inputs.checkout_path}}
     SERVER_CICD_SCRIPT_FOLDER: /tmp/odoo/cicd/${{ inputs.repo_name }}/${{inputs.target_branch}}
-    ODOO_ADDONS_PATH: ${{ github.workspace }}
-    ODOO_CONFIG_FILE: ${{ github.workspace }}/.github/odoo/etc/odoo.conf
-    DOCKER_FOLDER: ${{ github.workspace }}/.github/odoo
+    ODOO_ADDONS_PATH: ${{inputs.checkout_path}}
+    ODOO_CONFIG_FILE: ${{inputs.checkout_path}}/.github/odoo/etc/odoo.conf
+    DOCKER_FOLDER: ${{inputs.checkout_path}}/.github/odoo
     ODOO_TEST_DATABASE_NAME: odoo_test
     ODOO_LOG_FILE_CONTAINER: /var/log/odoo/odoo.log
-    ODOO_LOG_FILE_HOST: ${{ github.workspace }}/.github/odoo/logs/odoo.log
+    ODOO_LOG_FILE_HOST: ${{inputs.checkout_path}}/.github/odoo/logs/odoo.log
 
-    CICD_ODOO_OPTIONS: ${{ github.workspace }}/.github/conf/odoo.json
-    CICD_SCRIPTS_PATH: ${{ github.workspace }}/.github/scripts
-    CICD_UTILS_SCRIPTS_PATH: ${{ github.workspace }}/.github/scripts/utils.sh
-    JS_SCRIPT_PATH: /tmp/script
+    CICD_ODOO_OPTIONS: ${{inputs.checkout_path}}/.github/conf/odoo.json
+    CICD_SCRIPTS_PATH: ${{inputs.checkout_path}}/.github/scripts
+    CICD_UTILS_SCRIPTS_PATH: ${{inputs.checkout_path}}/.github/scripts/utils.sh
 
     # ==== Workflow inputs ====
     SOURCE_BRANCH: ${{ inputs.source_branch }}
@@ -87,9 +90,10 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - uses: ./.github/actions/create-check-run
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
               id: create-check-run
-              name: Create Check Run
+
               with:
                   name: "Unit test at install"
 
@@ -113,13 +117,10 @@ jobs:
               run: |
                   bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
 
-            - uses: actions/checkout@v4
-              with:
-                  path: ${{github.workspace}}/script/
-
-            - uses: ./.github/actions/update-check-run
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
               id: update-check-run
-              name: Update Check Run
               with:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                   conclusion: ${{ steps.run_at_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
