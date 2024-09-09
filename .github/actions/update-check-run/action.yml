@@ -21,7 +21,7 @@ runs:
           with:
               github-token: ${{ env.APP_ACCESS_TOKEN }}
               script: |
-                  const repo_data = inputs.repo_name.split("/");
+                  const repo_data = core.getInput("repo_name").split("/");
                   const owner = repo_data[0];
                   const repo = repo_data[1];
 
