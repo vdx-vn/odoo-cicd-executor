@@ -4,6 +4,9 @@ inputs:
     name:
         description: "Name of Check Run"
         required: true
+    job-id:
+        description: "Job ID"
+        required: true
     status:
         description: "Status of Check Run"
         default: "in_progress"
@@ -21,11 +24,12 @@ runs:
               script: |
                   const name = "${{inputs.name}}";
                   const status = "${{inputs.status}}";
+                  const job_id = "${{inputs.job-id}}";
                   const repo_data = core.getInput("repo_name").split("/");
                   const commit_sha = core.getInput("commit_sha");
                   const owner = repo_data[0];
                   const repo = repo_data[1];
-                  const check_url = `${context.serverUrl}/${context.payload.repository.full_name}/actions/runs/${context.runId}`;
+                  const check_url = `${context.serverUrl}/${context.payload.repository.full_name}/actions/runs/${context.runId}/job/${job_id}`;
 
                   const response = await github.rest.checks.create({
                       owner,

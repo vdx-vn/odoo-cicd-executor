@@ -93,9 +93,9 @@ jobs:
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
-
               with:
                   name: "Unit test at install"
+                  job_id: ${{github.job}}
 
             - name: Checkout Odoo source repository
               uses: actions/checkout@v4
