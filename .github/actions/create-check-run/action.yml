@@ -24,36 +24,36 @@ runs:
           script: |
               console.log('==================== data ================ aa ===========')
               const name = ${{inputs.name}}
-              https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#create-a-check-run
-                const repo_data = core.getInput("repo_name").split("/");
-                const commit_sha = core.getInput("commit_sha");
-                const owner = repo_data[0];
-                const repo = repo_data[1];
-                const check_url = `${context.serverUrl}/${context.payload.repository.full_name}/actions/runs/${context.runId}`;
 
-                console.log(github);
-                console.log(context);
-                console.log(core);
-                console.log(repo_data);
-                console.log(commit_sha);
-                console.log(owner);
-                console.log(repo);
-                console.log(check_url);
-                console.log(name);
-                console.log(status);
+              const repo_data = core.getInput("repo_name").split("/");
+              const commit_sha = core.getInput("commit_sha");
+              const owner = repo_data[0];
+              const repo = repo_data[1];
+              const check_url = `${context.serverUrl}/${context.payload.repository.full_name}/actions/runs/${context.runId}`;
 
-                const response = await github.rest.checks.create({
-                    owner,
-                    repo,
-                    head_sha: commit_sha,
-                    name,
-                    status,
-                    output: {
-                        title: name,
-                        summary: "",
-                        text: "",
-                    },
-                    details_url: check_url,
-                });
+              console.log(github);
+              console.log(context);
+              console.log(core);
+              console.log(repo_data);
+              console.log(commit_sha);
+              console.log(owner);
+              console.log(repo);
+              console.log(check_url);
+              console.log(name);
+              console.log(status);
 
-                return response.data.id;
+              const response = await github.rest.checks.create({
+                  owner,
+                  repo,
+                  head_sha: commit_sha,
+                  name,
+                  status,
+                  output: {
+                      title: name,
+                      summary: "",
+                      text: "",
+                  },
+                  details_url: check_url,
+              });
+
+              return response.data.id;
