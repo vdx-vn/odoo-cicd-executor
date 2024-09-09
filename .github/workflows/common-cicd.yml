@@ -86,7 +86,7 @@ jobs:
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
             - id: test-use-composite-action
-              uses: vdx-vn/cicd-composite-action
+              uses: vdx-vn/cicd-composite-action@create-check-run
               with:
                   github-token: ${{ env.APP_ACCESS_TOKEN }}
                   name: "Unit test hahahaah"
