@@ -80,6 +80,7 @@ env:
 
 # fixme: run check didn't show on merge commit
 #  try to add commit status or something to CI/CD flow
+# fixme: move cicd scripts back to executor repo
 
 jobs:
     unit-test-at-install:
@@ -95,22 +96,9 @@ jobs:
               id: create-check-run
               with:
                   name: "Unit test at install"
-                  job-id: ${{github.job}}
 
-            - name: Checkout Odoo source repository
-              uses: actions/checkout@v4
-              with:
-                  repository: ${{ env.REPOSITORY }}
-                  ssh-key: ${{ env.SSH_KEY_GITHUB }}
-                  path: ${{ env.REPO_PATH }}
-                  ref: ${{ inputs.commit_sha }}
-                  fetch-depth: 1
-
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: Test Preparation
+              uses: ./.github/actions/test-preparation
 
             - name: Run Unit test cases
               id: run_at_install_unit_test
@@ -124,18 +112,6 @@ jobs:
               with:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                   conclusion: ${{ steps.run_at_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
-
-            # - uses: actions/github-script@v7
-            #   if: ${{always()}}
-            #   with:
-            #       github-token: ${{ env.APP_ACCESS_TOKEN }}
-            #       script: |
-            #           const {default: script} = await import('${{github.workspace}}/script/.github/src/script.js')
-            #           const run_check_id = "${{steps.create-check-run.outputs.check-run-id}}"
-            #           const conclusion = "${{ steps.run_at_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}"
-
-            #           const inputs = ${{ toJSON(inputs) }}
-            #           return await script.updateRunCheck(github, inputs, run_check_id, status="completed", conclusion)
 
     # unit-test-post-install:
     #     name: ${{inputs.repo_name}} - Unit test post install

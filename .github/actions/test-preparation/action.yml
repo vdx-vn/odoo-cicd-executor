@@ -1,0 +1,18 @@
+name: "Preparation before testing"
+runs:
+    using: "composite"
+    steps:
+        - name: Checkout Odoo source repository
+          uses: actions/checkout@v4
+          with:
+              repository: ${{ env.REPOSITORY }}
+              ssh-key: ${{ env.SSH_KEY_GITHUB }}
+              path: ${{ env.REPO_PATH }}
+              ref: ${{ env.INPUT_COMMIT_SHA }}
+              fetch-depth: 1
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+              username: ${{ env.DOCKERHUB_USERNAME }}
+              password: ${{ env.DOCKERHUB_TOKEN }}
