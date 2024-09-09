@@ -85,6 +85,11 @@ jobs:
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
+            - id: test-use-composite-action
+              uses: vdx-vn/cicd-composite-action
+              with:
+                  github-token: ${{ env.APP_ACCESS_TOKEN }}
+                  name: "Unit test hahahaah"
             - uses: actions/checkout@v4
 
             # fixme : rewrite these to reusable workflow or something
