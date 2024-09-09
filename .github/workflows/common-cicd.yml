@@ -23,25 +23,25 @@ on:
             pr_url:
                 required: false
                 type: string
-            checkout_path:
+            checkout_postfix_path:
                 required: false
                 type: string
-                default: ${{github.workspace}}/.odoo/source
+                default: .odoo/source
 
 env:
     # Common variables
-    REPO_PATH: ${{inputs.checkout_path}}
+    REPO_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
     SERVER_CICD_SCRIPT_FOLDER: /tmp/odoo/cicd/${{ inputs.repo_name }}/${{inputs.target_branch}}
-    ODOO_ADDONS_PATH: ${{inputs.checkout_path}}
-    ODOO_CONFIG_FILE: ${{inputs.checkout_path}}/.github/odoo/etc/odoo.conf
-    DOCKER_FOLDER: ${{inputs.checkout_path}}/.github/odoo
+    ODOO_ADDONS_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
+    ODOO_CONFIG_FILE: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/odoo/etc/odoo.conf
+    DOCKER_FOLDER: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/odoo
     ODOO_TEST_DATABASE_NAME: odoo_test
     ODOO_LOG_FILE_CONTAINER: /var/log/odoo/odoo.log
-    ODOO_LOG_FILE_HOST: ${{inputs.checkout_path}}/.github/odoo/logs/odoo.log
+    ODOO_LOG_FILE_HOST: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/odoo/logs/odoo.log
 
-    CICD_ODOO_OPTIONS: ${{inputs.checkout_path}}/.github/conf/odoo.json
-    CICD_SCRIPTS_PATH: ${{inputs.checkout_path}}/.github/scripts
-    CICD_UTILS_SCRIPTS_PATH: ${{inputs.checkout_path}}/.github/scripts/utils.sh
+    CICD_ODOO_OPTIONS: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/conf/odoo.json
+    CICD_SCRIPTS_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/scripts
+    CICD_UTILS_SCRIPTS_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/scripts/utils.sh
 
     # ==== Workflow inputs ====
     SOURCE_BRANCH: ${{ inputs.source_branch }}
