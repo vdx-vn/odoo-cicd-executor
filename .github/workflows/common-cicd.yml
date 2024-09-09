@@ -26,22 +26,22 @@ on:
             checkout_postfix_path:
                 required: false
                 type: string
-                default: .odoo/source
+                default: odoo/addons
 
 env:
     # Common variables
     REPO_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
     SERVER_CICD_SCRIPT_FOLDER: /tmp/odoo/cicd/${{ inputs.repo_name }}/${{inputs.target_branch}}
     ODOO_ADDONS_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
-    ODOO_CONFIG_FILE: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/odoo/etc/odoo.conf
-    DOCKER_FOLDER: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/odoo
+
+    ODOO_CONFIG_FILE: ${{github.workspace}}/.github/odoo/etc/odoo.conf
+    DOCKER_FOLDER: ${{github.workspace}}/.github/odoo
     ODOO_TEST_DATABASE_NAME: odoo_test
     ODOO_LOG_FILE_CONTAINER: /var/log/odoo/odoo.log
-    ODOO_LOG_FILE_HOST: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/odoo/logs/odoo.log
-
-    CICD_ODOO_OPTIONS: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/conf/odoo.json
-    CICD_SCRIPTS_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/scripts
-    CICD_UTILS_SCRIPTS_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}/.github/scripts/utils.sh
+    ODOO_LOG_FILE_HOST: ${{github.workspace}}/.github/odoo/logs/odoo.log
+    CICD_ODOO_OPTIONS: ${{github.workspace}}/.github/conf/odoo.json
+    CICD_SCRIPTS_PATH: ${{github.workspace}}/.github/scripts
+    CICD_UTILS_SCRIPTS_PATH: ${{github.workspace}}/.github/scripts/utils.sh
 
     # ==== Workflow inputs ====
     SOURCE_BRANCH: ${{ inputs.source_branch }}
@@ -62,7 +62,7 @@ env:
     TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
     SERVER_PRIVATE_KEY: ${{secrets.SERVER_PRIVATE_KEY}}
     SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
-    PRIVATE_KEY_FOR_GITHUB_AUTHEN: ${{secrets.PRIVATE_KEY_FOR_GITHUB_AUTHEN}}
+    # PRIVATE_KEY_FOR_GITHUB_AUTHEN: ${{secrets.PRIVATE_KEY_FOR_GITHUB_AUTHEN}}
 
     # ===== Environment variables =====
     ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
