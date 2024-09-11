@@ -1,0 +1,33 @@
+name: "SCP through SSH"
+# fixme: finish scp action here
+inputs:
+    direction:
+        description: "download/upload"
+        required: true
+        default: "download"
+    host
+    port
+    ssh_key_text:
+        description: "SSH private key text"
+        required: true
+runs:
+    using: "composite"
+    steps:
+        - name: "Upload backup script file to server"
+          uses: appleboy/scp-action@v0.1.7
+          with:
+              host: ${{ env.SERVER_HOST }}
+              username: ${{ env.SERVER_USER }}
+              key: ${{ secrets.SERVER_PRIVATE_KEY }}
+              port: ${{ env.SERVER_SSH_PORT }}
+              source: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
+              target: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
+              strip_components: 4
+
+        - name: "Download backup file"
+          env:
+              ssh_key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          run: |
+              keyfile_path=${{ github.workspace }}/$(date +%s)_key
+              bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$ssh_key" "$keyfile_path"
+              scp -o StrictHostKeyChecking=no -P ${{ env.SERVER_SSH_PORT }} -i $keyfile_path ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_LATEST_BACKUP_FILE_PATH }} ${{ env.LOCAL_BACKUP_FILE_PATH }}
