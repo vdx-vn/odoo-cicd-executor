@@ -22,20 +22,18 @@ inputs:
 runs:
     using: "composite"
     steps:
-        - name: "Upload backup script file to server"
-          uses: appleboy/scp-action@v0.1.7
-          with:
-              host: ${{ env.SERVER_HOST }}
-              username: ${{ env.SERVER_USER }}
-              key: ${{ secrets.SERVER_PRIVATE_KEY }}
-              port: ${{ env.SERVER_SSH_PORT }}
-              source: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
-              target: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-              strip_components: 4
+        # - name: "Upload backup script file to server"
+        #   uses: appleboy/scp-action@v0.1.7
+        #   with:
+        #       host: ${{ env.SERVER_HOST }}
+        #       username: ${{ env.SERVER_USER }}
+        #       key: ${{ secrets.SERVER_PRIVATE_KEY }}
+        #       port: ${{ env.SERVER_SSH_PORT }}
+        #       source: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
+        #       target: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
+        #       strip_components: 4
 
         - name: "Download backup file"
-          env:
-              ssh_key: ${{ secrets.SERVER_PRIVATE_KEY }}
           run: |
               function create_private_keyfile_from_content() {
                 content="$1"
@@ -51,4 +49,10 @@ runs:
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path"
 
-              scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }}:${{ env.SERVER_LATEST_BACKUP_FILE_PATH }} ${{ env.LOCAL_BACKUP_FILE_PATH }}
+              if [[ ${{ inputs.direction }} == "download" ]]; then
+                scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }} ${{ inputs.local_file }}
+              else
+                scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
+              fi
+
+          #   scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }}:${{ env.SERVER_LATEST_BACKUP_FILE_PATH }} ${{ env.LOCAL_BACKUP_FILE_PATH }}
