@@ -168,7 +168,7 @@ jobs:
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
 
-            - name: test scp action
+            - name: Upload backup script file to server
               uses: ./.github/actions/scp-ssh
               with:
                   direction: "upload"
@@ -178,31 +178,6 @@ jobs:
                   local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-
-            - name: test download action
-              uses: ./.github/actions/scp-ssh
-              with:
-                  direction: "download"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  local_file: ${{github.workspace}}/hehahi.rs
-                  server_file: /tmp/get-me.rs
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-            - name: check file content
-              run: |
-                  cat ${{github.workspace}}/hehahi.rs
-
-            # - name: "Upload backup script file to server"
-            #   uses: appleboy/scp-action@v0.1.7
-            #   with:
-            #       host: ${{ env.SERVER_HOST }}
-            #       username: ${{ env.SERVER_USER }}
-            #       key: ${{ secrets.SERVER_PRIVATE_KEY }}
-            #       port: ${{ env.SERVER_SSH_PORT }}
-            #       source: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
-            #       target: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-            #       strip_components: 4
 
             # - name: "Backup Odoo on server"
             #   uses: appleboy/ssh-action@v1.0.0

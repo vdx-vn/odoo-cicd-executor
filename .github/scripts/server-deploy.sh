@@ -77,6 +77,7 @@ reset_config_file() {
     sed '/^$/N;/^\n$/D' $server_config_file >temp && mv temp $server_config_file
     cd "${server_docker_compose_path}"
     docker compose restart
+    docker volume prune -f
 }
 
 update_odoo_services() {
