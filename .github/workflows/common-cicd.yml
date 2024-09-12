@@ -82,6 +82,7 @@ env:
 #  try to add commit status or something to CI/CD flow
 #fixme: try replace all ssh and scp action with raw bash command
 
+# fixme: replace docker hub with github registry
 jobs:
     # unit-test-at-install:
     #     name: ${{inputs.repo_name}} - Unit test at install
