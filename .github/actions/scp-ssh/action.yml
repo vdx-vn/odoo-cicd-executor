@@ -5,8 +5,17 @@ inputs:
         description: "download/upload"
         required: true
         default: "download"
-    host
-    port
+    host:
+        required: true
+    port:
+        required: true
+        default: 22
+    user:
+        required: true
+    local_file:
+        required: true
+    server_file:
+        required: true
     ssh_key_text:
         description: "SSH private key text"
         required: true
@@ -28,6 +37,18 @@ runs:
           env:
               ssh_key: ${{ secrets.SERVER_PRIVATE_KEY }}
           run: |
+              function create_private_keyfile_from_content() {
+                content="$1"
+                key_file_path="$2"
+                mkdir -p $(dirname $key_file_path)
+                touch $key_file_path && chmod 600 $key_file_path
+                >$key_file_path
+                echo "$content" >>$key_file_path
+                echo $key_file_path
+              }          
+
               keyfile_path=${{ github.workspace }}/$(date +%s)_key
-              bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$ssh_key" "$keyfile_path"
-              scp -o StrictHostKeyChecking=no -P ${{ env.SERVER_SSH_PORT }} -i $keyfile_path ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_LATEST_BACKUP_FILE_PATH }} ${{ env.LOCAL_BACKUP_FILE_PATH }}
+
+              create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path"
+
+              scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }}:${{ env.SERVER_LATEST_BACKUP_FILE_PATH }} ${{ env.LOCAL_BACKUP_FILE_PATH }}
