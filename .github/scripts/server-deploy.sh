@@ -62,6 +62,7 @@ pull_latest_code() {
 }
 
 set_list_addons() {
+    # fixme: get changed addons list from git diff
     declare -g CUSTOM_ADDONS
     CUSTOM_ADDONS=$(get_list_addons "$server_custom_addons_path")
 }

@@ -11,8 +11,9 @@ inputs:
         description: "SSH private key text"
         required: true
     script:
+        description: "Bash script to execute"
         required: true
-# fixme: finish this action
+
 runs:
     using: "composite"
     steps:
@@ -33,8 +34,4 @@ runs:
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path"
 
-              if [[ ${{ inputs.direction }} == "download" ]]; then
-                scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }} ${{ inputs.local_file }}
-              else
-                scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
-              fi
+              ssh -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} ${{ inputs.script }}

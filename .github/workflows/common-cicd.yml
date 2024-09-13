@@ -180,6 +180,27 @@ jobs:
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
 
+            - name: test create file
+              uses: ./.github/actions/ssh-script
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  script: |
+                      touch /tmp/kakaa.txt
+                      echo "chu choa " > /tmp/kakaa.txt
+
+            - name: execute script
+              uses: ./.github/actions/ssh-script
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  script: |
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
+
             # - name: "Backup Odoo on server"
             #   uses: appleboy/ssh-action@v1.0.0
             #   with:
