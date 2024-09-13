@@ -32,7 +32,8 @@ get_config_value() {
 }
 
 function update_config_file_after_restoration {
-    custom_addons=$(get_effect_addons_name "$ODOO_ADDONS_PATH" "$commit_hash")
+
+    custom_addons=$(get_effect_addons_name "$ " "$commit_hash")
     tagged_custom_addons=$(echo $custom_addons | sed "s/,/,\//g" | sed "s/^/\//")
     echo "hey hey "
     echo $custom_addons

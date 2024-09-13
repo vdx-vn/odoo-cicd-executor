@@ -180,18 +180,7 @@ jobs:
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
 
-            - name: test create file
-              uses: ./.github/actions/ssh-script
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  script: |
-                      touch /tmp/kakaa.txt
-                      echo "chu choa " > /tmp/kakaa.txt
-
-            - name: execute script
+            - name: "Backup Odoo on server"
               uses: ./.github/actions/ssh-script
               with:
                   host: ${{env.SERVER_HOST}}
@@ -201,37 +190,29 @@ jobs:
                   script: |
                       bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
 
-            # - name: "Backup Odoo on server"
-            #   uses: appleboy/ssh-action@v1.0.0
-            #   with:
-            #       host: ${{ env.SERVER_HOST }}
-            #       username: ${{ env.SERVER_USER }}
-            #       key: ${{ secrets.SERVER_PRIVATE_KEY }}
-            #       port: ${{ env.SERVER_SSH_PORT }}
-            #       command_timeout: 30m
-            #       script: |
-            #           bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
-
-            # - name: "Download backup file"
-            #   env:
-            #       ssh_key: ${{ secrets.SERVER_PRIVATE_KEY }}
-            #   run: |
-            #       keyfile_path=${{ github.workspace }}/$(date +%s)_key
-            #       bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$ssh_key" "$keyfile_path"
-            #       scp -o StrictHostKeyChecking=no -P ${{ env.SERVER_SSH_PORT }} -i $keyfile_path ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_LATEST_BACKUP_FILE_PATH }} ${{ env.LOCAL_BACKUP_FILE_PATH }}
+            - name: "Download backup file"
+              uses: ./.github/actions/scp-ssh
+              with:
+                  direction: "download"
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
+                  server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
 
             - name: "Run Integration test"
               id: run_integration_test
               run: |
                   bash $CICD_SCRIPTS_PATH/run-integration-test.sh ${{env.LOCAL_BACKUP_FILE_PATH}} ${{inputs.commit_sha}}
 
-            # - name: Update Check Run
-            #   uses: ./.github/actions/update-check-run
-            #   if: ${{always()}}
-            #   id: update-check-run
-            #   with:
-            #       check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-            #       conclusion: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
 
     # deploy-server:
     #     name: ${{inputs.repo_name}} - Deploy server
