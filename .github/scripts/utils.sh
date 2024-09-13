@@ -31,6 +31,17 @@ function get_list_addons {
     echo $addons
 }
 
+function get_effect_addons_name {
+    # get addons name from changed files to update only these addons
+    # instead of update all addons
+    addons_path=$1
+    commit_hash=$2
+    cd $addons_path
+    changed_files=$(git show --name-only --pretty="" "$commit_hash")
+    addons_name=$(echo "$changed_files" | awk -F/ '{if ($1 !~ /^\./) print $1}' | sort -u | paste -sd ',' -)
+    echo $addons_name
+}
+
 function get_list_addons_filtered_by_config_option {
     addons_path=$1
     option_name=$2

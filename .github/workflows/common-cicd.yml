@@ -220,10 +220,10 @@ jobs:
             #       bash ${{ env.CICD_UTILS_SCRIPTS_PATH }} exec create_private_keyfile_from_content "$ssh_key" "$keyfile_path"
             #       scp -o StrictHostKeyChecking=no -P ${{ env.SERVER_SSH_PORT }} -i $keyfile_path ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_LATEST_BACKUP_FILE_PATH }} ${{ env.LOCAL_BACKUP_FILE_PATH }}
 
-            # - name: "Run Integration test"
-            #   id: run_integration_test
-            #   run: |
-            #       bash $CICD_SCRIPTS_PATH/run-integration-test.sh ${{env.LOCAL_BACKUP_FILE_PATH}}
+            - name: "Run Integration test"
+              id: run_integration_test
+              run: |
+                  bash $CICD_SCRIPTS_PATH/run-integration-test.sh ${{env.LOCAL_BACKUP_FILE_PATH}} ${{inputs.commit_sha}}
 
             # - name: Update Check Run
             #   uses: ./.github/actions/update-check-run
