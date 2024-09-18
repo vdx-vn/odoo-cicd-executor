@@ -204,7 +204,7 @@ jobs:
             - name: "Run Integration test"
               id: run_integration_test
               run: |
-                  ls -lah env.LOCAL_BACKUP_FILE_PATH
+                  ls -lah ${{env.LOCAL_BACKUP_FILE_PATH}}
                   bash $CICD_SCRIPTS_PATH/run-integration-test.sh ${{env.LOCAL_BACKUP_FILE_PATH}} ${{inputs.commit_sha}}
 
             - name: Update Check Run
