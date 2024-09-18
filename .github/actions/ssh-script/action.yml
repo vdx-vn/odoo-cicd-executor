@@ -34,6 +34,6 @@ runs:
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path" > /dev/null
 
-              ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} << EOF > /dev/null
+              ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} << EOF
                 ${{ inputs.script }}
               EOF
