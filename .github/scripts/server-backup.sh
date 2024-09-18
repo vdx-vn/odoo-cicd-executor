@@ -16,7 +16,9 @@ main() {
     echo $db_port
     echo $data_dir
     check_required_files
+    echo "execute create backup"
     backup_file_path=$(create_backup_inside_container)
+    echo "copy backup"
     copy_backup_to_host $backup_file_path
     delete_old_backup_files
 }
@@ -143,6 +145,7 @@ copy_backup_to_host() {
     rm -rf ${backup_folder}/*
     docker cp $odoo_container_id:$backup_file_path $backup_folder
     cp $backup_file_path $latest_backup_file_path
+    echo $latest_backup_file_path
 }
 
 get_latest_backup_tar_file() {
