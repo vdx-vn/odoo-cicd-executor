@@ -180,26 +180,26 @@ jobs:
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
 
-            - name: "Backup Odoo on server"
-              uses: ./.github/actions/ssh-script
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
+            # - name: "Backup Odoo on server"
+            #   uses: ./.github/actions/ssh-script
+            #   with:
+            #       host: ${{env.SERVER_HOST}}
+            #       port: ${{env.SERVER_SSH_PORT}}
+            #       user: ${{env.SERVER_USER}}
+            #       ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+            #       script: |
+            #           bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
 
-            - name: "Download backup file"
-              uses: ./.github/actions/scp-ssh
-              with:
-                  direction: "download"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
-                  server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+            # - name: "Download backup file"
+            #   uses: ./.github/actions/scp-ssh
+            #   with:
+            #       direction: "download"
+            #       host: ${{env.SERVER_HOST}}
+            #       port: ${{env.SERVER_SSH_PORT}}
+            #       user: ${{env.SERVER_USER}}
+            #       local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
+            #       server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
+            #       ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
 
             - name: "Run Integration test"
               id: run_integration_test
