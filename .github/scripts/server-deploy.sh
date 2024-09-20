@@ -102,8 +102,8 @@ pull_latest_code() {
 set_list_addons() {
     declare -g CUSTOM_ADDONS
     CUSTOM_ADDONS=$(get_list_changed_addons "$server_custom_addons_path" "$commit_sha")
-    # fixme: remove it
-    echo 'hey hey addon update server' $CUSTOM_ADDONS
+    # fixme
+    echo 'update server here' $CUSTOM_ADDONS
 }
 
 update_config_file() {
