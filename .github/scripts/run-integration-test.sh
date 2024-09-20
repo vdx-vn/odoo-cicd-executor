@@ -1,6 +1,8 @@
 #!/bin/bash
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
+main "$@"
+
 populate_variables() {
 
     declare -g received_backup_file_path=$1
@@ -106,7 +108,8 @@ restore_backup() {
     restart_instance
 }
 
-main() {
+function main() {
+    echo "variable here =====>>"
     echo "$@"
     populate_variables "$@"
     # fixme: remove echo
@@ -133,5 +136,3 @@ EOF
     )
     analyze_log_file "$failed_message"
 }
-
-main "$@"
