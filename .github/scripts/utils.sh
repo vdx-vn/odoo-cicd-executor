@@ -239,6 +239,9 @@ function send_message_telegram_default {
 }
 # ------------------ Telegram functions -------------------------
 
+# fixme
+echo "params at utils ...???" "$@"
+
 if [ $# -gt 0 ]; then
     is_exec_command=$1
     function_name=$2
