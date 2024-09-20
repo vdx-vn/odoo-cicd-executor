@@ -1,8 +1,6 @@
 #!/bin/bash
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
-main "$@"
-
 populate_variables() {
 
     declare -g received_backup_file_path=$1
@@ -136,3 +134,5 @@ EOF
     )
     analyze_log_file "$failed_message"
 }
+
+main "$@"

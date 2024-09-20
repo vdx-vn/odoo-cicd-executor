@@ -6,19 +6,8 @@
 
 main() {
     populate_variables "$@"
-    echo $docker_compose_path
-    echo $db_name
-    echo $db_password
-    echo $odoo_image_tag
-    echo $job_attempt_number
-    echo $backup_folder
-    echo $db_host
-    echo $db_port
-    echo $data_dir
     check_required_files
-    echo "execute create backup"
     backup_file_path=$(create_backup_inside_container)
-    echo "copy backup"
     copy_backup_to_host $backup_file_path
     delete_old_backup_files
 }
