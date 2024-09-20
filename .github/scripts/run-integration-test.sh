@@ -31,14 +31,8 @@ get_config_value() {
 }
 
 function update_config_file_after_restoration {
-
     custom_addons=$(get_effect_addons_name "$ODOO_ADDONS_PATH" "$commit_hash")
     tagged_custom_addons=$(echo $custom_addons | sed "s/,/,\//g" | sed "s/^/\//")
-    # fixme: remove echo
-    echo "hey hey "
-    echo $custom_addons
-    echo $tagged_custom_addons
-    echo "hey hey "
     sed -i "s/^\s*command\s*.*//g" $ODOO_CONFIG_FILE
     echo -en "\ncommand = \
     --stop-after-init \
@@ -52,16 +46,7 @@ function update_config_file_after_restoration {
 }
 
 copy_backup() {
-    # fixme: remove echo
-    echo 'starting copy file'
     odoo_container_id=$(get_odoo_container_id)
-    echo 'container id'
-    echo $ODOO_IMAGE_TAG
-    echo $odoo_container_id
-    echo 'backup file'
-    echo $received_backup_file_path
-    echo 'backup file'
-
     received_backup_file_name=$(basename $received_backup_file_path)
     docker_odoo_exec "mkdir -p $odoo_container_store_backup_folder"
     docker cp "$received_backup_file_path" $odoo_container_id:$odoo_container_store_backup_folder
@@ -107,20 +92,7 @@ restore_backup() {
 }
 
 function main() {
-    echo "variable here =====>>"
-    echo "$@"
     populate_variables "$@"
-    # fixme: remove echo
-    echo $received_backup_file_path
-    echo $commit_hash
-    echo $odoo_container_store_backup_folder
-    echo $extracted_backup_folder_name
-    echo $db_host
-    echo $db_port
-    echo $db_user
-    echo $db_password
-    echo $data_dir
-    # fixme:
     update_config_file
     start_containers
     restore_backup
@@ -135,5 +107,4 @@ EOF
     analyze_log_file "$failed_message"
 }
 
-echo "varialbe at main" "$@"
 main "$@"
