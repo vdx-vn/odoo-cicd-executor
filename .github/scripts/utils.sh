@@ -240,15 +240,15 @@ function send_message_telegram_default {
 # ------------------ Telegram functions -------------------------
 
 # fixme
-echo "params at utils ...???" "$@"
+# echo "params at utils ...???" "$@"
 
-if [ $# -gt 0 ]; then
-    is_exec_command=$1
-    function_name=$2
-    shift 2
-    if declare -f "$function_name" >/dev/null; then
-        if [ $is_exec_command == "exec" ]; then
-            "$function_name" "$@"
-        fi
-    fi
-fi
+# if [ $# -gt 0 ]; then
+#     is_exec_command=$1
+#     function_name=$2
+#     shift 2
+#     if declare -f "$function_name" >/dev/null; then
+#         if [ $is_exec_command == "exec" ]; then
+#             "$function_name" "$@"
+#         fi
+#     fi
+# fi
