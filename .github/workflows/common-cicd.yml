@@ -80,7 +80,6 @@ env:
 
 # fixme: run check didn't show on merge commit
 #  try to add commit status or something to CI/CD flow
-#fixme: try replace all ssh and scp action with raw bash command
 
 # fixme: replace docker hub with github registry because docker hub has limit to 200 pull requests per 6 hours
 jobs:
@@ -147,8 +146,7 @@ jobs:
     integration-test:
         name: ${{inputs.repo_name}} - Integration test
         runs-on: ubuntu-latest
-        # fixme: uncomment if
-        # if: inputs.action == 'deploy'
+        if: inputs.action == 'deploy'
 
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
