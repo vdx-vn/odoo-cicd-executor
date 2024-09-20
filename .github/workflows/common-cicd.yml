@@ -205,8 +205,7 @@ jobs:
               id: run_integration_test
               run: |
                   ls -lah ${{env.LOCAL_BACKUP_FILE_PATH}}
-                  cat $CICD_SCRIPTS_PATH/run-integration-test.sh
-                  bash $CICD_SCRIPTS_PATH/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}"
+                  bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}"
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
