@@ -107,7 +107,7 @@ restore_backup() {
 }
 
 main() {
-    populate_variables $@
+    populate_variables "$@"
     # fixme: remove echo
     echo $received_backup_file_path
     echo $commit_hash
