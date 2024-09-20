@@ -41,6 +41,7 @@ function update_config_file_after_restoration {
     --logfile $ODOO_LOG_FILE_CONTAINER \
     --log-level error \
     --update $custom_addons \
+    --init $custom_addons \
     --test-tags ${tagged_custom_addons}\n" >>$ODOO_CONFIG_FILE
 }
 
