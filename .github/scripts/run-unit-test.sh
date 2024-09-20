@@ -54,8 +54,6 @@ function update_config_file {
 function main() {
     show_separator "Start analyzing log file"
     populate_variables "$@"
-    echo $test_type
-    echo $type_message
     set_list_addons
     update_config_file
     start_containers

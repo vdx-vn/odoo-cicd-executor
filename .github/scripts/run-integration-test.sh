@@ -31,7 +31,7 @@ get_config_value() {
 }
 
 function update_config_file_after_restoration {
-    custom_addons=$(get_effect_addons_name "$ODOO_ADDONS_PATH" "$commit_hash")
+    custom_addons=$(get_list_changed_addons "$ODOO_ADDONS_PATH" "$commit_hash")
     tagged_custom_addons=$(echo $custom_addons | sed "s/,/,\//g" | sed "s/^/\//")
     sed -i "s/^\s*command\s*.*//g" $ODOO_CONFIG_FILE
     echo -en "\ncommand = \
@@ -41,7 +41,6 @@ function update_config_file_after_restoration {
     --logfile $ODOO_LOG_FILE_CONTAINER \
     --log-level error \
     --update $custom_addons \
-    --init $install_addons \
     --test-tags ${tagged_custom_addons}\n" >>$ODOO_CONFIG_FILE
 }
 

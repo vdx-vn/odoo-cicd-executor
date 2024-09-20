@@ -14,6 +14,15 @@ function get_config_value {
     fi
     echo "$value"
 }
+function get_changed_files_and_folders_addons_name {
+    # Retrieve the names of files and folders that have been changed in the specified commit
+    addons_path=$1
+    commit_hash=$2
+    cd $addons_path
+    changed_files=$(git show --name-only --pretty="" "$commit_hash")
+    changed_folders_and_files=$(echo "$changed_files" | awk -F/ '{if ($1 !~ /^\./) print $1}' | sort -u | paste -sd ',' -)
+    echo $changed_folders_and_files
+}
 
 function get_list_addons {
     addons_path=$1
@@ -31,15 +40,31 @@ function get_list_addons {
     echo $addons
 }
 
-function get_effect_addons_name {
-    # get addons name from changed files to update only these addons
-    # instead of update all addons
+function get_list_changed_addons {
     addons_path=$1
     commit_hash=$2
-    cd $addons_path
-    changed_files=$(git show --name-only --pretty="" "$commit_hash")
-    addons_name=$(echo "$changed_files" | awk -F/ '{if ($1 !~ /^\./) print $1}' | sort -u | paste -sd ',' -)
-    echo $addons_name
+    changed_files_folders=$(get_changed_files_and_folders_addons_name ${addons_path} ${commit_hash})
+    list_addons_name=$(get_list_addons ${addons_path})
+
+    IFS=',' read -r -a array1 <<<"$changed_files_folders"
+    IFS=',' read -r -a array2 <<<"$list_addons_name"
+
+    # Find common folder name and join them by commas
+    common_folders=""
+
+    for folder1 in "${array1[@]}"; do
+        for folder2 in "${array2[@]}"; do
+            if [[ "$folder1" == "$folder2" ]]; then
+                if [[ -z "$common_folders" ]]; then
+                    common_folders="$folder1"
+                else
+                    common_folders="$common_folders,$folder1"
+                fi
+            fi
+        done
+    done
+
+    echo $common_folders
 }
 
 function get_list_addons_filtered_by_config_option {
