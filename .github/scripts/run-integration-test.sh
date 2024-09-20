@@ -107,6 +107,7 @@ restore_backup() {
 }
 
 main() {
+    echo "$@"
     populate_variables "$@"
     # fixme: remove echo
     echo $received_backup_file_path
