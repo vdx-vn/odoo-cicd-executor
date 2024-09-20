@@ -2,19 +2,18 @@
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
 populate_variables() {
+
     declare -g received_backup_file_path=$1
     declare -g commit_hash=$2
     declare -g odoo_container_store_backup_folder="/tmp/odoo/restore"
-    declare -g extracted_backup_folder_name=odoo
+    declare -g extracted_backup_folder_name="odoo"
 
-    declare -g db_host=$(get_config_value "db_host")
-    declare -g db_host=${db_host:-'db'}
-    declare -g db_port=$(get_config_value "db_port")
-    declare -g db_port=${db_port:-'5432'}
+    # Fetch config values with fallback to default if not set
+    declare -g db_host=$(get_config_value "db_host" || echo 'db')
+    declare -g db_port=$(get_config_value "db_port" || echo '5432')
     declare -g db_user=$(get_config_value "db_user")
     declare -g db_password=$(get_config_value "db_password")
-    declare -g data_dir=$(get_config_value "data_dir")
-    declare -g data_dir=${data_dir:-'/var/lib/odoo'}
+    declare -g data_dir=$(get_config_value "data_dir" || echo '/var/lib/odoo')
 }
 
 function update_config_file {
@@ -110,7 +109,6 @@ restore_backup() {
 main() {
     populate_variables $@
     update_config_file
-    # fixme: uncomment  lines
     start_containers
     restore_backup
     wait_until_odoo_shutdown
