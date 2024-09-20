@@ -111,7 +111,7 @@ main() {
     populate_variables $@
     update_config_file
     # fixme: uncomment  lines
-    # start_containers
+    start_containers
     restore_backup
     wait_until_odoo_shutdown
 
