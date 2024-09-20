@@ -11,8 +11,8 @@ populate_variables() {
     # Fetch config values with fallback to default if not set
     declare -g db_host=$(get_config_value "db_host" || echo 'db')
     declare -g db_port=$(get_config_value "db_port" || echo '5432')
-    declare -g db_user=$(get_config_value "db_user")
-    declare -g db_password=$(get_config_value "db_password")
+    declare -g db_user=$(get_config_value "db_user" || echo 'odoo')
+    declare -g db_password=$(get_config_value "db_password" || echo 'odoo')
     declare -g data_dir=$(get_config_value "data_dir" || echo '/var/lib/odoo')
 }
 
@@ -108,6 +108,17 @@ restore_backup() {
 
 main() {
     populate_variables $@
+    # fixme: remove echo
+    echo $received_backup_file_path
+    echo $commit_hash
+    echo $odoo_container_store_backup_folder
+    echo $extracted_backup_folder_name
+    echo $db_host
+    echo $db_port
+    echo $db_user
+    echo $db_password
+    echo $data_dir
+    # fixme:
     update_config_file
     start_containers
     restore_backup
