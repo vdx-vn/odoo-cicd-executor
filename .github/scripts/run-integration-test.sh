@@ -135,4 +135,5 @@ EOF
     analyze_log_file "$failed_message"
 }
 
+echo "varialbe at main" "$@"
 main "$@"
