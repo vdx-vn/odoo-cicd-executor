@@ -1,5 +1,5 @@
 #!/bin/bash
-# source "${CICD_UTILS_SCRIPTS_PATH}"
+source "${CICD_UTILS_SCRIPTS_PATH}"
 
 populate_variables() {
 
