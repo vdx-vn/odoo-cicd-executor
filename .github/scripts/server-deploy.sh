@@ -4,6 +4,7 @@ server_custom_addons_path=$2  # the absolute path to source code, also the git r
 server_config_file=$3         # the path to Odoo config file
 server_odoo_url=$4            # odoo service url, to check service is up or not
 server_odoo_db_name=$5
+commit_sha=$6
 
 original_repo_remote_name="origin"
 CUSTOM_ADDONS=

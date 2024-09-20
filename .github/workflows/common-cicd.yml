@@ -84,65 +84,65 @@ env:
 
 # fixme: replace docker hub with github registry because docker hub has limit to 200 pull requests per 6 hours
 jobs:
-    # unit-test-at-install:
-    #     name: ${{inputs.repo_name}} - Unit test at install
-    #     runs-on: ubuntu-latest
-    #     environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-    #     if: inputs.action == 'test' || inputs.action == 'deploy'
-    #     steps:
-    #         - uses: actions/checkout@v4
+    unit-test-at-install:
+        name: ${{inputs.repo_name}} - Unit test at install
+        runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        if: inputs.action == 'test' || inputs.action == 'deploy'
+        steps:
+            - uses: actions/checkout@v4
 
-    #         - name: Create Check Run
-    #           uses: ./.github/actions/create-check-run
-    #           id: create-check-run
-    #           with:
-    #               name: "Unit test at install"
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
+              id: create-check-run
+              with:
+                  name: "Unit test at install"
 
-    #         - name: Test Preparation
-    #           uses: ./.github/actions/test-preparation
+            - name: Test Preparation
+              uses: ./.github/actions/test-preparation
 
-    #         - name: Run Unit test cases
-    #           id: run_at_install_unit_test
-    #           run: |
-    #               bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
+            - name: Run Unit test cases
+              id: run_at_install_unit_test
+              run: |
+                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
 
-    #         - name: Update Check Run
-    #           uses: ./.github/actions/update-check-run
-    #           if: ${{always()}}
-    #           id: update-check-run
-    #           with:
-    #               check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-    #               conclusion: ${{ steps.run_at_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: ${{ steps.run_at_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
 
-    # unit-test-post-install:
-    #     name: ${{inputs.repo_name}} - Unit test post install
-    #     runs-on: ubuntu-latest
-    #     environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-    #     if: inputs.action == 'test' || inputs.action == 'deploy'
-    #     steps:
-    #         - uses: actions/checkout@v4
+    unit-test-post-install:
+        name: ${{inputs.repo_name}} - Unit test post install
+        runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        if: inputs.action == 'test' || inputs.action == 'deploy'
+        steps:
+            - uses: actions/checkout@v4
 
-    #         - name: Create Check Run
-    #           uses: ./.github/actions/create-check-run
-    #           id: create-check-run
-    #           with:
-    #               name: "Unit test post install"
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
+              id: create-check-run
+              with:
+                  name: "Unit test post install"
 
-    #         - name: Test Preparation
-    #           uses: ./.github/actions/test-preparation
+            - name: Test Preparation
+              uses: ./.github/actions/test-preparation
 
-    #         - name: Run Unit test cases
-    #           id: run_post_install_unit_test
-    #           run: |
-    #               bash $CICD_SCRIPTS_PATH/run-unit-test.sh "post_install"
+            - name: Run Unit test cases
+              id: run_post_install_unit_test
+              run: |
+                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "post_install"
 
-    #         - name: Update Check Run
-    #           uses: ./.github/actions/update-check-run
-    #           if: ${{always()}}
-    #           id: update-check-run
-    #           with:
-    #               check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-    #               conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
 
     integration-test:
         name: ${{inputs.repo_name}} - Integration test
@@ -214,64 +214,60 @@ jobs:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                   conclusion: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
 
-    # deploy-server:
-    #     name: ${{inputs.repo_name}} - Deploy server
-    #     runs-on: ubuntu-latest
-    #     environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-    #     needs: [unit-test-at-install, unit-test-post-install, integration-test]
-    #     env:
-    #         SERVER_DEPLOY_SCRIPT_PATH: /tmp/odoo/cicd/${{inputs.repo_name}}/${{inputs.target_branch}}/deploy.sh
-    #         SSH_PRIVATE_KEY_GITHUB: /tmp/odoo/cicd/${{inputs.repo_name}}/${{inputs.target_branch}}/github_privatekey
-    #         commit_context: CI/CD - Deploy to Server
-    #     steps:
-    #         - uses: actions/checkout@v4
+    deploy-server:
+        name: ${{inputs.repo_name}} - Deploy server
+        runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        needs: [unit-test-at-install, unit-test-post-install, integration-test]
+        steps:
+            - uses: actions/checkout@v4
 
-    #         - name: Create Check Run
-    #           uses: ./.github/actions/create-check-run
-    #           id: create-check-run
-    #           with:
-    #               name: "Deploy to Server"
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
+              id: create-check-run
+              with:
+                  name: "Deploy to Server"
 
-    #         - name: "Upload deploy script file to server"
-    #           uses: appleboy/scp-action@v0.1.7
-    #           with:
-    #               host: ${{ env.SERVER_HOST }}
-    #               username: ${{ env.SERVER_USER }}
-    #               key: ${{ secrets.SERVER_PRIVATE_KEY }}
-    #               port: ${{ env.SERVER_SSH_PORT }}
-    #               source: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
-    #               target: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-    #               strip_components: 4
+            - name: "Upload deploy script file to server"
+              uses: ./.github/actions/scp-ssh
+              with:
+                  direction: "upload"
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
+                  server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
 
-    #         - name: "Deploy to server"
-    #           id: deploy_to_server
-    #           uses: appleboy/ssh-action@v1.0.0
-    #           env:
-    #               SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
-    #               SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
-    #               SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
-    #           with:
-    #               host: ${{ env.SERVER_HOST }}
-    #               username: ${{ env.SERVER_USER }}
-    #               key: ${{ secrets.SERVER_PRIVATE_KEY }}
-    #               port: ${{ env.SERVER_SSH_PORT }}
-    #               script: |
-    #                   bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}"
+            - name: "Deploy to server"
+              uses: ./.github/actions/ssh-script
+              id: deploy_to_server
+              env:
+                  SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
+                  SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
+                  SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  script: |
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{inputs.commit_sha}}"
 
-    #         - name: The Deploy step has failed
-    #           if: ${{ failure() }}
-    #           run: |
-    #               bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "failed"
+            - name: The Deploy step has failed
+              if: ${{ failure() }}
+              run: |
+                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "failed"
 
-    #         - name: The Deploy step has successful
-    #           if: ${{ success() }}
-    #           run: |
-    #               bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "success"
+            - name: The Deploy step has successful
+              if: ${{ success() }}
+              run: |
+                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "success"
 
-    #         - name: Update Check Run
-    #           uses: ./.github/actions/update-check-run
-    #           if: ${{always()}}
-    #           id: update-check-run
-    #           with:
-    #               check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-    #               conclusion: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
