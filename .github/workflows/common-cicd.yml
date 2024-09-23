@@ -167,6 +167,8 @@ jobs:
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
 
+            # TODO: add backup path to env, if this param is provided
+
             - name: Upload backup script file to server
               uses: ./.github/actions/scp-ssh
               with:
