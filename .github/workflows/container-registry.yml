@@ -1,0 +1,48 @@
+run-name: ${{inputs.repo_name}} - Build docker image
+on:
+    workflow_dispatch:
+        inputs:
+            repo_name:
+                required: true
+                type: string
+            commit_sha:
+                required: true
+                type: string
+            default_branch:
+                required: true
+                type: string
+
+env:
+    REPO_PATH: ${{ github.workspace }}
+    BUILD_PATH: ${{ github.workspace }}/.build
+
+jobs:
+    build:
+        name: build
+        runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.default_branch}}
+        permissions:
+            packages: write
+            contents: read
+        steps:
+            - name: Checkout private repo
+              uses: actions/checkout@v4
+              with:
+                  repository: ${{ inputs.repo_name }}
+                  ssh-key: ${{ secrets.SSH_KEY_GITHUB }}
+                  path: ${{ env.REPO_PATH }}
+                  ref: ${{ inputs.commit_sha }}
+                  fetch-depth: 1
+
+            - name: Build & Publish image
+              run: |
+                  cd ${{ env.BUILD_PATH }}
+                  docker build . --file Dockerfile --tag ${{ vars.ODOO_IMAGE_TAG }} --label "runnumber=${GITHUB_RUN_ID}"
+
+            - name: Login to registry
+              run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            - name: Push image
+              run: |
+                  IMAGE_ID=ghcr.io/${{ vars.ODOO_IMAGE_TAG }}
+                  docker push $IMAGE_ID
