@@ -16,3 +16,6 @@ runs:
           with:
               username: ${{ env.DOCKERHUB_USERNAME }}
               password: ${{ env.DOCKERHUB_TOKEN }}
+
+        - name: Login to GitHub container registry
+          run: echo "${{ secrets.CONTAINER_REGISTRY_GH_TOKEN }}" | docker login ghcr.io -u vdx-vn --password-stdin

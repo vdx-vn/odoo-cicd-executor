@@ -1,5 +1,12 @@
 # Execute CICD workflow for private Odoo repo
 
+## Prerequisite
+
+1. [Install Create run check GitHub App](https://github.com/apps/create-run-check)
+1. [Generate an user access token for Create run check App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
+
+    we will use this token to create and update status for run check
+
 ## Setup
 
 For a newly Odoo repository that needs a CICD process, follow the instructions below:
