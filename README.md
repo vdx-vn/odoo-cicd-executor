@@ -45,5 +45,5 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
 
 ## Reference
 
-1. [GitHub REST API](hhttps://octokit.github.io/rest.js)
+1. [GitHub REST API](https://octokit.github.io/rest.js)
 1. [GitHub Script Action](https://github.com/actions/github-script)
