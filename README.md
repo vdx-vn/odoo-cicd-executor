@@ -42,3 +42,8 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
      - **SERVER_USER**: Username for SSH connection
 
 1. Continuing follow the instruction inside 'README.md' file of the repo *(1)*
+
+## Reference
+
+1. [GitHub REST API](hhttps://octokit.github.io/rest.js)
+1. [GitHub Script Action](https://github.com/actions/github-script)
