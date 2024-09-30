@@ -7,6 +7,11 @@
 
     we will use this token to create and update status for run check
 
+1. [Install Packages Manager GitHub App](https://github.com/apps/packages-manager)
+1. [Generate an user access token for Packages Manager GitHub App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
+
+    We will use this token to push and delete packages in the GitHub Container Registry.
+
 ## Setup
 
 For a newly Odoo repository that needs a CICD process, follow the instructions below:
