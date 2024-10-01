@@ -31,6 +31,11 @@ jobs:
                   ref: ${{ inputs.commit_sha }}
                   fetch-depth: 1
 
+            - name: Login to GitHub container registry
+              run: |
+                  repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
+                  echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
+
             - name: Build image
               run: |
                   cd ${{ env.BUILD_PATH }}
@@ -38,11 +43,6 @@ jobs:
                         --tag ghcr.io/${{inputs.repo_name}} \
                         --label "org.opencontainers.image.source=https://github.com/${{inputs.repo_name}}"
                         --label "github.run.id=${GITHUB_RUN_ID}"
-
-            - name: Login to GitHub container registry
-              run: |
-                  repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
-                  echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
 
             - name: Publish image to GitHub container registry
               run: |
