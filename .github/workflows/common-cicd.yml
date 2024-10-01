@@ -79,9 +79,6 @@ env:
     INPUT_REPO_NAME: ${{inputs.repo_name}}
     INPUT_COMMIT_SHA: ${{inputs.commit_sha}}
 
-# fixme: run check didn't show on merge commit
-#  try to add commit status or something to CI/CD flow
-
 jobs:
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install

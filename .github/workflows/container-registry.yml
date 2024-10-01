@@ -37,6 +37,7 @@ jobs:
             - name: Build & Publish image
               run: |
                   cd ${{ env.BUILD_PATH }}
+                  # fixme: add correct image tag for GitHub registry
                   docker build . --file Dockerfile --tag ${{ vars.ODOO_IMAGE_TAG }} --label "runnumber=${GITHUB_RUN_ID}"
 
             - name: Login to registry
