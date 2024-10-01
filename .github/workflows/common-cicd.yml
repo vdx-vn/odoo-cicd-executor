@@ -52,11 +52,10 @@ env:
 
     # ==== Repository secrets ====
     SSH_KEY_GITHUB: ${{secrets.SSH_KEY_GITHUB}}
-    PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-    APP_ACCESS_TOKEN: ${{ secrets.APP_ACCESS_TOKEN }}
-
+    APP_ACCESS_TOKEN: ${{ secrets.APP_ACCESS_TOKEN }} # todo: create run check token - rename it
+    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to github container registry
     # ==== Environment secrets =====
     TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
     TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
@@ -96,8 +95,6 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
-              with:
-                  registry_gh_token: ${{ secrets.CONTAINER_REGISTRY_GH_TOKEN }}
 
             - name: Run Unit test cases
               id: run_at_install_unit_test
@@ -128,8 +125,6 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
-              with:
-                  registry_gh_token: ${{ secrets.CONTAINER_REGISTRY_GH_TOKEN }}
 
             - name: Run Unit test cases
               id: run_post_install_unit_test
@@ -167,8 +162,6 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
-              with:
-                  registry_gh_token: ${{ secrets.CONTAINER_REGISTRY_GH_TOKEN }}
 
             # TODO: add backup path to env, if this param is provided
 
