@@ -51,8 +51,8 @@ env:
     PR_URL: ${{ inputs.pr_url }}
 
     # ==== Repository secrets ====
-    SSH_KEY_GITHUB: ${{secrets.SSH_KEY_GITHUB}}
-    APP_ACCESS_TOKEN: ${{ secrets.APP_ACCESS_TOKEN }} # todo: create run check token - rename it
+    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}}
+    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }}
     GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to github container registry
 
     # ==== Environment secrets =====

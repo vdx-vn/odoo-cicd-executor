@@ -2,8 +2,8 @@
 
 ## Prerequisite
 
-1. [Install Create run check GitHub App](https://github.com/apps/create-run-check)
-1. [Generate an user access token for Create run check App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
+1. [Install Check Runs Manager GitHub App](https://github.com/apps/check-runs-manager)
+1. [Generate an user access token for Check Runs Manager App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
 
     we will use this token to create and update status for run check
 
@@ -34,6 +34,7 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
    - *Environment variables:*
      - **DB_IMAGE_TAG**: Postgres image tag name defined in the docker-compose.yml file of the private repo
      - **ODOO_IMAGE_TAG**: Odoo image tag name defined in the docker-compose.yml file of the private repo
+     #fixme: update odoo_image_tag_test documentation here
      - **SERVER_DEPLOY_PATH**: Server deployment path, the folder containing the docker-compose.yml file
      - **SERVER_HOST**: Server IP address
      - **SERVER_ODOO_DB_NAME**: Odoo database name

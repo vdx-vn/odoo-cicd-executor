@@ -7,7 +7,7 @@ runs:
           uses: actions/checkout@v4
           with:
               repository: ${{ env.REPOSITORY }}
-              ssh-key: ${{ env.SSH_KEY_GITHUB }}
+              ssh-key: ${{ env.GH_SSH_KEY }}
               path: ${{ env.REPO_PATH }}
               ref: ${{ env.INPUT_COMMIT_SHA }}
               fetch-depth: 1
