@@ -82,7 +82,6 @@ env:
 # fixme: run check didn't show on merge commit
 #  try to add commit status or something to CI/CD flow
 
-# fixme: replace docker hub with github registry because docker hub has limit to 200 pull requests per 6 hours
 jobs:
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install

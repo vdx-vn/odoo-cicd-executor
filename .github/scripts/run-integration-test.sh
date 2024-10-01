@@ -31,6 +31,7 @@ get_config_value() {
 }
 
 function update_config_file_after_restoration {
+    # Test only the changed add-ons found in the commit.
     custom_addons=$(get_list_changed_addons "$ODOO_ADDONS_PATH" "$commit_hash")
     tagged_custom_addons=$(echo $custom_addons | sed "s/,/,\//g" | sed "s/^/\//")
     sed -i "s/^\s*command\s*.*//g" $ODOO_CONFIG_FILE
