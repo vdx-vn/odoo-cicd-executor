@@ -41,7 +41,7 @@ jobs:
                   cd ${{ env.BUILD_PATH }}
                   docker build . \
                         --tag ghcr.io/${{inputs.repo_name}} \
-                        --label "org.opencontainers.image.source=https://github.com/${{inputs.repo_name}}"
+                        --label "org.opencontainers.image.source=https://github.com/${{inputs.repo_name}}" \
                         --label "github.run.id=${GITHUB_RUN_ID}"
 
             - name: Publish image to GitHub container registry
