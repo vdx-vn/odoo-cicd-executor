@@ -66,6 +66,7 @@ env:
 
     # ===== Environment variables =====
     ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
+    ODOO_IMAGE_TEST_TAG: ${{ vars.ODOO_IMAGE_TEST_TAG }}
     DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
     SERVER_HOST: ${{ vars.SERVER_HOST }}
     SERVER_USER: ${{ vars.SERVER_USER }}
