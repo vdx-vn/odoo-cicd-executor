@@ -34,7 +34,7 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
    - *Environment variables:*
      - **DB_IMAGE_TAG**: Postgres image tag name defined in the docker-compose.yml file of the private repo
      - **ODOO_IMAGE_TAG**: Odoo image tag name defined in the docker-compose.yml file of the private repo
-     #fixme: update odoo_image_tag_test documentation here
+     #fixme: update odoo_image_tag_test documentation here - or should we rename it to a proper name
      - **SERVER_DEPLOY_PATH**: Server deployment path, the folder containing the docker-compose.yml file
      - **SERVER_HOST**: Server IP address
      - **SERVER_ODOO_DB_NAME**: Odoo database name
