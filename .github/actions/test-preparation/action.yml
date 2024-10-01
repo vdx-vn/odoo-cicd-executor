@@ -1,4 +1,7 @@
 name: "Preparation before testing"
+inputs:
+    registry_gh_token:
+        required: true
 runs:
     using: "composite"
     steps:
@@ -18,4 +21,4 @@ runs:
         #       password: ${{ env.DOCKERHUB_TOKEN }}
 
         - name: Login to GitHub container registry
-          run: echo "${{ secrets.CONTAINER_REGISTRY_GH_TOKEN }}" | docker login ghcr.io -u vdx-vn --password-stdin
+          run: echo "${{ inputs.registry_gh_token }}" | docker login ghcr.io -u vdx-vn --password-stdin

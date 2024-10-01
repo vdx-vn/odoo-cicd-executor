@@ -99,6 +99,8 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
+              with:
+                  registry_gh_token: ${{ secrets.CONTAINER_REGISTRY_GH_TOKEN }}
 
             - name: Run Unit test cases
               id: run_at_install_unit_test
@@ -129,6 +131,8 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
+              with:
+                  registry_gh_token: ${{ secrets.CONTAINER_REGISTRY_GH_TOKEN }}
 
             - name: Run Unit test cases
               id: run_post_install_unit_test
@@ -166,6 +170,8 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
+              with:
+                  registry_gh_token: ${{ secrets.CONTAINER_REGISTRY_GH_TOKEN }}
 
             # TODO: add backup path to env, if this param is provided
 
