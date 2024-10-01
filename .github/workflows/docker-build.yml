@@ -37,6 +37,7 @@ jobs:
                   docker build . \
                         --tag ghcr.io/${{inputs.repo_name}} \
                         --label "org.opencontainers.image.source=https://github.com/${{inputs.repo_name}}"
+                        --label "github.run.id=${GITHUB_RUN_ID}"
 
             - name: Login to GitHub container registry
               run: |
