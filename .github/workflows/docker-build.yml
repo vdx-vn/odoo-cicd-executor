@@ -48,6 +48,8 @@ jobs:
               run: |
                   docker push ghcr.io/${{inputs.repo_name}}
 
+            - uses: actions/checkout@v4
+
             - name: Remove untagged (old) image from GitHub container registry
               uses: ./.github/actions/delete-untagged-packages
               with:
