@@ -1,0 +1,8 @@
+{
+    "addons": {
+        "report_py3o": {
+            "ignore_test": true,
+            "ignore_demo": true
+        }
+    }
+}

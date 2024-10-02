@@ -1,0 +1,32 @@
+name: "Delete package versions for an organization"
+inputs:
+    github_token:
+        required: true
+    repo_name:
+        required: true
+
+runs:
+    using: "composite"
+    steps:
+        - uses: actions/github-script@v7
+          with:
+              github-token: ${{ inputs.github_token }}
+              script: |
+                  const package_type = "container";
+                  const [org, package_name] = "${{ inputs.repo_name }}".split("/");
+                  const list_package_versions = await github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg({
+                    package_type,
+                    package_name,
+                    org,
+                  });          
+                  for (v of list_package_versions.data){
+                    // check if the version is untagged
+                    if (v.metadata.container.tags.length == 0) {
+                        await github.rest.packages.deletePackageVersionForOrg({
+                            package_type,
+                            package_name,
+                            org,
+                            package_version_id: v.id,
+                        });                                                
+                    }
+                  }
