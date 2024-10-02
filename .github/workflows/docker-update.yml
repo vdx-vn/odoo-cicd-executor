@@ -25,6 +25,8 @@ jobs:
                   user: ${{vars.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
+                      echo ${{inputs.branch}}
+                      echo ${{inputs.repo_name}}
                       cd ${{ vars.SERVER_DEPLOY_PATH }}
                       docker compose pull
                       docker compose down
