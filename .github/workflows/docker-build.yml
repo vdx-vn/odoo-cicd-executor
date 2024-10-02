@@ -16,6 +16,15 @@ env:
     REPO_PATH: ${{ github.workspace }}
     BUILD_PATH: ${{ github.workspace }}/.build
 
+    # ==== Environment secrets =====
+    SERVER_PRIVATE_KEY: ${{ secrets.SERVER_PRIVATE_KEY }}
+
+    # ===== Environment variables =====
+    SERVER_HOST: ${{ vars.SERVER_HOST }}
+    SERVER_USER: ${{ vars.SERVER_USER }}
+    SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
+    SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
+
 jobs:
     build:
         name: build
@@ -55,3 +64,17 @@ jobs:
               with:
                   github_token: ${{ secrets.GH_TOKEN }}
                   repo_name: ${{ inputs.repo_name }}
+
+            - name: " Update latest docker images for server"
+              uses: ./.github/actions/ssh-script
+              id: deploy_to_server
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ env.SERVER_PRIVATE_KEY }}
+                  script: |
+                      cd ${{ env.SERVER_DEPLOY_PATH }}
+                      docker compose pull
+                      docker compose down
+                      docker compose up -d

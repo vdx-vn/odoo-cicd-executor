@@ -60,7 +60,6 @@ env:
     TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
     SERVER_PRIVATE_KEY: ${{secrets.SERVER_PRIVATE_KEY}}
     SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
-    # PRIVATE_KEY_FOR_GITHUB_AUTHEN: ${{secrets.PRIVATE_KEY_FOR_GITHUB_AUTHEN}}
 
     # ===== Environment variables =====
     ODOO_IMAGE_TAG_DELOY: ${{ vars.ODOO_IMAGE_TAG_DELOY }}
