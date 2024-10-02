@@ -74,12 +74,14 @@ jobs:
                       console.log(input_branches)
                       console.log("=========================")
                       console.log(repo_branches)
-                      return repo_branches.filter(x => input_branches.includes(x));
+                      return repo_branches.filter(x => input_branches.includes(x)).join(',');
 
             - name: Dispatch Executor Workflow - Build Docker Image
               run: |
-                  echo ${{ steps.get-repo-branches.outputs.result }}
-                  gh workflow run docker-update.yml -f commit_sha=${{ env.commit_sha }}
+                  IFS=','
+                  for branch in ${{ steps.get-repo-branches.outputs.result }}; do
+                      gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch
+                  done
 
         #fixme: after build success,
         # fixme: second step is trigger update latest image for all server (defined in the environment)
