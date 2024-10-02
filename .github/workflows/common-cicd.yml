@@ -63,8 +63,8 @@ env:
     # PRIVATE_KEY_FOR_GITHUB_AUTHEN: ${{secrets.PRIVATE_KEY_FOR_GITHUB_AUTHEN}}
 
     # ===== Environment variables =====
+    ODOO_IMAGE_TAG_DELOY: ${{ vars.ODOO_IMAGE_TAG_DELOY }}
     ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
-    ODOO_IMAGE_TEST_TAG: ${{ vars.ODOO_IMAGE_TEST_TAG }}
     DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
     SERVER_HOST: ${{ vars.SERVER_HOST }}
     SERVER_USER: ${{ vars.SERVER_USER }}
@@ -183,7 +183,7 @@ jobs:
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG_DELOY}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
 
             - name: "Download backup file"
               uses: ./.github/actions/scp-ssh
