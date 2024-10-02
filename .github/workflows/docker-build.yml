@@ -8,6 +8,10 @@ on:
             commit_sha:
                 required: true
                 type: string
+            branches:
+                type: string
+                default: dev,production
+                description: List of branches related to environment, which contains server information that need to update to the latest images
 
 jobs:
     build-and-publish:
@@ -51,16 +55,25 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Get all branches of project repo
+              id: get-repo-branches
               uses: actions/github-script@v7
               with:
                   github-token: ${{ secrets.GH_TOKEN }}
                   script: |
                       const [owner, repo] = "${{ inputs.repo_name }}".split("/");
-                      const branches = await github.rest.repos.listBranches({
+                      const branches_data = await github.rest.repos.listBranches({
                         owner,
                         repo,
                       });
-                      console.log(branches)
+
+                      const input_branches = "${{ inputs.branches }}".split("/");
+                      const repo_branches = branches_data.map(x => x.name);
+                      return repo_branches.filter(x => input_branches.includes(x));
+
+            - name: Dispatch Executor Workflow - Build Docker Image
+              run: |
+                  echo ${{ steps.get-repo-branches.outputs.result }}
+                  gh workflow run docker-update.yml -f commit_sha=${{ env.commit_sha }}
 
         #fixme: after build success,
         # fixme: second step is trigger update latest image for all server (defined in the environment)
