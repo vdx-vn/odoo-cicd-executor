@@ -15,6 +15,8 @@ jobs:
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.branch}}
         steps:
+            - uses: actions/checkout@v4
+
             - name: " Update latest docker images on the server"
               uses: ./.github/actions/ssh-script
               with:

@@ -82,6 +82,7 @@ jobs:
               run: |
                   IFS=','
                   for branch in ${{ steps.get-repo-branches.outputs.result }}; do
+                      echo $branch
                       gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch
                   done
               env:
