@@ -53,6 +53,8 @@ jobs:
 
     update-on-server:
         runs-on: ubuntu-latest
+        # fixme: uncomment needs
+        # needs: build-and-publish
         steps:
             - name: Get all branches of project repo
               id: get-repo-branches
@@ -61,13 +63,13 @@ jobs:
                   github-token: ${{ secrets.GH_TOKEN }}
                   script: |
                       const [owner, repo] = "${{ inputs.repo_name }}".split("/");
-                      const branches_data = await github.rest.repos.listBranches({
+                      const branches = await github.rest.repos.listBranches({
                         owner,
                         repo,
                       });
 
                       const input_branches = "${{ inputs.branches }}".split("/");
-                      const repo_branches = branches_data.map(x => x.name);
+                      const repo_branches = branches.data.map(x => x.name);
                       return repo_branches.filter(x => input_branches.includes(x));
 
             - name: Dispatch Executor Workflow - Build Docker Image
