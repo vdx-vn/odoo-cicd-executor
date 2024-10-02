@@ -69,7 +69,7 @@ jobs:
                         repo,
                       });
 
-                      const input_branches = "${{ inputs.branches }}".split("/");
+                      const input_branches = "${{ inputs.branches }}".split(",");
                       const repo_branches = branches.data.map(x => x.name);
                       console.log(input_branches)
                       console.log("=========================")
