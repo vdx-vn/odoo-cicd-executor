@@ -65,7 +65,7 @@ jobs:
                   github_token: ${{ secrets.GH_TOKEN }}
                   repo_name: ${{ inputs.repo_name }}
 
-            - name: " Update latest docker images for server"
+            - name: " Update latest docker images on server"
               uses: ./.github/actions/ssh-script
               id: deploy_to_server
               with:
