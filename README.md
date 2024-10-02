@@ -1,17 +1,5 @@
 # Execute CICD workflow for private Odoo repo
 
-## Prerequisite
-
-1. [Install Check Runs Manager GitHub App](https://github.com/apps/check-runs-manager)
-1. [Generate an user access token for Check Runs Manager App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
-
-    we will use this token to create and update status for run check
-
-1. [Install Packages Manager GitHub App](https://github.com/apps/packages-manager)
-1. [Generate an user access token for Packages Manager GitHub App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
-
-    We will use this token to push and delete packages in the GitHub Container Registry.
-
 ## Setup
 
 For a newly Odoo repository that needs a CICD process, follow the instructions below:
@@ -33,8 +21,8 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
 
    - *Environment variables:*
      - **DB_IMAGE_TAG**: Postgres image tag name defined in the docker-compose.yml file of the private repo
-     - **ODOO_IMAGE_TAG**: Odoo image tag name defined in the docker-compose.yml file of the private repo
-     #fixme: update odoo_image_tag_test documentation here - or should we rename it to a proper name
+     - **ODOO_IMAGE_TAG**: The Odoo image tag name from the private repository, used for testing purposes.
+     - **ODOO_IMAGE_TAG_DELOY**: Odoo image tag name defined in the docker-compose.yml file in .deploy folder of the private repo
      - **SERVER_DEPLOY_PATH**: Server deployment path, the folder containing the docker-compose.yml file
      - **SERVER_HOST**: Server IP address
      - **SERVER_ODOO_DB_NAME**: Odoo database name
@@ -48,3 +36,12 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
 
 1. [GitHub REST API](https://octokit.github.io/rest.js)
 1. [GitHub Script Action](https://github.com/actions/github-script)
+1. [Install Check Runs Manager GitHub App](https://github.com/apps/check-runs-manager)
+1. [Generate an user access token for Check Runs Manager App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
+
+    we will use this token to create and update status for run check
+
+1. [Install Packages Manager GitHub App](https://github.com/apps/packages-manager)
+1. [Generate an user access token for Packages Manager GitHub App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
+
+    We will use this token to push and delete packages in the GitHub Container Registry.

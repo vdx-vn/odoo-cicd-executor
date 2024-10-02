@@ -148,7 +148,7 @@ function show_separator {
 }
 
 function get_odoo_container_id {
-    docker ps -q -a | xargs docker inspect --format '{{.Id}} {{.Config.Image}}' | awk -v img="${ODOO_IMAGE_TEST_TAG}" '$2 == img {print $1}'
+    docker ps -q -a | xargs docker inspect --format '{{.Id}} {{.Config.Image}}' | awk -v img="${ODOO_IMAGE_TAG}" '$2 == img {print $1}'
 }
 
 function docker_odoo_exec {
@@ -193,7 +193,7 @@ function start_odoo_container() {
         --mount type=bind,source=$DOCKER_FOLDER/etc,target=/etc/odoo \
         --mount type=bind,source=$DOCKER_FOLDER/logs,target=/var/log/odoo \
         --link db:db \
-        $ODOO_IMAGE_TEST_TAG
+        $ODOO_IMAGE_TAG
 }
 
 function start_containers() {
