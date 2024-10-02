@@ -37,7 +37,6 @@ on:
 
 jobs:
     call_common_cicd:
-        #FIXME: update correct path for resuable workflows
         uses: ./.github/workflows/common-cicd.yml
         with:
             repo_name: ${{ inputs.repo }}
