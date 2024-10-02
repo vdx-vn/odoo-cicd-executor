@@ -14,48 +14,46 @@ on:
                 description: List of branches related to environment, which contains server information that need to update to the latest images
 
 jobs:
-    #fixme: uncomment below step
-    # build-and-publish:
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #         - name: Checkout project source
-    #           uses: actions/checkout@v4
-    #           with:
-    #               repository: ${{ inputs.repo_name }}
-    #               ssh-key: ${{ secrets.GH_SSH_KEY }}
-    #               path: ${{ github.workspace }}
-    #               ref: ${{ inputs.commit_sha }}
-    #               fetch-depth: 1
+    build-and-publish:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout project source
+              uses: actions/checkout@v4
+              with:
+                  repository: ${{ inputs.repo_name }}
+                  ssh-key: ${{ secrets.GH_SSH_KEY }}
+                  path: ${{ github.workspace }}
+                  ref: ${{ inputs.commit_sha }}
+                  fetch-depth: 1
 
-    #         - name: Login to GitHub container registry
-    #           run: |
-    #               repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
-    #               echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
+            - name: Login to GitHub container registry
+              run: |
+                  repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
+                  echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
 
-    #         - name: Build image
-    #           run: |
-    #               cd ${{ github.workspace }}/.build
-    #               docker build . \
-    #                     --tag ghcr.io/${{inputs.repo_name}} \
-    #                     --label "org.opencontainers.image.source=https://github.com/${{inputs.repo_name}}" \
-    #                     --label "github.run.id=${GITHUB_RUN_ID}"
+            - name: Build image
+              run: |
+                  cd ${{ github.workspace }}/.build
+                  docker build . \
+                        --tag ghcr.io/${{inputs.repo_name}} \
+                        --label "org.opencontainers.image.source=https://github.com/${{inputs.repo_name}}" \
+                        --label "github.run.id=${GITHUB_RUN_ID}"
 
-    #         - name: Publish image to GitHub container registry
-    #           run: |
-    #               docker push ghcr.io/${{inputs.repo_name}}
+            - name: Publish image to GitHub container registry
+              run: |
+                  docker push ghcr.io/${{inputs.repo_name}}
 
-    #         - uses: actions/checkout@v4
+            - uses: actions/checkout@v4
 
-    #         - name: Remove untagged (old) image from GitHub container registry
-    #           uses: ./.github/actions/delete-untagged-packages
-    #           with:
-    #               github_token: ${{ secrets.GH_TOKEN }}
-    #               repo_name: ${{ inputs.repo_name }}
+            - name: Remove untagged (old) image from GitHub container registry
+              uses: ./.github/actions/delete-untagged-packages
+              with:
+                  github_token: ${{ secrets.GH_TOKEN }}
+                  repo_name: ${{ inputs.repo_name }}
 
     update-on-server:
         runs-on: ubuntu-latest
-        # fixme: uncomment needs
-        # needs: build-and-publish
+        needs: build-and-publish
         steps:
             - uses: actions/checkout@v4
 
@@ -73,9 +71,6 @@ jobs:
 
                       const input_branches = "${{ inputs.branches }}".split(",");
                       const repo_branches = branches.data.map(x => x.name);
-                      console.log(input_branches)
-                      console.log("=========================")
-                      console.log(repo_branches)
                       return repo_branches.filter(x => input_branches.includes(x)).join(',');
 
             - name: Dispatch Executor Workflow - Build Docker Image
@@ -83,15 +78,7 @@ jobs:
                   export IFS=","
                   branches=${{ steps.get-repo-branches.outputs.result }}
                   for branch in $branches; do
-                      echo $branch
-                      echo "=======>>>>>>>>"
                       gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch
                   done
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-        #fixme: after build success,
-        # fixme: second step is trigger update latest image for all server (defined in the environment)
-        # https://octokit.github.io/rest.js/v21/#repos-list-branches
-        # use this api to get all branches
-        # and call workflow docker-update.yml with all the environment created from this one
