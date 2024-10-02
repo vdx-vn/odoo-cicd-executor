@@ -80,7 +80,7 @@ jobs:
 
             - name: Dispatch Executor Workflow - Build Docker Image
               run: |
-                  export IFS=";"
+                  export IFS=","
                   branches=${{ steps.get-repo-branches.outputs.result }}
                   for branch in $branches; do
                       echo $branch
