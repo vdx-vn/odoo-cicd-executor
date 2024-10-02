@@ -1,0 +1,39 @@
+name: "Execute Bash Command"
+inputs:
+    host:
+        required: true
+    port:
+        required: true
+        default: 22
+    user:
+        required: true
+    ssh_key_text:
+        description: "SSH private key text"
+        required: true
+    script:
+        description: "Bash script to execute"
+        required: true
+
+runs:
+    using: "composite"
+    steps:
+        - name: "Execute bash command"
+          shell: bash
+          run: |
+              function create_private_keyfile_from_content() {
+                content="$1"
+                key_file_path="$2"
+                mkdir -p $(dirname $key_file_path)
+                touch $key_file_path && chmod 600 $key_file_path
+                >$key_file_path
+                echo "$content" >>$key_file_path
+                echo $key_file_path
+              }          
+
+              keyfile_path=${{ github.workspace }}/$(date +%s)_key
+
+              create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path" > /dev/null
+
+              ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} << EOF
+                ${{ inputs.script }}
+              EOF
