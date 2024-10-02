@@ -60,9 +60,7 @@ jobs:
                         owner,
                         repo,
                       });
-                      for (branch in branches) {
-                        console.log(branch)
-                      }
+                      console.log(branches)
 
         #fixme: after build success,
         # fixme: second step is trigger update latest image for all server (defined in the environment)
