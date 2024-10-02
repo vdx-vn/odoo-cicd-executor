@@ -82,6 +82,8 @@ jobs:
                   for branch in ${{ steps.get-repo-branches.outputs.result }}; do
                       gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch
                   done
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
         #fixme: after build success,
         # fixme: second step is trigger update latest image for all server (defined in the environment)
