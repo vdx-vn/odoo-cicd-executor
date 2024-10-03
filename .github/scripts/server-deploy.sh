@@ -101,6 +101,7 @@ set_list_addons() {
 update_config_file() {
     sed -i "s/^[ #]*command\s*=.*//g" $server_config_file
     sed '/^$/N;/^\n$/D' $server_config_file >temp && mv temp $server_config_file
+    # fixme: we should get list addons need to install ( -i ) from db instead re-install all changed addons
     echo -e "\ncommand = -d ${server_odoo_db_name} -i ${CUSTOM_ADDONS} -u ${CUSTOM_ADDONS}" >>"${server_config_file}"
 }
 
