@@ -41,5 +41,11 @@ runs:
               if [[ ${{ inputs.direction }} == "download" ]]; then
                 scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }} ${{ inputs.local_file }}
               else
+                file_path=${{ inputs.server_file }}
+                folder_path=$(dirname "$file_path")
+
+                if [ ! -d "$folder_path" ]; then
+                    mkdir -p $folder_path
+                fi
                 scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
               fi
