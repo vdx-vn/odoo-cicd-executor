@@ -11,7 +11,7 @@ on:
             branches:
                 type: string
                 default: dev,production
-                description: List of branches related to environment, which contains server information that need to update to the latest images
+                description: List of branches related to environment, which contains server information that need to update to the latest images, separate by comma
 
 jobs:
     build-and-publish:
