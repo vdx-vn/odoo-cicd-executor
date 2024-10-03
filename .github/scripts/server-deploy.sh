@@ -84,12 +84,6 @@ get_original_remote_url() {
 }
 
 pull_latest_code() {
-    remote_url=$(get_original_remote_url)
-    if ! [[ $remote_url =~ ^git@ ]]; then
-        echo "Can't automatic pull code with https repository"
-        exit 1
-    fi
-
     git pull
     pull_success=$?
 
