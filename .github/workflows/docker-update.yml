@@ -17,6 +17,11 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Login to GitHub container registry
+              run: |
+                  repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
+                  echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
+
             - name: " Update latest docker images on the server"
               uses: ./.github/actions/ssh-script
               with:
@@ -25,10 +30,9 @@ jobs:
                   user: ${{vars.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      echo ${{inputs.branch}}
-                      echo ${{inputs.repo_name}}
                       cd ${{ vars.SERVER_DEPLOY_PATH }}
                       docker compose pull
                       docker compose down
                       docker compose up -d
                       docker image prune -a -f
+                      docker logout ghcr.io
