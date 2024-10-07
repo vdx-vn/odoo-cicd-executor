@@ -4,7 +4,6 @@ server_custom_addons_path=$2  # the absolute path to source code, also the git r
 server_config_file=$3         # the path to Odoo config file
 server_odoo_url=$4            # odoo service url, to check service is up or not
 server_odoo_db_name=$5
-commit_sha=$6
 
 original_repo_remote_name="origin"
 CUSTOM_ADDONS=
@@ -12,9 +11,12 @@ CUSTOM_ADDONS=
 function get_changed_files_and_folders_addons_name {
     # Retrieve the names of files and folders that have been changed in the specified commit
     addons_path=$1
-    commit_hash=$2
     cd $addons_path
-    changed_files=$(git show --name-only --pretty="" "$commit_hash")
+    changed_files=$(git show --name-only --pretty="" HEAD)
+    # there is no changed files in merged commit, so we need to get changed files from two latest commits
+    if [[ -z $changed_files ]]; then
+        changed_files=$(git show --name-only --pretty="" HEAD^..HEAD)
+    fi
     changed_folders_and_files=$(echo "$changed_files" | awk -F/ '{if ($1 !~ /^\./) print $1}' | sort -u | paste -sd ',' -)
     echo $changed_folders_and_files
 }
@@ -37,8 +39,7 @@ function get_list_addons {
 
 function get_list_changed_addons {
     addons_path=$1
-    commit_hash=$2
-    changed_files_folders=$(get_changed_files_and_folders_addons_name ${addons_path} ${commit_hash})
+    changed_files_folders=$(get_changed_files_and_folders_addons_name ${addons_path})
     list_addons_name=$(get_list_addons ${addons_path})
 
     IFS=',' read -r -a array1 <<<"$changed_files_folders"
@@ -95,7 +96,7 @@ pull_latest_code() {
 
 set_list_addons() {
     declare -g CUSTOM_ADDONS
-    CUSTOM_ADDONS=$(get_list_changed_addons "$server_custom_addons_path" "$commit_sha")
+    CUSTOM_ADDONS=$(get_list_changed_addons "$server_custom_addons_path")
 }
 
 update_config_file() {
