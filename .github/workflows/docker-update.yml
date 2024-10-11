@@ -27,16 +27,10 @@ jobs:
                   user: ${{vars.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-
-                      echo "here ===>"
-                      repo_owner=$(echo ${{inputs.repo_name}} | cut -d '/' -f1)
-                      echo "this is ${repo_owner}"
-
                       docker login -u ${{ inputs.repo_owner }} -p ${{ secrets.GH_TOKEN }} ghcr.io
-                      # fixme: uncomment
-                        #   cd ${{ vars.SERVER_DEPLOY_PATH }}
-                        #   docker compose pull
-                        #   docker compose down
-                        #   docker compose up -d
-                        #   docker image prune -a -f
+                      cd ${{ vars.SERVER_DEPLOY_PATH }}
+                      docker compose pull
+                      docker compose down
+                      docker compose up -d
+                      docker image prune -a -f
                       docker logout ghcr.io
