@@ -141,7 +141,8 @@ jobs:
     integration-test:
         name: ${{inputs.repo_name}} - Integration test
         runs-on: ubuntu-latest
-        if: inputs.action == 'deploy'
+        # fixme: uncomment if condition
+        # if: inputs.action == 'deploy'
 
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
