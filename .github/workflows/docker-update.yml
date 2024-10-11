@@ -27,12 +27,14 @@ jobs:
 
                       echo "here ===>"
                       repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
-                      echo $repo_owner
+                      echo "this is ${repo_owner}"
 
+                      docker login -u vdx-vn -p ${{ secrets.GH_TOKEN }} ghcr.io
                       docker login -u $repo_owner -p ${{ secrets.GH_TOKEN }} ghcr.io
-                      cd ${{ vars.SERVER_DEPLOY_PATH }}
-                      docker compose pull
-                      docker compose down
-                      docker compose up -d
-                      docker image prune -a -f
+                      # fixme: uncomment
+                        #   cd ${{ vars.SERVER_DEPLOY_PATH }}
+                        #   docker compose pull
+                        #   docker compose down
+                        #   docker compose up -d
+                        #   docker image prune -a -f
                       docker logout ghcr.io
