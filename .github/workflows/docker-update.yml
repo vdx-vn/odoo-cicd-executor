@@ -25,7 +25,10 @@ jobs:
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
                       repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
-                      docker login -u $repo_owner -p ${{ secrets.GH_TOKEN }} ghcr.io
+                      echo "here ===>"
+                      echo $repo_owner
+
+                      docker login -u $repo_owner -p ${{ env.GH_TOKEN }} ghcr.io
                       cd ${{ vars.SERVER_DEPLOY_PATH }}
                       docker compose pull
                       docker compose down
