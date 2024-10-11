@@ -219,60 +219,60 @@ jobs:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                   conclusion: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
 
-    deploy-server:
-        name: ${{inputs.repo_name}} - Deploy server
-        runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [unit-test-at-install, unit-test-post-install, integration-test]
-        steps:
-            - uses: actions/checkout@v4
+    # deploy-server:
+    #     name: ${{inputs.repo_name}} - Deploy server
+    #     runs-on: ubuntu-latest
+    #     environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+    #     needs: [unit-test-at-install, unit-test-post-install, integration-test]
+    #     steps:
+    #         - uses: actions/checkout@v4
 
-            - name: Create Check Run
-              uses: ./.github/actions/create-check-run
-              id: create-check-run
-              with:
-                  name: "Deploy to Server"
+    #         - name: Create Check Run
+    #           uses: ./.github/actions/create-check-run
+    #           id: create-check-run
+    #           with:
+    #               name: "Deploy to Server"
 
-            - name: "Upload deploy script file to server"
-              uses: ./.github/actions/scp-ssh
-              with:
-                  direction: "upload"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
-                  server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
+    #         - name: "Upload deploy script file to server"
+    #           uses: ./.github/actions/scp-ssh
+    #           with:
+    #               direction: "upload"
+    #               host: ${{env.SERVER_HOST}}
+    #               port: ${{env.SERVER_SSH_PORT}}
+    #               user: ${{env.SERVER_USER}}
+    #               ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+    #               local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
+    #               server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
 
-            - name: "Deploy to server"
-              uses: ./.github/actions/ssh-script
-              id: deploy_to_server
-              env:
-                  SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
-                  SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
-                  SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}"
+    #         - name: "Deploy to server"
+    #           uses: ./.github/actions/ssh-script
+    #           id: deploy_to_server
+    #           env:
+    #               SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
+    #               SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
+    #               SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
+    #           with:
+    #               host: ${{env.SERVER_HOST}}
+    #               port: ${{env.SERVER_SSH_PORT}}
+    #               user: ${{env.SERVER_USER}}
+    #               ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+    #               script: |
+    #                   bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}"
 
-            - name: The Deploy step has failed
-              if: ${{ failure() }}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "failed"
+    #         - name: The Deploy step has failed
+    #           if: ${{ failure() }}
+    #           run: |
+    #               bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "failed"
 
-            - name: The Deploy step has successful
-              if: ${{ success() }}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "success"
+    #         - name: The Deploy step has successful
+    #           if: ${{ success() }}
+    #           run: |
+    #               bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "success"
 
-            - name: Update Check Run
-              uses: ./.github/actions/update-check-run
-              if: ${{always()}}
-              id: update-check-run
-              with:
-                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
+    #         - name: Update Check Run
+    #           uses: ./.github/actions/update-check-run
+    #           if: ${{always()}}
+    #           id: update-check-run
+    #           with:
+    #               check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+    #               conclusion: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
