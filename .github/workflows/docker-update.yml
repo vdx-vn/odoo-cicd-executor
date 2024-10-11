@@ -8,7 +8,9 @@ on:
             branch:
                 required: true
                 type: string
-
+            gh_token:
+                required: true
+                type: string
 jobs:
     build:
         name: build
@@ -26,7 +28,7 @@ jobs:
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
                       repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
-                      echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin                  
+                      echo "${{ env.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
                       cd ${{ vars.SERVER_DEPLOY_PATH }}
                       docker compose pull
                       docker compose down
