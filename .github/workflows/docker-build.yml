@@ -80,7 +80,8 @@ jobs:
                   export IFS=","
                   branches=${{ steps.get-repo-branches.outputs.result }}
                   for branch in $branches; do
-                      gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch
+                      repo_owner=$(echo ${{inputs.repo_name}} | cut -d '/' -f1)
+                      gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch -f repo_owner=$repo_owner
                   done
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
