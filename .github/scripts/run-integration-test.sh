@@ -4,6 +4,7 @@ source "${CICD_UTILS_SCRIPTS_PATH}"
 prepare() {
     which unzip
     if [[ $? != 0 ]]; then
+        echo 'install zip & unzip here'
         apt-get install -y zip unzip
     fi
 }
