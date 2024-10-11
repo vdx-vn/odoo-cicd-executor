@@ -199,7 +199,7 @@ jobs:
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
-                  server_file: ${{ steps.backup-on-server.outputs }}
+                  server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
 
             - name: "Run Integration test"
