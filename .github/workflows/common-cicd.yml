@@ -185,13 +185,14 @@ jobs:
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      if [[ -z ${{env.SERVER_BACKUP_PATH}} ]]; then
-                        # fixme: get latest backup file and return
-                        latest_file=$(find ${{env.SERVER_BACKUP_PATH}} -type f | grep -E '[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}.zip'  | sort -n | tail -1 | cut -d' ' -f2-) && echo "Latest file: $latest_file"
+                      #   if [[ -z ${{env.SERVER_BACKUP_PATH}} ]]; then
+                      #     # fixme: get latest backup file and return
+                      #     latest_file=$(find ${{env.SERVER_BACKUP_PATH}} -type f | grep -E '[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}.zip'  | sort -n | tail -1 | cut -d' ' -f2-) && echo "Latest file: $latest_file"
 
-                      else
+                      #   else
+                      #     bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG_DEPLOY}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
+                      #   fi
                         bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG_DEPLOY}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
-                      fi
 
             - name: "Download backup file"
               uses: ./.github/actions/scp-ssh

@@ -4,8 +4,6 @@
 # ================= Execute these functions on SERVER ==========================
 # =============================================================================
 
-# fixme: create backup file like the file backup in Odoo UI
-
 main() {
     populate_variables "$@"
     check_required_files
