@@ -146,9 +146,9 @@ jobs:
 
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
-            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.tar.gz
+            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_BACKUP_FOLDER: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
-            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.tar.gz
+            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
 
         steps:
