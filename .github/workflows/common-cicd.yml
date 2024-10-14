@@ -164,11 +164,29 @@ jobs:
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
 
-            # fixme: add backup path to env, if this param is provided
+            # fixme: add backup path to env,
+            # fixme: if this param is provided, download backup file instead of create new backup
+            # fixme; if not backup file found, switch to normal backup script
+
+            - name: Get the latest backup file
+              id: get-latest-backup-file
+              uses: ./.github/actions/ssh-script
+              if: ${{env.SERVER_BACKUP_PATH != ''}}
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  script: |
+                      echo "/backup/here/bro"
+
+            - name: get backup file path
+              run: |
+                  echo ${{ steps.get-latest-backup-file.outputs }}
 
             - name: Upload backup script file to server
               uses: ./.github/actions/scp-ssh
-              if: ${{env.SERVER_BACKUP_PATH != ''}}
+              if: ${{env.SERVER_BACKUP_PATH == ''}}
               with:
                   direction: "upload"
                   host: ${{env.SERVER_HOST}}

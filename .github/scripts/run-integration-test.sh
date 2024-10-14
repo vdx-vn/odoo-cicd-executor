@@ -1,14 +1,6 @@
 #!/bin/bash
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
-prepare() {
-    which unzip
-    if [[ $? != 0 ]]; then
-        echo 'install zip & unzip here'
-        apt-get install -y zip unzip
-    fi
-}
-
 populate_variables() {
     declare -g received_backup_file_path=$1
     declare -g commit_hash=$2
@@ -80,20 +72,12 @@ create_empty_db() {
 restore_db() {
     sql_dump_path="${odoo_container_store_backup_folder}/dump.sql"
     docker_odoo_exec "psql -h \"$db_host\" -U $db_user $ODOO_TEST_DATABASE_NAME < $sql_dump_path >/dev/null"
-    # fixme: remove all commands below
-    docker_odoo_exec "cat $sql_dump_path"
 }
 
 restore_filestore() {
-    # fixme:check it's ok or not
     backup_filestore_path="${odoo_container_store_backup_folder}/filestore"
     filestore_path="$data_dir/filestore"
     docker_odoo_exec "mkdir -p $filestore_path;cp $backup_filestore_path $filestore_path/$ODOO_TEST_DATABASE_NAME;"
-    # fixme: remove all commands below
-    docker_odoo_exec "ls -lah $filestore_path"
-    docker_odoo_exec "ls -lah $filestore_path/$ODOO_TEST_DATABASE_NAME"
-    # docker_odoo_exec "mkdir -p $filestore_path;cp $backup_filestore_path $filestore_path;cd $filestore_path;tar -xzf $filestore_backup_name;rm -rf $filestore_backup_name"
-    # docker_odoo_exec "cd $filestore_path && find . -mindepth 1 -maxdepth 1 -type d -exec mv {} $ODOO_TEST_DATABASE_NAME \;"
 }
 
 restore_backup() {
@@ -107,7 +91,6 @@ restore_backup() {
 
 function main() {
     populate_variables "$@"
-    prepare
     update_config_file
     start_containers
     restore_backup

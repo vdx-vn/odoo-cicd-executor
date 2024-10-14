@@ -168,8 +168,6 @@ create_zip_file_backup() {
     sub_backup_folder=$1
     sub_backup_folder_name=$(basename $sub_backup_folder)
     new_backup_zip_file_path="${sub_backup_folder_name}.zip"
-    # fixme: if 'zip' command not found, this backup will failed
-    # fixme: try to use python zipfile library
     execute_command_inside_odoo_container "cd $sub_backup_folder && zip -rq ../${new_backup_zip_file_path} . && rm -rf $sub_backup_folder_name"
     echo "${backup_folder}/${new_backup_zip_file_path}"
 }
