@@ -178,11 +178,11 @@ jobs:
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      echo "/backup/here/bro"
+                      echo "backup-path=/backup/here/bro" >> $GITHUB_OUTPUT
 
             - name: get backup file path
               run: |
-                  echo ${{ steps.get-latest-backup-file.outputs }}
+                  echo ${{ steps.get-latest-backup-file.outputs.backup-path }}
 
             - name: Upload backup script file to server
               uses: ./.github/actions/scp-ssh
