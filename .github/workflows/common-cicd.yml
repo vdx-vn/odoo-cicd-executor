@@ -171,6 +171,7 @@ jobs:
             - name: Get the latest backup file
               id: get-latest-backup-file
               uses: ./.github/actions/ssh-script
+              # fixme: how to get latest backup file here after execute command on sever , return from command?
               if: ${{env.SERVER_BACKUP_PATH != ''}}
               with:
                   host: ${{env.SERVER_HOST}}
@@ -178,6 +179,7 @@ jobs:
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
+
                       echo "backup-path=/backup/here/bro" >> $GITHUB_OUTPUT
 
             - name: get backup file path
