@@ -24,8 +24,8 @@ populate_variables() {
     declare -g job_attempt_number="$5"
     declare -g backup_folder="$6" # the (same) backup folder path on the host and inside the Odoo container
 
-    declare -g config_file=/etc/odoo/odoo.conf                     # path inside the Odoo container
-    declare -g latest_backup_file_path=$backup_folder/.odoo.tar.gz # the path to backup file on the host
+    declare -g config_file=/etc/odoo/odoo.conf                  # path inside the Odoo container
+    declare -g latest_backup_file_path=$backup_folder/.odoo.zip # the path to backup file on the host
 
     declare -g db_host=$(get_config_value "db_host")
     declare -g db_host=${db_host:-'db'}
@@ -102,15 +102,15 @@ convert_datetime_string_to_timestamp() {
 
 create_backup_inside_container() {
     # Create sql and filestore backup inside the Odoo container
-    # backup folder contains .tar.gz files
-    # a .tar.gz file contains:
-    #   - dump.sql : Oodo database dump
-    #   - filestore.tar.gz: Odoo filestore
-    latest_backup_tar_file=$(get_latest_backup_tar_file)
-    latest_backup_tar_file_path="$backup_folder/$latest_backup_tar_file"
+    # backup folder will contain *.zip files
+    # The .zip file contains:
+    #   - dump.sql : Oodo database dump file
+    #   - filestore: Odoo filestore folder
+    latest_backup_zip_file=$(get_latest_backup_zip_file)
+    latest_backup_zip_file_path="$backup_folder/$latest_backup_zip_file"
     create_new_backup="false"
-    if [ -n "$latest_backup_tar_file" ]; then
-        creation_date=$(echo $latest_backup_tar_file | sed "s/^${db_name}_//; s/\.tar.gz//")
+    if [ -n "$latest_backup_zip_file" ]; then
+        creation_date=$(echo $latest_backup_zip_file | sed "s/^${db_name}_//; s/\.zip//")
         timestamp=$(convert_datetime_string_to_timestamp "$creation_date")
         create_new_backup=$(should_we_generate_new_backup $timestamp)
     else
@@ -121,10 +121,10 @@ create_backup_inside_container() {
         sub_backup_folder=$(create_sub_backup_folder)
         create_sql_backup $sub_backup_folder
         create_filestore_backup $sub_backup_folder
-        new_backup_tar_file_path=$(create_tar_file_backup $sub_backup_folder)
-        echo $new_backup_tar_file_path
+        new_backup_zip_file_path=$(create_zip_file_backup $sub_backup_folder)
+        echo $new_backup_zip_file_path
     else
-        echo $latest_backup_tar_file_path
+        echo $latest_backup_zip_file_path
     fi
 }
 
@@ -138,10 +138,10 @@ copy_backup_to_host() {
     echo $latest_backup_file_path
 }
 
-get_latest_backup_tar_file() {
+get_latest_backup_zip_file() {
     execute_command_inside_odoo_container "[ ! -d \"$backup_folder\" ] && mkdir -p \"$backup_folder\""
-    latest_backup_tar_file=$(execute_command_inside_odoo_container "ls -tr \"$backup_folder\" | tail -n 1 | grep -E \"^${db_name}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.tar.gz$\"")
-    echo ${latest_backup_tar_file}
+    latest_backup_zip_file=$(execute_command_inside_odoo_container "ls -tr \"$backup_folder\" | tail -n 1 | grep -E \"^${db_name}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip$\"")
+    echo ${latest_backup_zip_file}
 }
 
 create_sub_backup_folder() {
@@ -160,16 +160,18 @@ create_sql_backup() {
 
 create_filestore_backup() {
     sub_backup_folder=$1
-    file_store_path="$data_dir/filestore/"
-    execute_command_inside_odoo_container "cd $file_store_path && tar -czf $sub_backup_folder/filestore.tar.gz $db_name"
+    file_store_path="$data_dir/filestore/$db_name"
+    execute_command_inside_odoo_container "cp -r $file_store_path $sub_backup_folder/filestore"
 }
 
-create_tar_file_backup() {
+create_zip_file_backup() {
     sub_backup_folder=$1
     sub_backup_folder_name=$(basename $sub_backup_folder)
-    new_backup_tar_file_path="${sub_backup_folder_name}.tar.gz"
-    execute_command_inside_odoo_container "cd $sub_backup_folder/.. && tar -czf ${new_backup_tar_file_path} $sub_backup_folder_name && rm -rf $sub_backup_folder_name"
-    echo "${backup_folder}/${new_backup_tar_file_path}"
+    new_backup_zip_file_path="${sub_backup_folder_name}.zip"
+    # fixme: if 'zip' command not found, this backup will failed
+    # fixme: try to use python zipfile library
+    execute_command_inside_odoo_container "cd $sub_backup_folder && zip -rq ../${new_backup_zip_file_path} . && rm -rf $sub_backup_folder_name"
+    echo "${backup_folder}/${new_backup_zip_file_path}"
 }
 
 delete_old_backup_files() {
