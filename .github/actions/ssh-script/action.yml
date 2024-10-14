@@ -41,4 +41,4 @@ runs:
               output=$(ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
                 ${{ inputs.script }}
               ")
-              echo "$output" >> "$GITHUB_OUTPUT"
+              echo "output=$output" >> "$GITHUB_OUTPUT"
