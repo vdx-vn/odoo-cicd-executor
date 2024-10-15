@@ -164,16 +164,22 @@ jobs:
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
 
-            # fixme: add backup path to env,
-            # fixme: if this param is provided, download backup file instead of create new backup
-            # fixme; if not backup file found, switch to normal backup script
+              # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
+              # so this case, we should create backup a new DB
+            - name: Make decision to create a new backup on server
+              run: |
+                  if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
+                    echo "get existing backup"
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
+                  else
+                    echo "create new backup bro"
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                  fi
 
             - name: Get the latest backup file from existing backup path on server
               id: get-latest-backup-file
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE }} == 0
               uses: ./.github/actions/ssh-script
-              # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
-              # so this case, we should create backup a new DB
-              if: ${{env.SERVER_BACKUP_PATH}} != '' || ${{ env.GITHUB_RUN_ATTEMPT }} == 1
               with:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}
@@ -186,13 +192,16 @@ jobs:
                         echo ${{ env.SERVER_BACKUP_PATH }}/\$latest_file
                       fi
 
-            - name: Update server backup file path
+            - name: Update server backup file path variable
               run: |
                   latest_backup_file_path=${{ steps.get-latest-backup-file.outputs.script-output }}
                   echo "backup heyyyyyyyyyyyyyy"
                   echo $latest_backup_file_path
-                  if [[ -n $latest_backup_file_path ]]; then
+                  if [[ -n "$latest_backup_file_path" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
                     echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
+                  else
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
                   fi
 
             - name: Upload backup script file to server
