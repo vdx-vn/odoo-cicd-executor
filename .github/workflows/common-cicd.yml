@@ -51,8 +51,8 @@ env:
     PR_URL: ${{ inputs.pr_url }}
 
     # ==== Repository secrets ====
-    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}}
-    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }}
+    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
+    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
     GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to github container registry
 
     # ==== Environment secrets =====
@@ -62,7 +62,6 @@ env:
     SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
 
     # ===== Environment variables =====
-    ODOO_IMAGE_TAG_DEPLOY: ${{ vars.ODOO_IMAGE_TAG_DEPLOY }}
     ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
     DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
     SERVER_HOST: ${{ vars.SERVER_HOST }}
@@ -220,7 +219,7 @@ jobs:
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG_DEPLOY}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
 
             - name: "Download backup file"
               uses: ./.github/actions/scp-ssh
