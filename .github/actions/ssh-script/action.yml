@@ -18,6 +18,7 @@ runs:
     using: "composite"
     steps:
         - name: "Execute bash command"
+          id: execute-bash-command
           shell: bash
           run: |
               function create_private_keyfile_from_content() {
