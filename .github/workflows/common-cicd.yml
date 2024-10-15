@@ -172,11 +172,10 @@ jobs:
               shell: bash
               run: |
 
-                  mkdir -p ~/.ssh
-                  ssh-keyscan -H ${{env.SERVER_HOST}} >> ~/.ssh/known_hosts
-                  cat ~/.ssh/known_hosts
+
                   ls -lah /home
                   ls -lah .
+                  ls -lah ~/.ssh
 
             - name: Get the latest backup file path on server
               id: get-latest-backup-file
