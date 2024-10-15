@@ -168,10 +168,12 @@ jobs:
             # fixme: if this param is provided, download backup file instead of create new backup
             # fixme; if not backup file found, switch to normal backup script
 
-            - name: Get the latest backup file path on server
+            - name: Get the latest backup file from existing backup path on server
               id: get-latest-backup-file
               uses: ./.github/actions/ssh-script
-              if: ${{env.SERVER_BACKUP_PATH != ''}}
+              # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
+              # so this case, we should create backup a new DB
+              if: ${{env.SERVER_BACKUP_PATH}} != '' || ${{ env.GITHUB_RUN_ATTEMPT }} == 1
               with:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}
@@ -180,11 +182,18 @@ jobs:
                   set-output: 1
                   script: |
                       latest_file=\$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
-                      echo \$latest_file
+                      if [[ -n \$latest_file ]]; then
+                        echo ${{ env.SERVER_BACKUP_PATH }}/\$latest_file
+                      fi
 
-            - name: get backup file path
+            - name: Update server backup file path
               run: |
-                  echo ${{ steps.get-latest-backup-file.outputs.script-output }}
+                  latest_backup_file_path=${{ steps.get-latest-backup-file.outputs.script-output }}
+                  echo "backup heyyyyyyyyyyyyyy"
+                  echo $latest_backup_file_path
+                  if [[ -n $latest_backup_file_path ]]; then
+                    echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                  fi
 
             - name: Upload backup script file to server
               uses: ./.github/actions/scp-ssh
