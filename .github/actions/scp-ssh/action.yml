@@ -33,10 +33,6 @@ runs:
                 echo "$content" >>$key_file_path
               }          
 
-              # fixme: remove echo lines
-              echo "make decision here =>> ??? !!!"
-              echo ${{ env.NEED_NEW_SERVER_BACKUP_FILE }}
-
               keyfile_path=${{ github.workspace }}/$(date +%s)_key
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path"

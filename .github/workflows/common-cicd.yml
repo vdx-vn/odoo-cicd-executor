@@ -169,10 +169,8 @@ jobs:
             - name: Make decision to create a new backup on server
               run: |
                   if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
-                    echo "get existing backup"
                     echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
                   else
-                    echo "create new backup bro"
                     echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
                   fi
 
@@ -222,9 +220,6 @@ jobs:
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      if [[ -z ${{env.SERVER_BACKUP_PATH}} ]]; then
-                        echo "download the latest backup file from existing backup folder instead of backup a new one"
-                      fi
                       bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG_DEPLOY}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
 
             - name: "Download backup file"
