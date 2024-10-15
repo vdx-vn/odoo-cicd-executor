@@ -183,7 +183,7 @@ jobs:
 
             - name: get backup file path
               run: |
-                  echo ${{ steps.get-latest-backup-file.outputs.output }}
+                  echo ${{ steps.get-latest-backup-file.outputs.script-output }}
 
             - name: Upload backup script file to server
               uses: ./.github/actions/scp-ssh
