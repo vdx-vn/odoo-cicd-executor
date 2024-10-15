@@ -13,11 +13,20 @@ inputs:
     script:
         description: "Bash script to execute"
         required: true
+    set-output:
+        description: "Will script return output or not (0|1)"
+        required: true
+        default: 0
+outputs:
+    script-output:
+        description: "Output after execute script"
+        value: ${{ steps.execute-bash-command.outputs.output }}
 
 runs:
     using: "composite"
     steps:
         - name: "Execute bash command"
+          id: execute-bash-command
           shell: bash
           run: |
               function create_private_keyfile_from_content() {
@@ -27,13 +36,21 @@ runs:
                 touch $key_file_path && chmod 600 $key_file_path
                 >$key_file_path
                 echo "$content" >>$key_file_path
-                echo $key_file_path
-              }          
+              }
 
               keyfile_path=${{ github.workspace }}/$(date +%s)_key
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path" > /dev/null
+              mkdir -p ~/.ssh
+              ssh-keyscan -p ${{ inputs.port }} ${{ inputs.host }} >> ~/.ssh/known_hosts
 
-              ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} << EOF
-                ${{ inputs.script }}
-              EOF
+              if [ ${{ inputs.set-output }} -eq 1 ]; then
+                output=$(ssh -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
+                  ${{ inputs.script }}
+                ")
+                echo "output=$output" >> "$GITHUB_OUTPUT"
+              else
+                ssh -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
+                    ${{ inputs.script }}
+                "
+              fi

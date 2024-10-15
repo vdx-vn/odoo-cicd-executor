@@ -51,8 +51,8 @@ env:
     PR_URL: ${{ inputs.pr_url }}
 
     # ==== Repository secrets ====
-    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}}
-    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }}
+    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
+    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
     GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to github container registry
 
     # ==== Environment secrets =====
@@ -62,7 +62,6 @@ env:
     SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
 
     # ===== Environment variables =====
-    ODOO_IMAGE_TAG_DEPLOY: ${{ vars.ODOO_IMAGE_TAG_DEPLOY }}
     ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
     DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
     SERVER_HOST: ${{ vars.SERVER_HOST }}
@@ -71,6 +70,7 @@ env:
     SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
     SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
+    SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }}
 
     # ===== Handle Input for actions/github-script ======
     INPUT_REPO_NAME: ${{inputs.repo_name}}
@@ -144,9 +144,9 @@ jobs:
 
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
-            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.tar.gz
+            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_BACKUP_FOLDER: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
-            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.tar.gz
+            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
 
         steps:
@@ -161,10 +161,45 @@ jobs:
             - name: Test Preparation
               uses: ./.github/actions/test-preparation
 
-            # TODO: add backup path to env, if this param is provided
+              # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
+              # so this case, we should create backup a new DB
+            - name: Make decision to create a new backup on server
+              run: |
+                  if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
+                  else
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                  fi
+
+            - name: Get the latest backup file from existing backup path on server
+              uses: ./.github/actions/ssh-script
+              id: get-latest-backup-file
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  set-output: 1
+                  script: |
+                      latest_file=\$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
+                      if [[ -n \$latest_file ]]; then
+                        echo ${{ env.SERVER_BACKUP_PATH }}/\$latest_file
+                      fi
+
+            - name: Update server backup file path variable
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
+              run: |
+                  latest_backup_file_path=${{ steps.get-latest-backup-file.outputs.script-output }}
+                  if [[ -n "$latest_backup_file_path" ]]; then
+                    echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                  else
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                  fi
 
             - name: Upload backup script file to server
               uses: ./.github/actions/scp-ssh
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
               with:
                   direction: "upload"
                   host: ${{env.SERVER_HOST}}
@@ -176,13 +211,15 @@ jobs:
 
             - name: "Backup Odoo on server"
               uses: ./.github/actions/ssh-script
+              id: backup-on-server
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
               with:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG_DEPLOY}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
 
             - name: "Download backup file"
               uses: ./.github/actions/scp-ssh
