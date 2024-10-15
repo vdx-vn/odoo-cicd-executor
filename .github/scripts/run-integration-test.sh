@@ -77,7 +77,7 @@ restore_db() {
 restore_filestore() {
     backup_filestore_path="${odoo_container_store_backup_folder}/filestore"
     filestore_path="$data_dir/filestore"
-    docker_odoo_exec "mkdir -p $filestore_path;cp $backup_filestore_path $filestore_path/$ODOO_TEST_DATABASE_NAME;"
+    docker_odoo_exec "mkdir -p $filestore_path;cp -r $backup_filestore_path $filestore_path/$ODOO_TEST_DATABASE_NAME;"
 }
 
 restore_backup() {
