@@ -34,11 +34,7 @@ runs:
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path" > /dev/null
 
-                #   ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} << EOF
-                #     ${{ inputs.script }}
-                #   EOF
-                # fixme: check this ok or not without EOF for multiple lines
-                # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-output-parameter
+
               output=$(ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
                 ${{ inputs.script }}
               ")
