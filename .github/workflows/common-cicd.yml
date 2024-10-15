@@ -168,6 +168,38 @@ jobs:
             # fixme: if this param is provided, download backup file instead of create new backup
             # fixme; if not backup file found, switch to normal backup script
 
+            - name: "Execute bash command"
+
+              id: execute-bash-command
+              shell: bash
+              run: |
+                  function create_private_keyfile_from_content() {
+                      content="$1"
+                      key_file_path="$2"
+                      mkdir -p $(dirname $key_file_path)
+                      touch $key_file_path && chmod 600 $key_file_path
+                      >$key_file_path
+                      echo "$content" >>$key_file_path
+                      echo $key_file_path
+                  }          
+
+                  keyfile_path=${{ github.workspace }}/$(date +%s)_key
+
+                  create_private_keyfile_from_content "${{ secrets.SERVER_PRIVATE_KEY }}" "$keyfile_path" > /dev/null
+                  mkdir -p ~/.ssh
+                  ssh-keyscan -H ${{env.SERVER_HOST}} >> ~/.ssh/known_hosts
+
+                  if [ 0 -eq 1 ]; then
+                      output=$(ssh -p ${{env.SERVER_SSH_PORT}} -i $keyfile_path ${{env.SERVER_USER}}@${{env.SERVER_HOST}} "
+                      ${{ secrets.SERVER_PRIVATE_KEY }}
+                      ")
+                      echo "output=$output" >> "$GITHUB_OUTPUT"
+                  else
+                      ssh -p ${{env.SERVER_SSH_PORT}} -i $keyfile_path ${{env.SERVER_USER}}@${{env.SERVER_HOST}} "
+                          ${{ secrets.SERVER_PRIVATE_KEY }}
+                      "
+                  fi
+
             - name: Get the latest backup file path on server
               id: get-latest-backup-file
               uses: ./.github/actions/ssh-script
