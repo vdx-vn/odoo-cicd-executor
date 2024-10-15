@@ -168,10 +168,9 @@ jobs:
             # fixme: if this param is provided, download backup file instead of create new backup
             # fixme; if not backup file found, switch to normal backup script
 
-            - name: Get the latest backup file
+            - name: Get the latest backup file path on server
               id: get-latest-backup-file
               uses: ./.github/actions/ssh-script
-              # fixme: how to get latest backup file here after execute command on sever , return from command?
               if: ${{env.SERVER_BACKUP_PATH != ''}}
               with:
                   host: ${{env.SERVER_HOST}}
@@ -179,7 +178,8 @@ jobs:
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      echo "/path/ok/1"
+                      latest_file=$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
+                      echo $latest_file
 
             - name: get backup file path
               run: |
