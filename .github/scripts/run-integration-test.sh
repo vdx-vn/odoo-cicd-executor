@@ -2,7 +2,6 @@
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
 populate_variables() {
-
     declare -g received_backup_file_path=$1
     declare -g commit_hash=$2
     declare -g odoo_container_store_backup_folder="/tmp/odoo/restore"
@@ -51,7 +50,7 @@ copy_backup() {
     received_backup_file_name=$(basename $received_backup_file_path)
     docker_odoo_exec "mkdir -p $odoo_container_store_backup_folder"
     docker cp "$received_backup_file_path" $odoo_container_id:$odoo_container_store_backup_folder
-    docker_odoo_exec "cd $odoo_container_store_backup_folder && tar -xzf $received_backup_file_name && ls | grep -E '[0-9]{4}-[0-9]{2}-'|tr -d '\n'|xargs -0 -I {} mv {} $extracted_backup_folder_name"
+    docker_odoo_exec "cd $odoo_container_store_backup_folder && unzip -qo $received_backup_file_name"
 }
 
 config_psql_without_password() {
@@ -71,16 +70,14 @@ create_empty_db() {
 }
 
 restore_db() {
-    sql_dump_path="${odoo_container_store_backup_folder}/${extracted_backup_folder_name}/dump.sql"
+    sql_dump_path="${odoo_container_store_backup_folder}/dump.sql"
     docker_odoo_exec "psql -h \"$db_host\" -U $db_user $ODOO_TEST_DATABASE_NAME < $sql_dump_path >/dev/null"
 }
 
 restore_filestore() {
-    filestore_backup_name="filestore.tar.gz"
-    backup_filestore_path="${odoo_container_store_backup_folder}/${extracted_backup_folder_name}/$filestore_backup_name"
+    backup_filestore_path="${odoo_container_store_backup_folder}/filestore"
     filestore_path="$data_dir/filestore"
-    docker_odoo_exec "mkdir -p $filestore_path;cp $backup_filestore_path $filestore_path;cd $filestore_path;tar -xzf $filestore_backup_name;rm -rf $filestore_backup_name"
-    docker_odoo_exec "cd $filestore_path && find . -mindepth 1 -maxdepth 1 -type d -exec mv {} $ODOO_TEST_DATABASE_NAME \;"
+    docker_odoo_exec "mkdir -p $filestore_path;cp -r $backup_filestore_path $filestore_path/$ODOO_TEST_DATABASE_NAME;"
 }
 
 restore_backup() {
