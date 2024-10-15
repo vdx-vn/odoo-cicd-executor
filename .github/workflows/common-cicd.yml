@@ -215,7 +215,7 @@ jobs:
             - name: "Backup Odoo on server"
               uses: ./.github/actions/ssh-script
               id: backup-on-server
-              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE }} == 0
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE }} == 1
               with:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}

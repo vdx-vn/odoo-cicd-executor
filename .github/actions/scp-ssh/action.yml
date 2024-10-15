@@ -31,8 +31,11 @@ runs:
                 touch $key_file_path && chmod 600 $key_file_path
                 >$key_file_path
                 echo "$content" >>$key_file_path
-                echo $key_file_path
               }          
+
+              # fixme: remove echo lines
+              echo "make decision here =>> ??? !!!"
+              echo ${{ env.NEED_NEW_SERVER_BACKUP_FILE }}
 
               keyfile_path=${{ github.workspace }}/$(date +%s)_key
 
