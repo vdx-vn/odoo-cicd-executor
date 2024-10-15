@@ -13,6 +13,10 @@ inputs:
     script:
         description: "Bash script to execute"
         required: true
+    set-output:
+        description: "Will script return output or not (0|1)"
+        required: true
+        default: 0
 outputs:
     script-output:
         description: "Output after execute script"
@@ -39,8 +43,13 @@ runs:
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path" > /dev/null
 
-
-              output=$(ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
-                ${{ inputs.script }}
-              ")
-              echo "output=$output" >> "$GITHUB_OUTPUT"
+              if [ ${{ inputs.set-output }} -eq 1 ]; then
+                output=$(ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
+                  ${{ inputs.script }}
+                ")
+                echo "output=$output" >> "$GITHUB_OUTPUT"
+              else
+                ssh -o StrictHostKeyChecking=no -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
+                    ${{ inputs.script }}
+                  "
+              fi
