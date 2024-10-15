@@ -177,9 +177,9 @@ jobs:
                   fi
 
             - name: Get the latest backup file from existing backup path on server
+              uses: ./.github/actions/ssh-script
               id: get-latest-backup-file
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE }} == 0
-              uses: ./.github/actions/ssh-script
               with:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}
@@ -193,20 +193,16 @@ jobs:
                       fi
 
             - name: Update server backup file path variable
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE }} == 0
               run: |
                   latest_backup_file_path=${{ steps.get-latest-backup-file.outputs.script-output }}
-                  echo "backup heyyyyyyyyyyyyyy"
-                  echo $latest_backup_file_path
                   if [[ -n "$latest_backup_file_path" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
                     echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
-                  else
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
                   fi
 
             - name: Upload backup script file to server
               uses: ./.github/actions/scp-ssh
-              if: ${{env.SERVER_BACKUP_PATH == ''}}
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE }} == 1
               with:
                   direction: "upload"
                   host: ${{env.SERVER_HOST}}
@@ -219,6 +215,7 @@ jobs:
             - name: "Backup Odoo on server"
               uses: ./.github/actions/ssh-script
               id: backup-on-server
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE }} == 0
               with:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}
