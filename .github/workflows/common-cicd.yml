@@ -175,7 +175,9 @@ jobs:
 
                   ls -lah /home
                   ls -lah .
-                  ls -lah ~/.ssh
+                  mkdir -p ~/.ssh
+                  ssh-keyscan -p ${{env.SERVER_SSH_PORT}} ${{env.SERVER_HOST}} >> ~/.ssh/known_hosts
+                  cat ~/.ssh/known_hosts
 
             - name: Get the latest backup file path on server
               id: get-latest-backup-file
