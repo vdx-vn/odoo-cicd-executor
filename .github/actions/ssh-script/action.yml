@@ -53,5 +53,5 @@ runs:
               else
                 ssh -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
                     ${{ inputs.script }}
-                  "
+                "
               fi
