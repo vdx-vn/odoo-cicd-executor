@@ -167,17 +167,6 @@ jobs:
             # fixme: add backup path to env,
             # fixme: if this param is provided, download backup file instead of create new backup
             # fixme; if not backup file found, switch to normal backup script
-            - name: "Execute bash command"
-              id: execute-bash-command123
-              shell: bash
-              run: |
-
-
-                  ls -lah /home
-                  ls -lah .
-                  mkdir -p ~/.ssh
-                  ssh-keyscan -p ${{env.SERVER_SSH_PORT}} ${{env.SERVER_HOST}} >> ~/.ssh/known_hosts
-                  cat ~/.ssh/known_hosts
 
             - name: Get the latest backup file path on server
               id: get-latest-backup-file

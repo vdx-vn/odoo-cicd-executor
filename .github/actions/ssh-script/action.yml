@@ -43,7 +43,7 @@ runs:
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path" > /dev/null
               mkdir -p ~/.ssh
-              ssh-keyscan -H ${{ inputs.host }} >> ~/.ssh/known_hosts
+              ssh-keyscan -p ${{ inputs.port }} ${{ inputs.host }} >> ~/.ssh/known_hosts
 
               if [ ${{ inputs.set-output }} -eq 1 ]; then
                 output=$(ssh -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
