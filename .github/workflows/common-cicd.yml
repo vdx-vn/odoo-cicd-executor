@@ -167,9 +167,7 @@ jobs:
             # fixme: add backup path to env,
             # fixme: if this param is provided, download backup file instead of create new backup
             # fixme; if not backup file found, switch to normal backup script
-
             - name: "Execute bash command"
-
               id: execute-bash-command
               shell: bash
               run: |
@@ -188,11 +186,14 @@ jobs:
                   create_private_keyfile_from_content "${{ secrets.SERVER_PRIVATE_KEY }}" "$keyfile_path" > /dev/null
                   mkdir -p ~/.ssh
                   ssh-keyscan -H ${{env.SERVER_HOST}} >> ~/.ssh/known_hosts
+                  cat ~/.ssh/known_hosts
+                  ls -lah /home
+                  ls -lah .
 
-                  ssh -p ${{env.SERVER_SSH_PORT}} -i $keyfile_path ${{env.SERVER_USER}}@${{env.SERVER_HOST}} "
-                      latest_file=$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
-                      echo $latest_file                  
-                  "
+              #   ssh -p ${{env.SERVER_SSH_PORT}} -i $keyfile_path ${{env.SERVER_USER}}@${{env.SERVER_HOST}} "
+              #       latest_file=$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
+              #       echo $latest_file
+              #   "
 
             - name: Get the latest backup file path on server
               id: get-latest-backup-file
