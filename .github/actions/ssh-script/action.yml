@@ -42,6 +42,7 @@ runs:
               keyfile_path=${{ github.workspace }}/$(date +%s)_key
 
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path" > /dev/null
+              mkdir -p ~/.ssh
               ssh-keyscan -H ${{ inputs.host }} >> ~/.ssh/known_hosts
 
               if [ ${{ inputs.set-output }} -eq 1 ]; then
