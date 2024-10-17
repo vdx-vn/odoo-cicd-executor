@@ -45,12 +45,12 @@ runs:
               ssh-keyscan -p ${{ inputs.port }} ${{ inputs.host }} >> ~/.ssh/known_hosts
 
               if [ ${{ inputs.set-output }} -eq 1 ]; then
-                output=$(ssh -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
+                output=$(ssh -o ServerAliveInterval=60 -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
                   ${{ inputs.script }}
                 ")
                 echo "output=$output" >> "$GITHUB_OUTPUT"
               else
-                ssh -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
+                ssh -o ServerAliveInterval=60 -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
                     ${{ inputs.script }}
                 "
               fi
