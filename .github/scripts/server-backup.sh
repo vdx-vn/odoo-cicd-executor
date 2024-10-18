@@ -32,6 +32,7 @@ populate_variables() {
     declare -g db_port=$(get_config_value "db_port")
     declare -g db_port=${db_port:-'5432'}
     declare -g db_user=$(get_config_value "db_user")
+    declare -g db_user=${db_user:-'odoo'}
 
     declare -g data_dir=$(get_config_value "data_dir")
     declare -g data_dir=${data_dir:-'/var/lib/odoo'}
