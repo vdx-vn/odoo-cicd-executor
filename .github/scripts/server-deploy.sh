@@ -182,19 +182,15 @@ set_list_addons() {
 }
 
 update_config_file() {
-    # fixme: remove unused echo
     sed -i "s/^[ #]*command\s*=.*//g" $server_config_file
     sed '/^$/N;/^\n$/D' $server_config_file >temp && mv temp $server_config_file
     if [[ -z $CUSTOM_ADDONS ]]; then
-        echo "there is no addons need to update" # fixme: remove this line
         echo -e "\ncommand = -d ${server_odoo_db_name}" >>"${server_config_file}"
     else
         if [[ -z $TO_INSTALL_ADDONS ]]; then
             echo -e "\ncommand = -d ${server_odoo_db_name} -u ${CUSTOM_ADDONS}" >>"${server_config_file}"
-            echo -e "\ncommand = -d ${server_odoo_db_name} -u ${CUSTOM_ADDONS}" # fixme: remove this line
         else
             echo -e "\ncommand = -d ${server_odoo_db_name} -i ${TO_INSTALL_ADDONS} -u ${CUSTOM_ADDONS}" >>"${server_config_file}"
-            echo -e "\ncommand = -d ${server_odoo_db_name} -i ${TO_INSTALL_ADDONS} -u ${CUSTOM_ADDONS}" # fixme: remove this line
         fi
     fi
 }
