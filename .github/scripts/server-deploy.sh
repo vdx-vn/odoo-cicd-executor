@@ -12,9 +12,9 @@ CUSTOM_ADDONS=
 
 get_config_value() {
     param=$1
-    execute_command_inside_odoo_container "grep -q -E \"^\s*\b${param}\b\s*=\" \"$server_config_file\""
+    grep -q -E \"^\s*\b${param}\b\s*=\" \"$server_config_file\"
     if [[ $? == 0 ]]; then
-        value=$(execute_command_inside_odoo_container "grep -E \"^\s*\b${param}\b\s*=\" \"$server_config_file\" | cut -d \" \" -f3 | sed 's/[\"\n\r]//g'")
+        value=$(grep -E \"^\s*\b${param}\b\s*=\" \"$server_config_file\" | cut -d \" \" -f3 | sed 's/[\"\n\r]//g')
     fi
     echo "$value"
 }
