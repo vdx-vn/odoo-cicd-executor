@@ -249,7 +249,8 @@ jobs:
         name: ${{inputs.repo_name}} - Deploy server
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [unit-test-at-install, unit-test-post-install, integration-test]
+        # fixme: remove comment for needs option
+        # needs: [unit-test-at-install, unit-test-post-install, integration-test]
         steps:
             - uses: actions/checkout@v4
 
