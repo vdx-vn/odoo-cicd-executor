@@ -32,6 +32,7 @@ populate_variables() {
     declare -g db_port=$(get_config_value "db_port")
     declare -g db_port=${db_port:-'5432'}
     declare -g db_user=$(get_config_value "db_user")
+    declare -g db_user=${db_user:-'odoo'}
 
     declare -g data_dir=$(get_config_value "data_dir")
     declare -g data_dir=${data_dir:-'/var/lib/odoo'}
@@ -85,7 +86,7 @@ should_we_generate_new_backup() {
     latest_backup_file_creation_timestamp=$1
     current_timestamp=$(execute_command_inside_odoo_container "date -u +%s")
     different=$((current_timestamp - latest_backup_file_creation_timestamp))
-    # fixme: set the time to environment variable to we can config differently for each project
+    # todo: set the time to environment variable to we can config differently for each project
     # we should get a new backup file when the latest backup file is older than 1 hour
     if [[ $different -gt '3600' ]]; then
         echo "true"
