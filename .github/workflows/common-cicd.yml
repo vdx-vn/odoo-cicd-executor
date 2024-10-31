@@ -145,7 +145,7 @@ jobs:
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
-            SERVER_BACKUP_FOLDER: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
+            SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
             SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
 
@@ -219,7 +219,7 @@ jobs:
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_FOLDER }}"
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
 
             - name: "Download backup file"
               uses: ./.github/actions/scp-ssh
