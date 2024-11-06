@@ -51,9 +51,12 @@ runs:
                 else
                     folder_path=$file_path
                 fi
+                
+                ssh -o ServerAliveInterval=60 -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
+                    if [ ! -d "$folder_path" ]; then
+                        mkdir -p $folder_path
+                    fi
+                "
 
-                if [ ! -d "$folder_path" ]; then
-                    mkdir -p $folder_path
-                fi
                 scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
               fi
