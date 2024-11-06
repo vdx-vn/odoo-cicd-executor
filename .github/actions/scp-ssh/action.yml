@@ -18,6 +18,10 @@ inputs:
     ssh_key_text:
         description: "SSH private key text"
         required: true
+    include_file_name:
+        default: "no"
+        required: true
+        description: "Does server file path include file name at the end or just the folder path (yes | no)"
 runs:
     using: "composite"
     steps:
@@ -41,7 +45,12 @@ runs:
                 scp -o StrictHostKeyChecking=no -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }} ${{ inputs.local_file }}
               else
                 file_path=${{ inputs.server_file }}
-                folder_path=$(dirname "$file_path")
+                include_file_name=${{ inputs.include_file_name }}
+                if [ $include_file_name == "yes" ]; then
+                    folder_path=$(dirname "$file_path")
+                else
+                    folder_path=$file_path
+                fi
 
                 if [ ! -d "$folder_path" ]; then
                     mkdir -p $folder_path
