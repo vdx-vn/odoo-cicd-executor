@@ -77,6 +77,32 @@ env:
     INPUT_COMMIT_SHA: ${{inputs.commit_sha}}
 
 jobs:
+    prapare-data:
+        name: Genetate common data and save to cache
+        runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        env:
+            ODOO_IMAGE_EXTRACT_PATH: "/tmp/odoo-image.tar"
+            DB_IMAGE_EXTRACT_PATH: "/tmp/db-image.tar"
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Test Preparation
+              uses: ./.github/actions/test-preparation
+
+            - name: Save Odoo docker images to cached tar files
+              uses: actions/cache/save@v4
+              with:
+                  key: cache-odoo-docker-image-tar-file
+                  path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
+
+            - name: Save DB docker images to cached tar files
+              uses: actions/cache/save@v4
+              with:
+                  key: cache-db-docker-image-tar-file
+                  path: ${{ env.DB_IMAGE_EXTRACT_PATH }}
+
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
         runs-on: ubuntu-latest

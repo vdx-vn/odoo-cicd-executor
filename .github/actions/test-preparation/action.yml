@@ -17,3 +17,15 @@ runs:
           run: |
               repo_owner=$(echo "${{env.INPUT_REPO_NAME}}" | cut -d'/' -f1)
               echo "${{ env.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
+
+        - name: Pull docker images
+          shell: bash
+          run: |
+              docker pull ${{ env.ODOO_IMAGE_TAG }}
+              docker pull ${{ env.DB_IMAGE_TAG }}
+
+        - name: Extract image to path
+          shell: bash
+          run: |
+              docker save ${{ env.ODOO_IMAGE_TAG }} > ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
+              docker save ${{ env.DB_IMAGE_TAG }} > ${{ env.DB_IMAGE_EXTRACT_PATH }}
