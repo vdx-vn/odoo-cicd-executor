@@ -6,23 +6,34 @@ runs:
         - uses: actions/checkout@v4
 
         - name: Restore Odoo docker image file
+          id: odoo-cache
           uses: actions/cache/restore@v4
           with:
               key: cache-${{ env.ODOO_IMAGE_TAG }}
               path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
+              fail-on-cache-miss: false
 
         - name: Restore DB docker image file
+          id: db-cache
           uses: actions/cache/restore@v4
           with:
               key: cache-${{ env.DB_IMAGE_TAG }}
               path: ${{ env.DB_IMAGE_EXTRACT_PATH }}
+              fail-on-cache-miss: false
 
         - name: Extract image from tar file
           shell: bash
+          if: ${{ steps.odoo-cache.outputs.cache-hit == 'true' && steps.db-cache.outputs.cache-hit == 'true'}}
           run: |
               docker load < ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
               docker load < ${{ env.DB_IMAGE_EXTRACT_PATH }}
-              docker image ls
+
+        - name: Login to GitHub container registry
+          shell: bash
+          # in case we didn't find the images cache, just login and pull them later
+          run: |
+              repo_owner=$(echo "${{env.INPUT_REPO_NAME}}" | cut -d'/' -f1)
+              echo "${{ env.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
 
         - name: Checkout Odoo source repository
           uses: actions/checkout@v4

@@ -79,28 +79,6 @@ env:
     INPUT_COMMIT_SHA: ${{inputs.commit_sha}}
 
 jobs:
-    # prapare-data:
-    #     name: Genetate common data and save to cache
-    #     runs-on: ubuntu-latest
-    #     environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-    #     steps:
-    #         - uses: actions/checkout@v4
-
-    #         - name: Test Preparation
-    #           uses: ./.github/actions/test-preparation
-
-    #         - name: Save Odoo docker images to cached tar files
-    #           uses: actions/cache/save@v4
-    #           with:
-    #               key: ${{ env.ODOO_IMAGE_STORE_KEY }}
-    #               path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
-
-    #         - name: Save DB docker images to cached tar files
-    #           uses: actions/cache/save@v4
-    #           with:
-    #               key: ${{ env.DB_IMAGE_STORE_KEY }}
-    #               path: ${{ env.DB_IMAGE_EXTRACT_PATH }}
-
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
         runs-on: ubuntu-latest
@@ -116,7 +94,7 @@ jobs:
                   name: "Unit test at install"
 
             - name: Test Preparation
-              uses: ./.github/actions/extract-test-data
+              uses: ./.github/actions/prepare-test-data
 
             - name: Run Unit test cases
               id: run_at_install_unit_test
@@ -146,7 +124,7 @@ jobs:
                   name: "Unit test post install"
 
             - name: Test Preparation
-              uses: ./.github/actions/extract-test-data
+              uses: ./.github/actions/prepare-test-data
 
             - name: Run Unit test cases
               id: run_post_install_unit_test
@@ -183,7 +161,7 @@ jobs:
                   name: "Integration test"
 
             - name: Test Preparation
-              uses: ./.github/actions/extract-test-data
+              uses: ./.github/actions/prepare-test-data
 
               # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
               # so this case, we should create backup a new DB
