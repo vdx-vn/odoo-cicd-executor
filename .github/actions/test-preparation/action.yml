@@ -1,4 +1,4 @@
-name: "Preparation before testing"
+name: "Data preparation before testing"
 
 runs:
     using: "composite"

@@ -1,0 +1,32 @@
+name: "Extract test data before testing"
+
+runs:
+    using: "composite"
+    steps:
+        - name: Checkout Odoo source repository
+          uses: actions/checkout@v4
+          with:
+              repository: ${{ env.REPOSITORY }}
+              ssh-key: ${{ env.GH_SSH_KEY }}
+              path: ${{ env.REPO_PATH }}
+              ref: ${{ env.INPUT_COMMIT_SHA }}
+              fetch-depth: 1
+
+        - name: Restore Odoo docker image file
+          uses: actions/cache/restore@v4
+          with:
+              key: ${{ env.ODOO_IMAGE_STORE_KEY }}
+              path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
+
+        - name: Restore DB docker image file
+          uses: actions/cache/restore@v4
+          with:
+              key: ${{ env.DB_IMAGE_STORE_KEY }}
+              path: ${{ env.DB_IMAGE_EXTRACT_PATH }}
+
+        - name: Extract image from tar file
+          shell: bash
+          run: |
+              docker load < ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
+              docker load < ${{ env.DB_IMAGE_EXTRACT_PATH }}
+              docker image ls
