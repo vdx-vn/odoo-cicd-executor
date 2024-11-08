@@ -70,6 +70,7 @@ jobs:
                   docker save ${{ env.DB_IMAGE_TAG }} > ${{ env.DB_IMAGE_EXTRACT_PATH }}
 
             - name: Delete old caches
+              continue-on-error: true
               run: |
                   gh cache delete --repo ${{ github.repository }} ${{ env.ODOO_IMAGE_CACHE_KEY }}
                   gh cache delete --repo ${{ github.repository }} ${{ env.DB_IMAGE_CACHE_KEY }}
