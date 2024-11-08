@@ -81,8 +81,8 @@ jobs:
                   for branch in $branches; do
                       repo_owner=$(echo ${{inputs.repo_name}} | cut -d '/' -f1)
                       if [ $count -eq 1 ]; then
-                      # fixme: remove --ref dev
-                        gh workflow run docker-update.yml --ref dev -f repo_name=${{ inputs.repo_name }} -f branch=$branch -f repo_owner=$repo_owner -f generate_cache=yes
+                        # add -f generate_cache=yes to this workflow dispatch command to triggering store docker images to cache
+                        gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch -f repo_owner=$repo_owner
                       else
                         gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch -f repo_owner=$repo_owner
                       fi
