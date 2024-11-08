@@ -11,9 +11,13 @@ on:
             repo_owner:
                 required: true
                 type: string
+            generate_cache:
+                default: "no"
+                required: false
+                description: "Should we generate github action caches for this branch"
+                type: string
 jobs:
-    build:
-        name: build
+    update-docker-images-on-server:
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.branch}}
         steps:
@@ -34,3 +38,54 @@ jobs:
                       docker compose up -d
                       docker image prune -a -f
                       docker logout ghcr.io
+
+    # TODO: limit cache size for 1 repository is 10GB - so we need to find some workaround here
+    create-github-action-caches:
+        runs-on: ubuntu-latest
+        if: ${{ inputs.generate_cache }} == 'yes'
+        environment: ${{inputs.repo_name}}/${{inputs.branch}}
+        env:
+            ODOO_IMAGE_EXTRACT_PATH: /tmp/odoo.tar # this path and key must be the same between cache save & restore
+            DB_IMAGE_EXTRACT_PATH: /tmp/db.tar
+            ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
+            DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
+            ODOO_IMAGE_CACHE_KEY: cache-${{ vars.ODOO_IMAGE_TAG }}
+            DB_IMAGE_CACHE_KEY: cache-${{ vars.DB_IMAGE_TAG }}
+        steps:
+            - name: Login to GitHub container registry
+              shell: bash
+              run: |
+                  repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
+                  echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
+
+            - name: Pull docker images
+              shell: bash
+              run: |
+                  docker pull ghcr.io/${{inputs.repo_name}}
+                  docker pull ${{ env.DB_IMAGE_TAG }}
+
+            - name: Extract image to path
+              shell: bash
+              run: |
+                  docker save ${{ env.ODOO_IMAGE_TAG }} > ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
+                  docker save ${{ env.DB_IMAGE_TAG }} > ${{ env.DB_IMAGE_EXTRACT_PATH }}
+
+            - name: Delete old caches
+              continue-on-error: true
+              run: |
+                  gh cache delete --repo ${{ github.repository }} ${{ env.ODOO_IMAGE_CACHE_KEY }}
+                  gh cache delete --repo ${{ github.repository }} ${{ env.DB_IMAGE_CACHE_KEY }}
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+            - name: Save Odoo docker image tar file to cache
+              uses: actions/cache/save@v4
+              with:
+                  key: ${{ env.ODOO_IMAGE_CACHE_KEY }}
+                  path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
+
+            - name: Save DB docker image tar file to cache
+              uses: actions/cache/save@v4
+              with:
+                  key: ${{ env.DB_IMAGE_CACHE_KEY }}
+                  path: ${{ env.DB_IMAGE_EXTRACT_PATH }}

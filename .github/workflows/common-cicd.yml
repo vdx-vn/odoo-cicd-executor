@@ -42,6 +42,8 @@ env:
     CICD_ODOO_OPTIONS: ${{github.workspace}}/.github/conf/odoo.json
     CICD_SCRIPTS_PATH: ${{github.workspace}}/.github/scripts
     CICD_UTILS_SCRIPTS_PATH: ${{github.workspace}}/.github/scripts/utils.sh
+    ODOO_IMAGE_EXTRACT_PATH: "/tmp/odoo.tar"
+    DB_IMAGE_EXTRACT_PATH: "/tmp/db.tar"
 
     # ==== Workflow inputs ====
     SOURCE_BRANCH: ${{ inputs.source_branch }}
@@ -92,7 +94,7 @@ jobs:
                   name: "Unit test at install"
 
             - name: Test Preparation
-              uses: ./.github/actions/test-preparation
+              uses: ./.github/actions/prepare-test-data
 
             - name: Run Unit test cases
               id: run_at_install_unit_test
@@ -122,7 +124,7 @@ jobs:
                   name: "Unit test post install"
 
             - name: Test Preparation
-              uses: ./.github/actions/test-preparation
+              uses: ./.github/actions/prepare-test-data
 
             - name: Run Unit test cases
               id: run_post_install_unit_test
@@ -159,7 +161,7 @@ jobs:
                   name: "Integration test"
 
             - name: Test Preparation
-              uses: ./.github/actions/test-preparation
+              uses: ./.github/actions/prepare-test-data
 
               # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
               # so this case, we should create backup a new DB

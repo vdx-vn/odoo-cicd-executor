@@ -51,7 +51,7 @@ jobs:
                   github_token: ${{ secrets.GH_TOKEN }}
                   repo_name: ${{ inputs.repo_name }}
 
-    update-on-server:
+    update-on-server-and-caches:
         runs-on: ubuntu-latest
         needs: build-and-publish
         steps:
@@ -73,13 +73,20 @@ jobs:
                       const repo_branches = branches.data.map(x => x.name);
                       return repo_branches.filter(x => input_branches.includes(x)).join(',');
 
-            - name: Dispatch Executor Workflow - Build Docker Image
+            - name: Dispatch Executor Workflow - Update docker images on server and Generate caches
               run: |
                   export IFS=","
                   branches=${{ steps.get-repo-branches.outputs.result }}
+                  count=1
                   for branch in $branches; do
                       repo_owner=$(echo ${{inputs.repo_name}} | cut -d '/' -f1)
-                      gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch -f repo_owner=$repo_owner
+                      if [ $count -eq 1 ]; then
+                        # add -f generate_cache=yes to this workflow dispatch command to triggering store docker images to cache
+                        gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch -f repo_owner=$repo_owner
+                      else
+                        gh workflow run docker-update.yml -f repo_name=${{ inputs.repo_name }} -f branch=$branch -f repo_owner=$repo_owner
+                      fi
+                      ((count++))
                   done
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
