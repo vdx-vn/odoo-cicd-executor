@@ -13,6 +13,7 @@ on:
                 type: string
             generate_cache:
                 default: "no"
+                required: false
                 description: "Should we generate github action caches for this branch"
                 type: string
 jobs:
