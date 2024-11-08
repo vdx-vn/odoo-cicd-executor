@@ -44,8 +44,8 @@ jobs:
         if: ${{ inputs.generate_cache }} == 'yes'
         environment: ${{inputs.repo_name}}/${{inputs.branch}}
         env:
-            ODOO_IMAGE_EXTRACT_PATH: /tmp/${{vars.ODOO_IMAGE_TAG}}
-            DB_IMAGE_EXTRACT_PATH: /tmp/${{vars.DB_IMAGE_TAG}}
+            ODOO_IMAGE_EXTRACT_PATH: /tmp/odoo.tar
+            DB_IMAGE_EXTRACT_PATH: /tmp/db.tar
             ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
             DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
             ODOO_IMAGE_CACHE_KEY: cache-${{ vars.ODOO_IMAGE_TAG }}
