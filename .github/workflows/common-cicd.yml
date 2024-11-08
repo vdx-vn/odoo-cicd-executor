@@ -42,8 +42,6 @@ env:
     CICD_ODOO_OPTIONS: ${{github.workspace}}/.github/conf/odoo.json
     CICD_SCRIPTS_PATH: ${{github.workspace}}/.github/scripts
     CICD_UTILS_SCRIPTS_PATH: ${{github.workspace}}/.github/scripts/utils.sh
-    ODOO_IMAGE_STORE_KEY: cache-odoo-docker-image-tar-file
-    DB_IMAGE_STORE_KEY: cache-db-docker-image-tar-file
     ODOO_IMAGE_EXTRACT_PATH: "/tmp/odoo-image.tar"
     DB_IMAGE_EXTRACT_PATH: "/tmp/db-image.tar"
 
@@ -81,27 +79,27 @@ env:
     INPUT_COMMIT_SHA: ${{inputs.commit_sha}}
 
 jobs:
-    prapare-data:
-        name: Genetate common data and save to cache
-        runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        steps:
-            - uses: actions/checkout@v4
+    # prapare-data:
+    #     name: Genetate common data and save to cache
+    #     runs-on: ubuntu-latest
+    #     environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+    #     steps:
+    #         - uses: actions/checkout@v4
 
-            - name: Test Preparation
-              uses: ./.github/actions/test-preparation
+    #         - name: Test Preparation
+    #           uses: ./.github/actions/test-preparation
 
-            - name: Save Odoo docker images to cached tar files
-              uses: actions/cache/save@v4
-              with:
-                  key: ${{ env.ODOO_IMAGE_STORE_KEY }}
-                  path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
+    #         - name: Save Odoo docker images to cached tar files
+    #           uses: actions/cache/save@v4
+    #           with:
+    #               key: ${{ env.ODOO_IMAGE_STORE_KEY }}
+    #               path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
 
-            - name: Save DB docker images to cached tar files
-              uses: actions/cache/save@v4
-              with:
-                  key: ${{ env.DB_IMAGE_STORE_KEY }}
-                  path: ${{ env.DB_IMAGE_EXTRACT_PATH }}
+    #         - name: Save DB docker images to cached tar files
+    #           uses: actions/cache/save@v4
+    #           with:
+    #               key: ${{ env.DB_IMAGE_STORE_KEY }}
+    #               path: ${{ env.DB_IMAGE_EXTRACT_PATH }}
 
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install

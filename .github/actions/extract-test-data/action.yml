@@ -15,13 +15,13 @@ runs:
         - name: Restore Odoo docker image file
           uses: actions/cache/restore@v4
           with:
-              key: ${{ env.ODOO_IMAGE_STORE_KEY }}
+              key: cache-${{ env.ODOO_IMAGE_TAG }}
               path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
 
         - name: Restore DB docker image file
           uses: actions/cache/restore@v4
           with:
-              key: ${{ env.DB_IMAGE_STORE_KEY }}
+              key: cache-${{ env.DB_IMAGE_TAG }}
               path: ${{ env.DB_IMAGE_EXTRACT_PATH }}
 
         - name: Extract image from tar file

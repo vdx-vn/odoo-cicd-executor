@@ -39,6 +39,7 @@ jobs:
                       docker image prune -a -f
                       docker logout ghcr.io
 
+    # TODO: limit cache size for 1 repository is 10GB - so we need to find some workaround here
     create-github-action-caches:
         runs-on: ubuntu-latest
         if: ${{ inputs.generate_cache }} == 'yes'
