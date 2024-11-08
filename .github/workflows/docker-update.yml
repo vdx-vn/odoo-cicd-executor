@@ -37,6 +37,7 @@ jobs:
                       docker compose up -d
                       docker image prune -a -f
                       docker logout ghcr.io
+
     create-github-action-caches:
         runs-on: ubuntu-latest
         if: ${{ inputs.generate_cache }} == 'yes'
@@ -46,6 +47,8 @@ jobs:
             DB_IMAGE_EXTRACT_PATH: /tmp/${{vars.DB_IMAGE_TAG}}
             ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
             DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
+            ODOO_IMAGE_CACHE_KEY: cache-${{ vars.ODOO_IMAGE_TAG }}
+            DB_IMAGE_CACHE_KEY: cache-${{ vars.DB_IMAGE_TAG }}
         steps:
             - name: Login to GitHub container registry
               shell: bash
@@ -65,14 +68,21 @@ jobs:
                   docker save ${{ env.ODOO_IMAGE_TAG }} > ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
                   docker save ${{ env.DB_IMAGE_TAG }} > ${{ env.DB_IMAGE_EXTRACT_PATH }}
 
+            - name: Delete old caches
+              run: |
+                  gh cache delete ${{ env.ODOO_IMAGE_CACHE_KEY }}
+                  gh cache delete ${{ env.DB_IMAGE_CACHE_KEY }}
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
             - name: Save Odoo docker image tar file to cache
               uses: actions/cache/save@v4
               with:
-                  key: cache-${{ env.ODOO_IMAGE_TAG }}
+                  key: ${{ env.ODOO_IMAGE_CACHE_KEY }}
                   path: ${{ env.ODOO_IMAGE_EXTRACT_PATH }}
 
             - name: Save DB docker image tar file to cache
               uses: actions/cache/save@v4
               with:
-                  key: cache-${{ env.DB_IMAGE_TAG }}
+                  key: ${{ env.DB_IMAGE_CACHE_KEY }}
                   path: ${{ env.DB_IMAGE_EXTRACT_PATH }}
