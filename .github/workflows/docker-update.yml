@@ -71,8 +71,8 @@ jobs:
 
             - name: Delete old caches
               run: |
-                  gh cache delete ${{ env.ODOO_IMAGE_CACHE_KEY }}
-                  gh cache delete ${{ env.DB_IMAGE_CACHE_KEY }}
+                  gh cache delete --repo ${{ github.repository }} ${{ env.ODOO_IMAGE_CACHE_KEY }}
+                  gh cache delete --repo ${{ github.repository }} ${{ env.DB_IMAGE_CACHE_KEY }}
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
