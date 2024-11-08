@@ -42,8 +42,8 @@ env:
     CICD_ODOO_OPTIONS: ${{github.workspace}}/.github/conf/odoo.json
     CICD_SCRIPTS_PATH: ${{github.workspace}}/.github/scripts
     CICD_UTILS_SCRIPTS_PATH: ${{github.workspace}}/.github/scripts/utils.sh
-    ODOO_IMAGE_EXTRACT_PATH: "/tmp/odoo-image.tar"
-    DB_IMAGE_EXTRACT_PATH: "/tmp/db-image.tar"
+    ODOO_IMAGE_EXTRACT_PATH: "/tmp/odoo.tar"
+    DB_IMAGE_EXTRACT_PATH: "/tmp/db.tar"
 
     # ==== Workflow inputs ====
     SOURCE_BRANCH: ${{ inputs.source_branch }}
