@@ -220,8 +220,17 @@ jobs:
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  set-output: 1
                   script: |
                       bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
+
+            - name: Update server backup file path variable
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+              run: |
+                  latest_backup_file_path=${{ steps.backup-on-server.outputs.script-output }}
+                  if [[ -n "$latest_backup_file_path" ]]; then
+                    echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                  fi
 
             - name: "Download backup file"
               uses: ./.github/actions/scp-ssh
