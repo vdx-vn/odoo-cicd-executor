@@ -94,7 +94,7 @@ jobs:
               run: |
                   docker run \
                     -e LOG_LEVEL=DEBUG \
-                    -e FILTER_REGEX_EXCLUDE= __manifest__\.py \
+                    -e FILTER_REGEX_EXCLUDE=__manifest__\.py \
                     -e RUN_LOCAL=true \
                     -e USE_FIND_ALGORITHM=true \
                     -v ${{ env.REPO_PATH }}:/tmp/lint \
