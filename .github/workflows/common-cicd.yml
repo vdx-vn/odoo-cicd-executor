@@ -93,7 +93,7 @@ jobs:
             - name: super linter
               run: |
                   docker run \
-                    -e LOG_LEVEL=DEBUG \
+                    -e LOG_LEVEL=WARN \
                     -e FILTER_REGEX_EXCLUDE=__manifest__\.py \
                     -e RUN_LOCAL=true \
                     -e USE_FIND_ALGORITHM=true \
