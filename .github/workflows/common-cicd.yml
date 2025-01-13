@@ -95,7 +95,6 @@ jobs:
                   docker run \
                     -e LOG_LEVEL=DEBUG \
                     -e RUN_LOCAL=true \
-                    -e SUPER_LINTER_OUTPUT_DIRECTORY_NAME=
                     -v ${{ env.REPO_PATH }}:/tmp/lint \
                     ghcr.io/super-linter/super-linter:latest
 
