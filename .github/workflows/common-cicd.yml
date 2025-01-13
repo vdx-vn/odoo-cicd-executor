@@ -97,7 +97,6 @@ jobs:
               with:
                   repository: ${{ env.REPOSITORY }}
                   ssh-key: ${{ env.GH_SSH_KEY }}
-                  path: ${{ env.REPO_PATH }}
                   ref: ${{ env.INPUT_COMMIT_SHA }}
                   fetch-depth: 0
 
