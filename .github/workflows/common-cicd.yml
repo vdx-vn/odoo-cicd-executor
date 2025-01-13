@@ -104,6 +104,7 @@ jobs:
               env:
                   # To report GitHub Actions status checks
                   GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+                  DEFAULT_WORKSPACE: ${{ env.REPO_PATH }}
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
         runs-on: ubuntu-latest
