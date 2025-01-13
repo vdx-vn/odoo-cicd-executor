@@ -99,7 +99,7 @@ jobs:
               uses: super-linter/super-linter@v7.2.1 # x-release-please-version
               env:
                   # To report GitHub Actions status checks
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
         runs-on: ubuntu-latest
