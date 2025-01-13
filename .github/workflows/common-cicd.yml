@@ -85,27 +85,21 @@ jobs:
         env:
             DEFAULT_WORKSPACE: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
         steps:
-            # - name: Checkout code
-            #   uses: actions/checkout@v4
-            #   with:
-            #       # super-linter needs the full git history to get the
-            #       # list of files that changed across commits
-            #       fetch-depth: 0
+            - uses: actions/checkout@v4
 
-            - name: Checkout Odoo source repository
-              uses: actions/checkout@v4
-              with:
-                  repository: ${{ env.REPOSITORY }}
-                  ssh-key: ${{ env.GH_SSH_KEY }}
-                  #   ref: ${{ env.INPUT_COMMIT_SHA }}
-                  fetch-depth: 0
+            - name: Test Preparation
+              uses: ./.github/actions/prepare-test-data
 
-            - name: Super-linter
-              uses: super-linter/super-linter@v7.2.1 # x-release-please-version
-              env:
-                  # To report GitHub Actions status checks
-                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-                  DEFAULT_WORKSPACE: ${{ env.REPO_PATH }}
+            - name: super linter
+              run: |
+                  docker run \
+                    -e LOG_LEVEL=DEBUG \
+                    -e RUN_LOCAL=true \
+                    -e SUPER_LINTER_OUTPUT_DIRECTORY_NAME=
+                    -v ${{ env.REPO_PATH }}:/tmp/lint \
+                    ghcr.io/super-linter/super-linter:latest
+
+                  cat ${{ env.REPO_PATH }}/super-linter-output/super-linter-summary.md
     unit-test-at-install:
         name: ${{inputs.repo_name}} - Unit test at install
         runs-on: ubuntu-latest
