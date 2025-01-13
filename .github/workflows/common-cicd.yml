@@ -97,7 +97,7 @@ jobs:
               with:
                   repository: ${{ env.REPOSITORY }}
                   ssh-key: ${{ env.GH_SSH_KEY }}
-                  ref: ${{ env.INPUT_COMMIT_SHA }}
+                  #   ref: ${{ env.INPUT_COMMIT_SHA }}
                   fetch-depth: 0
 
             - name: Super-linter
