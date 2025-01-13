@@ -95,6 +95,7 @@ jobs:
                   docker run \
                     -e LOG_LEVEL=DEBUG \
                     -e RUN_LOCAL=true \
+                    -e USE_FIND_ALGORITHM=true \
                     -v ${{ env.REPO_PATH }}:/tmp/lint \
                     --rm \
                     ghcr.io/super-linter/super-linter:latest
