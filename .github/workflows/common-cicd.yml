@@ -96,6 +96,7 @@ jobs:
                     -e LOG_LEVEL=DEBUG \
                     -e RUN_LOCAL=true \
                     -v ${{ env.REPO_PATH }}:/tmp/lint \
+                    --rm \
                     ghcr.io/super-linter/super-linter:latest
 
                   cat ${{ env.REPO_PATH }}/super-linter-output/super-linter-summary.md
