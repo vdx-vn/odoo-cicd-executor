@@ -82,6 +82,8 @@ jobs:
     super-linter:
         name: Lint
         runs-on: ubuntu-latest
+        env:
+            DEFAULT_WORKSPACE: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
         steps:
             # - name: Checkout code
             #   uses: actions/checkout@v4
