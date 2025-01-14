@@ -22,14 +22,13 @@ function lint() {
     echo "==============================="
     echo "==============================="
     cat $summary
-    ls -lah $REPO_PATH/super-linter-output
     echo "==============================="
     echo "==============================="
     echo "==============================="
     echo "==============================="
     echo "==============================="
 
-    send_file_telegram_default "$summary" "Linter result"
+    send_file_telegram_default "$output" "Linter result"
 }
 
 lint "$@"
