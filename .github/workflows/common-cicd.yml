@@ -82,6 +82,7 @@ jobs:
     super-linter:
         name: Lint
         runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             DEFAULT_WORKSPACE: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
         steps:
