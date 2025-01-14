@@ -22,16 +22,14 @@ function lint() {
     echo "==============================="
     echo "==============================="
     echo "==============================="
-    ls -lah $output
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-
     cd $REPO_PATH/super-linter-output
-    tar -cf linter-log.tar.gz .
-
+    ls -lah
+    tar -cf linter-log.tar.gz super-linter
+    echo "==============================="
+    echo "==============================="
+    echo "==============================="
+    echo "==============================="
+    echo "==============================="
     send_file_telegram_default "$REPO_PATH/super-linter-output/linter-log.tar.gz" "Linter result"
 }
 
