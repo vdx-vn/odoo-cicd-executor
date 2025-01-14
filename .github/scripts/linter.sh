@@ -6,7 +6,8 @@ function lint() {
     docker run \
         -e LOG_LEVEL=INFO \
         -e FILTER_REGEX_EXCLUDE=__manifest__\.py \
-        -e FILTER_REGEX_INCLUDE= \.py -e RUN_LOCAL=true \
+        -e FILTER_REGEX_INCLUDE=\.py \
+        -e RUN_LOCAL=true \
         -e USE_FIND_ALGORITHM=true \
         -e SAVE_SUPER_LINTER_SUMMARY=true \
         -e SAVE_SUPER_LINTER_OUTPUT=true \
