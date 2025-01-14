@@ -26,7 +26,7 @@ function lint() {
     echo "==============================="
     echo "==============================="
 
-    send_file_telegram_default $summary "Linter result"
+    send_file_telegram_default "$summary" "Linter result"
 }
 
 lint "$@"
