@@ -24,7 +24,7 @@ function lint() {
     echo "==============================="
     cd $REPO_PATH/super-linter-output
     ls -lah
-    tar -cf linter-log.tar.gz super-linter
+    sudo tar -cf linter-log.tar.gz super-linter
     echo "==============================="
     echo "==============================="
     echo "==============================="
