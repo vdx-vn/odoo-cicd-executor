@@ -6,7 +6,7 @@ function lint() {
     docker run \
         -e LOG_LEVEL=INFO \
         -e FILTER_REGEX_EXCLUDE=__manifest__\.py \
-        -e RUN_LOCAL=true \
+        -e FILTER_REGEX_INCLUDE= \.py -e RUN_LOCAL=true \
         -e USE_FIND_ALGORITHM=true \
         -e SAVE_SUPER_LINTER_SUMMARY=true \
         -e SAVE_SUPER_LINTER_OUTPUT=true \
@@ -28,7 +28,10 @@ function lint() {
     echo "==============================="
     echo "==============================="
 
-    # send_file_telegram_default "$output" "Linter result"
+    cd $REPO_PATH/super-linter-output
+    tar -cf linter-log.tar.gz .
+
+    send_file_telegram_default "$REPO_PATH/super-linter-output/linter-log.tar.gz" "Linter result"
 }
 
 lint "$@"
