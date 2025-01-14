@@ -8,6 +8,7 @@ function lint() {
         -e FILTER_REGEX_EXCLUDE=__manifest__\.py \
         -e RUN_LOCAL=true \
         -e USE_FIND_ALGORITHM=true \
+        -e SAVE_SUPER_LINTER_SUMMARY=true \
         -v $REPO_PATH:/tmp/lint \
         ghcr.io/super-linter/super-linter:latest
 
