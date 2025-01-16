@@ -3,33 +3,20 @@
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
 function lint() {
+    # -e FIX_PYTHON_ISORT=true \
+
     docker run \
-        -e LOG_LEVEL=INFO \
+        -e LOG_LEVEL=ERROR \
         -e FILTER_REGEX_EXCLUDE=__manifest__\.py \
         -e FILTER_REGEX_INCLUDE=\.py \
         -e RUN_LOCAL=true \
         -e USE_FIND_ALGORITHM=true \
-        -e SAVE_SUPER_LINTER_SUMMARY=true \
         -e SAVE_SUPER_LINTER_OUTPUT=true \
+        -e VALIDATE_PYTHON_MYPY=false \
         -v $REPO_PATH:/tmp/lint \
         ghcr.io/super-linter/super-linter:latest
 
-    summary=$REPO_PATH/super-linter-output/super-linter-summary.md
     output=$REPO_PATH/super-linter-output/super-linter
-
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    cd $REPO_PATH/super-linter-output
-    ls -lah
-    sudo tar -cf linter-log.tar.gz super-linter
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
     send_file_telegram_default "$REPO_PATH/super-linter-output/linter-log.tar.gz" "Linter result"
 }
 
