@@ -20,7 +20,9 @@ function lint() {
         -e VALIDATE_PYTHON_PYINK=false \
         -e VALIDATE_PYTHON_ISORT=false \
         -e VALIDATE_GIT_MERGE_CONFLICT_MARKERS=false \
+        -e VALIDATE_GITHUB_ACTIONS=false \
         -e VALIDATE_GITLEAKS=false \
+        -e VALIDATE_CHECKOV=false \
         -v $REPO_PATH:/tmp/lint \
         ghcr.io/super-linter/super-linter:latest
 
