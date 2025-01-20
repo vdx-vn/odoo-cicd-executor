@@ -22,7 +22,7 @@ function lint() {
     echo "==============================="
     echo "==============================="
     cd $REPO_PATH/super-linter-output
-    tar -cf linter-log.tar.gz super-linter
+    sudo tar -cf linter-log.tar.gz super-linter
 
     send_file_telegram_default "$REPO_PATH/super-linter-output/linter-log.tar.gz" "Linter result"
 
