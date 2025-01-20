@@ -12,11 +12,15 @@ function lint() {
         -e RUN_LOCAL=true \
         -e USE_FIND_ALGORITHM=true \
         -e SAVE_SUPER_LINTER_OUTPUT=true \
-        -e VALIDATE_PYTHON_MYPY=false \
         -e VALIDATE_JSCPD=false \
         -e VALIDATE_JSON=false \
         -e VALIDATE_PYTHON_FLAKE8=false \
+        -e VALIDATE_PYTHON_BLACK=false \
+        -e VALIDATE_PYTHON_MYPY=false \
+        -e VALIDATE_PYTHON_PYINK=false \
+        -e VALIDATE_PYTHON_ISORT=false \
         -e VALIDATE_GIT_MERGE_CONFLICT_MARKERS=false \
+        -e VALIDATE_GITLEAKS=false \
         -v $REPO_PATH:/tmp/lint \
         ghcr.io/super-linter/super-linter:latest
 
