@@ -31,6 +31,13 @@ function lint() {
     echo "==============================="
     echo "==============================="
     echo "==============================="
+
+    # TODO: check file
+    # + super-linter-parallel-command-exit-code-PYTHON_RUFF
+    # + super-linter-parallel-command-exit-code-PYTHON_PYLINT
+    # to get exit code, if exit code is 0, everything is ok => don't
+    # send linter result to Telegram
+
     cd $REPO_PATH/super-linter-output
     sudo tar -cf linter-log.tar.gz super-linter
 
