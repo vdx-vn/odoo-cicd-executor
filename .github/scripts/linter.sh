@@ -42,10 +42,10 @@ function extract_lint_result() {
     linter_summary=$output_dir/linter-summary
     sudo touch $linter_summary
     sudo chmod 777 $linter_summary
-    if [ $python_ruff_exit_code = "0" ]; then
+    if [ $python_ruff_exit_code = "1" ]; then
         cat $python_ruff_output >>$linter_summary
     fi
-    if [ $python_pylint_exit_code = "0" ]; then
+    if [ $python_pylint_exit_code = "1" ]; then
         cat $python_pylint_output >>$linter_summary
     fi
 
