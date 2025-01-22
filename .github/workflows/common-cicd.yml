@@ -102,24 +102,7 @@ jobs:
 
             - name: Send result to Telegram
               run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/linter.sh
-
-    super-linter:
-        name: Lint
-        runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        env:
-            DEFAULT_WORKSPACE: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Test Preparation
-              uses: ./.github/actions/prepare-test-data
-
-            - name: Super linter
-              run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  bash ${{env.CICD_SCRIPTS_PATH}}/linter.sh
                   send_file_telegram_default "${{env.WORKSPACE}}/ruff-output" "⚠️Ruff Linter Error⚠️"
 
     # unit-test-at-install:
