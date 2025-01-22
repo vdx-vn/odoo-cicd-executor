@@ -1,3 +1,14 @@
+[MASTER]
+
+# Use multiple processes to speed up Pylint.
+jobs=0
+
+[MESSAGES CONTROL]
+
+# Ignoring Import Errors is desired as super-linter
+# does not support installing dependencies as it runs
+disable=import-error
+
 [tool.pylint.format]
 
 max-line-length = 200

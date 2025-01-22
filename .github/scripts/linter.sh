@@ -24,7 +24,7 @@ function run_lint() {
         -e VALIDATE_GITLEAKS=false \
         -e VALIDATE_CHECKOV=false \
         -v $REPO_PATH:/tmp/lint \
-        -v $WORKSPACE/.github/linters:/tmp/lint/linter-rules \
+        -v $WORKSPACE/.github/linters/.pylintrc:/tmp/lint/linter-rules/.pylintrc \
         ghcr.io/super-linter/super-linter:latest cat /tmp/lint/linter-rules/.pylintrc
 
 }
