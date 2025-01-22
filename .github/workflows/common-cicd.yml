@@ -31,6 +31,7 @@ on:
 env:
     # Common variables
     REPO_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
+    WORKSPACE: ${{github.workspace}}
     SERVER_CICD_SCRIPT_FOLDER: /tmp/odoo/cicd/${{ inputs.repo_name }}/${{inputs.target_branch}}
     ODOO_ADDONS_PATH: ${{github.workspace}}/${{inputs.checkout_postfix_path}}
 

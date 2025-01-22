@@ -3,13 +3,11 @@
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
 function run_lint() {
-    ls -lah $REPO_PATH/.github/linters
-    ls -lah $REPO_PATH/.github
-    ls -lah $REPO_PATH/
-    cat $REPO_PATH/.github/linters/.python-lint
+    ls -lah $WORKSPACE/.github/linters
+    cat $WORKSPACE/.github/linters/.python-lint
     echo "=============================="
     docker run \
-        -e LINTER_RULES_PATH=/tmp/lint/.github/linters \
+        -e LINTER_RULES_PATH=/tmp/lint/linters \
         -e LOG_LEVEL=ERROR \
         -e FILTER_REGEX_INCLUDE=\.py \
         -e FILTER_REGEX_EXCLUDE=__manifest__\.py\|__init__\.py \
@@ -28,7 +26,8 @@ function run_lint() {
         -e VALIDATE_GITLEAKS=false \
         -e VALIDATE_CHECKOV=false \
         -v $REPO_PATH:/tmp/lint \
-        ghcr.io/super-linter/super-linter:latest
+        -v $WORKSPACE/.github/linters:/tmp/lint/linters
+    ghcr.io/super-linter/super-linter:latest
 
 }
 
