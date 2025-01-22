@@ -94,7 +94,12 @@ jobs:
             - uses: astral-sh/ruff-action@v3
               with:
                   src: ${{env.REPO_PATH}}
-                  args: "check --config=${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml --output-file ${{env.WORKSPACE}}/ruff-output --output-format concise --exit-zero"
+                  args: " \
+                      check
+                      --config ${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml \
+                      --output-file ${{env.WORKSPACE}}/ruff-output \
+                      --output-format concise --exit-zero"
+
             - name: Send result to Telegram
               run: |
                   bash ${{env.CICD_SCRIPTS_PATH}}/linter.sh
@@ -113,7 +118,9 @@ jobs:
 
             - name: Super linter
               run: |
+                  source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   bash ${{env.CICD_SCRIPTS_PATH}}/linter.sh
+                  send_file_telegram_default "${{env.WORKSPACE}}/ruff-output" "⚠️Ruff Linter Error⚠️"
 
     # unit-test-at-install:
     #     name: ${{inputs.repo_name}} - Unit test at install
