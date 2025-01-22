@@ -4,6 +4,7 @@ source "${CICD_UTILS_SCRIPTS_PATH}"
 
 function run_lint() {
     docker run \
+        -e LINTER_RULES_PATH=/tmp/lint/.github/linters \
         -e LOG_LEVEL=ERROR \
         -e FILTER_REGEX_INCLUDE=\.py \
         -e FILTER_REGEX_EXCLUDE=__manifest__\.py\|__init__\.py \
