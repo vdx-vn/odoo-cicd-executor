@@ -94,7 +94,7 @@ jobs:
             - uses: astral-sh/ruff-action@v3
               with:
                   src: ${{env.REPO_PATH}}
-                  args: "check --config=${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml --output-file=${{env.WORKSPACE}}/ruff-output --exit-zero"
+                  args: "check --config=${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml --output-file ${{env.WORKSPACE}}/ruff-output --output-format concise --exit-zero"
             - name: Send result to Telegram
               run: |
                   bash ${{env.CICD_SCRIPTS_PATH}}/linter.sh
