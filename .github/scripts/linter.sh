@@ -33,7 +33,7 @@ function get_exit_code() {
 }
 
 function extract_lint_result() {
-    output_dir=$REPO_PATH/super-linter-output
+    output_dir=$REPO_PATH/super-linter-output/super-linter
     python_ruff_exit_code=$(get_exit_code "$output_dir/super-linter-parallel-command-exit-code-PYTHON_RUFF")
     python_pylint_exit_code=$(get_exit_code "$output_dir/super-linter-parallel-command-exit-code-PYTHON_PYLINT")
     python_ruff_output=$output_dir/super-linter-parallel-stdout-PYTHON_RUFF
