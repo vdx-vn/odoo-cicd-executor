@@ -3,6 +3,9 @@
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
 function run_lint() {
+    ls -lah $REPO_PATH/.github/linters
+    ls -lah $REPO_PATH/.github
+    ls -lah $REPO_PATH/
     cat $REPO_PATH/.github/linters/.python-lint
     echo "=============================="
     docker run \
