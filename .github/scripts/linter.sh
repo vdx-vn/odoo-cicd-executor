@@ -2,12 +2,10 @@
 
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
-function lint() {
-    # -e FIX_PYTHON_ISORT=true \
-
+function run_lint() {
     docker run \
         -e LOG_LEVEL=ERROR \
-        -e FILTER_REGEX_INCLUDE=\.py\|\.xml \
+        -e FILTER_REGEX_INCLUDE=\.py \
         -e FILTER_REGEX_EXCLUDE=__manifest__\.py\|__init__\.py \
         -e RUN_LOCAL=true \
         -e USE_FIND_ALGORITHM=true \
@@ -26,23 +24,36 @@ function lint() {
         -v $REPO_PATH:/tmp/lint \
         ghcr.io/super-linter/super-linter:latest
 
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-    echo "==============================="
-
-    # TODO: check file
-    # + super-linter-parallel-command-exit-code-PYTHON_RUFF
-    # + super-linter-parallel-command-exit-code-PYTHON_PYLINT
-    # to get exit code, if exit code is 0, everything is ok => don't
-    # send linter result to Telegram
-
-    cd $REPO_PATH/super-linter-output
-    sudo tar -cf linter-log.tar.gz super-linter
-
-    send_file_telegram_default "$REPO_PATH/super-linter-output/linter-log.tar.gz" "Linter result"
-
 }
 
-lint "$@"
+function get_exit_code() {
+    file_name=$1
+    code=$(awk '{printf "%s", $0}' $file_name | tr -d ' ')
+    echo $code
+}
+
+function extract_lint_result() {
+    output_dir=$REPO_PATH/super-linter-output
+    python_ruff_exit_code=$(get_exit_code "$output_dir/super-linter-parallel-command-exit-code-PYTHON_RUFF")
+    python_pylint_exit_code=$(get_exit_code "$output_dir/super-linter-parallel-command-exit-code-PYTHON_PYLINT")
+    python_ruff_output=$output_dir/super-linter-parallel-stdout-PYTHON_RUFF
+    python_pylint_output=$output_dir/super-linter-parallel-stdout-PYTHON_PYLINT
+
+    linter_summary=$output_dir/linter-summary
+    sudo touch $linter_summary
+    if [ $python_ruff_exit_code == "0" ]; then
+        sudo cat $python_ruff_output >>$linter_summary
+    fi
+    if [ $python_pylint_exit_code == "0" ]; then
+        sudo cat $python_pylint_output >>$linter_summary
+    fi
+
+    send_file_telegram_default "$linter_summary" "Linter error"
+}
+
+function main() {
+    run_lint
+    extract_lint_result
+}
+
+main "$@"
