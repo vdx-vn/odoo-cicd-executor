@@ -7,7 +7,7 @@ function run_lint() {
     cat $WORKSPACE/.github/linters/.python-lint
     echo "=============================="
     docker run \
-        -e LINTER_RULES_PATH=/tmp/lint/linters \
+        -e LINTER_RULES_PATH=/tmp/linter-rules \
         -e LOG_LEVEL=ERROR \
         -e FILTER_REGEX_INCLUDE=\.py \
         -e FILTER_REGEX_EXCLUDE=__manifest__\.py\|__init__\.py \
@@ -26,7 +26,7 @@ function run_lint() {
         -e VALIDATE_GITLEAKS=false \
         -e VALIDATE_CHECKOV=false \
         -v $REPO_PATH:/tmp/lint \
-        -v $WORKSPACE/.github/linters:/tmp/lint/linters \
+        -v $WORKSPACE/.github/linters:/tmp/linter-rules \
         ghcr.io/super-linter/super-linter:latest
 
 }
