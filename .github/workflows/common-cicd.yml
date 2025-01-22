@@ -79,6 +79,8 @@ env:
     INPUT_REPO_NAME: ${{inputs.repo_name}}
     INPUT_COMMIT_SHA: ${{inputs.commit_sha}}
 
+# FIXME: add Pylint linter to CI/CD
+
 jobs:
     python-ruff-linter:
         name: ${{inputs.repo_name}} - Ruff Linter
