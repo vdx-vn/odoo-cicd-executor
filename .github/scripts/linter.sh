@@ -3,8 +3,7 @@
 source "${CICD_UTILS_SCRIPTS_PATH}"
 
 function run_lint() {
-    ls -lah $WORKSPACE/.github/linters
-    cat $WORKSPACE/.github/linters/.python-lint
+    $WORKSPACE/.github/linters/.python-lint
     echo "=============================="
     docker run \
         -e LINTER_RULES_PATH=/tmp/linter-rules \
