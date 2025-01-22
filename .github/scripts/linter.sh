@@ -25,6 +25,7 @@ function run_lint() {
         -e VALIDATE_CHECKOV=false \
         -v $REPO_PATH:/tmp/lint \
         -v $WORKSPACE/.github/linters/.pylintrc:/tmp/lint/linter-rules/.pylintrc \
+        -v $WORKSPACE/.github/linters/.python-lint:/action/lib/.python-lint \
         ghcr.io/super-linter/super-linter:latest cat /tmp/lint/linter-rules/.pylintrc
 
 }
