@@ -43,9 +43,15 @@ function extract_lint_result() {
     sudo touch $linter_summary
     sudo chmod 777 $linter_summary
     if [ $python_ruff_exit_code = "1" ]; then
+        echo -e "================================================================================\n" >>$linter_summary
+        echo -e "===========================Python Ruff Linter ===========================\n" >>$linter_summary
+        echo -e "================================================================================\n" >>$linter_summary
         cat $python_ruff_output >>$linter_summary
     fi
     if [ $python_pylint_exit_code = "1" ]; then
+        echo -e "\n================================================================================\n" >>$linter_summary
+        echo -e "===========================Python Pylint Linter ===========================\n" >>$linter_summary
+        echo -e "================================================================================\n" >>$linter_summary
         cat $python_pylint_output >>$linter_summary
     fi
 
