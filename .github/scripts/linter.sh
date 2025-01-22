@@ -62,7 +62,10 @@ function extract_lint_result() {
 }
 
 function send_ruff_output_to_telegram() {
-    send_file_telegram_default "$WORKSPACE/ruff-output" "Linter error"
+    ruff_output=$WORKSPACE/ruff-output
+    if [ -s $ruff_output ]; then
+        send_file_telegram_default "$ruff_output" "Linter error"
+    fi
 }
 
 function main() {
