@@ -61,8 +61,13 @@ function extract_lint_result() {
     send_file_telegram_default "$linter_summary" "Linter error"
 }
 
+function send_ruff_output_to_telegram() {
+    send_file_telegram_default "$WORKSPACE/ruff-output" "Linter error"
+}
+
 function main() {
-    run_lint
+    send_ruff_output_to_telegram
+    # run_lint
     # extract_lint_result
 }
 

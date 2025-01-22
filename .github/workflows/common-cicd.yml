@@ -94,6 +94,10 @@ jobs:
             - uses: astral-sh/ruff-action@v3
               with:
                   src: ${{env.REPO_PATH}}
+                  args: "--output-file=${{env.WORKSPACE}}/ruff-output"
+            - name: Super linter
+              run: |
+                  bash ${{env.CICD_SCRIPTS_PATH}}/linter.sh
 
     super-linter:
         name: Lint
