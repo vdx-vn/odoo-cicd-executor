@@ -80,6 +80,21 @@ env:
     INPUT_COMMIT_SHA: ${{inputs.commit_sha}}
 
 jobs:
+    python-ruff-linter:
+        name: ${{inputs.repo_name}} - Ruff Linter
+        runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        if: inputs.action == 'test' || inputs.action == 'deploy'
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Test Preparation
+              uses: ./.github/actions/prepare-test-data
+
+            - uses: astral-sh/ruff-action@v3
+              with:
+                  src: ${{env.REPO_PATH}}
+
     super-linter:
         name: Lint
         runs-on: ubuntu-latest
