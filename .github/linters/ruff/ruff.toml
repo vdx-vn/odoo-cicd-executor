@@ -1,2 +1,2 @@
 extend-exclude = ["__manifest__.py", "__init__.py"]
-output-format = "concise"
+output-format = "grouped"
