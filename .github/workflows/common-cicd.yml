@@ -95,6 +95,7 @@ jobs:
 
             - uses: astral-sh/ruff-action@v3
               with:
+                  # TODO: try to use more Ruff options to validate python files
                   src: ${{env.REPO_PATH}}
                   args: " \
                       check
