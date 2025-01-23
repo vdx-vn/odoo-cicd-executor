@@ -127,6 +127,7 @@ jobs:
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   send_file_telegram_default "${{env.WORKSPACE}}/ruff-output" "⚠️Ruff Linter Error⚠️"
+                  send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "Pylint Linter Error⚠️"
 
     # unit-test-at-install:
     #     name: ${{inputs.repo_name}} - Unit test at install
