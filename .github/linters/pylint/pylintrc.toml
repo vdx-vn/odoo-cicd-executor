@@ -3,7 +3,7 @@ ignore = ["__manifest__.py", "__init__.py"]
 exit-zero = true
 output-format = "text"
 disable = "all"
-enable = ["line-too-long","unused-import","super-with-arguments","wrong-import-order","use-a-generator","missing-final-newline","bad-indentation"]
+enable = ["line-too-long","unused-import","super-with-arguments","wrong-import-order","use-a-generator","missing-final-newline","bad-indentation","syntax-error","undefined-variable","no-member","duplicate-code","not-callable"]
 
 [tool.pylint.format]
-max-line-length = 200
+max-line-length = 180
