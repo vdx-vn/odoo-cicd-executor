@@ -1,0 +1,6 @@
+[tool.pylint.main]
+ignore = ["__manifest__.py", "__init__.py"]
+exit-zero = true
+
+[tool.pylint.format]
+max-line-length = 101

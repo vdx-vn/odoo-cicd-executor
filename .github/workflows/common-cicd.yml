@@ -27,6 +27,10 @@ on:
                 required: false
                 type: string
                 default: odoo/addons
+            python_version:
+                required: false
+                type: string
+                default: 3.8
 
 env:
     # Common variables
@@ -82,8 +86,8 @@ env:
 # FIXME: add Pylint linter to CI/CD
 
 jobs:
-    python-ruff-linter:
-        name: ${{inputs.repo_name}} - Ruff Linter
+    Linter:
+        name: ${{inputs.repo_name}} - Linter
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
@@ -93,7 +97,9 @@ jobs:
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
 
-            - uses: astral-sh/ruff-action@v3
+            # =================== Ruff ====================
+            - name: Ruff Linter
+              uses: astral-sh/ruff-action@v3
               with:
                   # TODO: try to use more Ruff options to validate python files
                   src: ${{env.REPO_PATH}}
@@ -103,7 +109,20 @@ jobs:
                       --output-file ${{env.WORKSPACE}}/ruff-output \
                       --output-format concise --exit-zero"
 
-            - name: Send result to Telegram
+            # ================== Pylint ===================
+            - name: Pylint Linter
+              uses: actions/setup-python@v3
+              with:
+                  python-version: ${{inputs.python_version}}
+            - name: Analysing the code with pylint
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install pylint
+                  pylint \
+                  --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml
+                  --output ${{env.WORKSPACE}}/pylint-output
+
+            - name: Send linting result to Telegram
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   send_file_telegram_default "${{env.WORKSPACE}}/ruff-output" "⚠️Ruff Linter Error⚠️"
