@@ -119,9 +119,9 @@ jobs:
                   python -m pip install --upgrade pip
                   pip install pylint
                   pylint \
-                  --source-roots ${{env.REPO_PATH}} \
                   --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
-                  --output ${{env.WORKSPACE}}/pylint-output
+                  --output ${{env.WORKSPACE}}/pylint-output \
+                  ${{env.REPO_PATH}}
 
             - name: Send linting result to Telegram
               run: |
