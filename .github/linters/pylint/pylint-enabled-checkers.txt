@@ -33,3 +33,5 @@ simplifiable-if-expression
 unnecessary-pass
 redefined-outer-name
 duplicate-key
+chained-comparison
+expression-not-assigned
