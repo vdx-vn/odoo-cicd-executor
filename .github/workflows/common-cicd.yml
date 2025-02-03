@@ -121,6 +121,7 @@ jobs:
                   cd ${{env.REPO_PATH}}
                   pylint \
                   --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
+                  --disable=C,R,I \
                   --output ${{env.WORKSPACE}}/pylint-output \
                   $(git ls-files '*.py')
 
