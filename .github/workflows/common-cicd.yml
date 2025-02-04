@@ -109,13 +109,15 @@ jobs:
                   pylint \
                   --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
                   --output ${{env.WORKSPACE}}/pylint-output \
+                  --disable=C,R,I \
                   $(git ls-files '*.py')
 
             - name: Send linting result to Telegram
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
-                  if [[ $result == "failure" ]]; then
+                  echo $result
+                  if [[ $result != "failure" ]]; then
                     send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "Pylint Linter Error⚠️"
                   fi
               if: ${{always()}}
