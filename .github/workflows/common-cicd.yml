@@ -121,7 +121,7 @@ jobs:
                   result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
                   echo Linter result $result
                   if [[ $result == "failure" ]]; then
-                    send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "Pylint Linter Error⚠️"
+                    send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "⚠️Pylint Linter Error⚠️"
                   fi
               if: ${{always()}}
 
