@@ -15,7 +15,6 @@ consider-using-dict-items
 unused-argument
 raise-missing-from
 consider-using-set-comprehension
-invalid-name
 redefined-builtin
 consider-using-in
 no-else-return
