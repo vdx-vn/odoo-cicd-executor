@@ -34,6 +34,10 @@ on:
                 description: "Pull request url"
                 required: false
                 type: string
+            enable_linter:
+                required: false
+                type: boolean
+                default: false
 
 jobs:
     call_common_cicd:
@@ -46,4 +50,5 @@ jobs:
             commit_sha: ${{ inputs.commit_sha }}
             pr_number: ${{ inputs.pr_number }}
             pr_url: ${{ inputs.pr_url }}
+            enable_linter: ${{ inputs.enable_linter }}
         secrets: inherit

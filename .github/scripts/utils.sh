@@ -255,7 +255,9 @@ function send_message_telegram {
 function send_file_telegram_default {
     file_path=$1
     caption=$2
-    send_file_telegram "$TELEGRAM_TOKEN" "$TELEGRAM_CHANNEL_ID" "$file_path" "$caption"
+    if [ -s $file_path ]; then
+        send_file_telegram "$TELEGRAM_TOKEN" "$TELEGRAM_CHANNEL_ID" "$file_path" "$caption"
+    fi
 }
 
 function send_message_telegram_default {
