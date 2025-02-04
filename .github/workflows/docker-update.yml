@@ -11,11 +11,6 @@ on:
             repo_owner:
                 required: true
                 type: string
-            generate_cache:
-                default: "no"
-                required: false
-                description: "Should we generate github action caches for this branch"
-                type: string
 jobs:
     update-docker-images-on-server:
         runs-on: ubuntu-latest
