@@ -3,7 +3,7 @@ ignore = ["__manifest__.py", "__init__.py"]
 exit-zero = true
 output-format = "text"
 disable = "all"
-enable = ["line-too-long","unused-import","super-with-arguments","wrong-import-order","use-a-generator","missing-final-newline","bad-indentation","syntax-error","undefined-variable","no-member","duplicate-code","not-callable"]
+enable = ["super-with-arguments","consider-using-generator","superfluous-parens","unused-import","unreachable","no-else-raise","use-implicit-booleaness-not-len","unused-variable","missing-final-newline","pointless-string-statement","pointless-statement","multiple-statements","inconsistent-return-statements","consider-using-dict-items","unused-argument","raise-missing-from","consider-using-set-comprehension","invalid-name","redefined-builtin","consider-using-in","no-else-return","too-many-nested-blocks","bad-indentation","trailing-whitespace","line-too-long","use-a-generator","syntax-error","undefined-variable","no-member","not-callable","consider-using-ternary","simplifiable-if-expression","unnecessary-pass","redefined-outer-name","duplicate-key","chained-comparison","expression-not-assigned","function-redefined","consider-using-with","cell-var-from-loop","singleton-comparison","f-string-without-interpolation","useless-parent-delegation","self-assigning-variable","unsubscriptable-object","bad-file-encoding","possibly-used-before-assignment","redundant-u-string-prefix","use-a-generator","unnecessary-comprehension","unidiomatic-typecheck","reimported","useless-return"]
 
 [tool.pylint.format]
 max-line-length = 180
