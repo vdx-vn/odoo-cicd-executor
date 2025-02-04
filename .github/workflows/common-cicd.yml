@@ -115,7 +115,7 @@ jobs:
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
-                  echo $result
+                  echo Linter result $result
                   if [[ $result == "failure" ]]; then
                     send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "Pylint Linter Error⚠️"
                   fi
