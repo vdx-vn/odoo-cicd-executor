@@ -27,6 +27,10 @@ on:
                 required: false
                 type: string
                 default: odoo/addons
+            enable_linter:
+                required: false
+                type: boolean
+                default: false
             python_version:
                 required: false
                 type: string
@@ -89,7 +93,7 @@ jobs:
         name: Pylint Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.action == 'test' || inputs.action == 'deploy'
+        if: inputs.enable_linter && (inputs.action == 'test' || inputs.action == 'deploy')
         steps:
             - uses: actions/checkout@v4
 
@@ -126,7 +130,7 @@ jobs:
         name: Ruff Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.action == 'test' || inputs.action == 'deploy'
+        if: inputs.enable_linter && (inputs.action == 'test' || inputs.action == 'deploy')
         steps:
             - uses: actions/checkout@v4
 

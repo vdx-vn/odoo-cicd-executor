@@ -50,3 +50,4 @@ unnecessary-comprehension
 unidiomatic-typecheck
 reimported
 useless-return
+used-before-assignment
