@@ -83,9 +83,7 @@ runs:
 
 
               if [[ ${{ inputs.direction }} == "download" ]]; then
-                  echo "start download filleeeee"
                   scp server:${{ inputs.server_file }} ${{ inputs.local_file }}
-                  echo "done download file"
               else
                   file_path=${{ inputs.server_file }}
                   include_file_name=${{ inputs.include_file_name }}
@@ -100,6 +98,6 @@ runs:
                           mkdir -p $folder_path
                       fi
                   "
-
+                  
                   scp ${{ inputs.local_file }} server:${{ inputs.server_file }}
               fi
