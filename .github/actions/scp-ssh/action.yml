@@ -82,7 +82,7 @@ Host server
     StrictHostKeyChecking no
     ServerAliveInterval 60
     IdentityFile $server_key_file
-EOF                  
+EOF
                 fi
 
                 chmod 600 ~/.ssh/config
@@ -105,7 +105,7 @@ EOF
                 else
                     folder_path=$file_path
                 fi
-                
+
                 ssh server "
                     if [ ! -d "$folder_path" ]; then
                         mkdir -p $folder_path
