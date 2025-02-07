@@ -80,6 +80,8 @@ runs:
                 fi
                 
                 echo "start mkdir folder"
+                echo  ssh -p ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }}
+                echo "_________________"
                 ssh -p ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }} "
                     if [ ! -d "$folder_path" ]; then
                         mkdir -p $folder_path
