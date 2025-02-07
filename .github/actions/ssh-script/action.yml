@@ -48,8 +48,7 @@ runs:
                 touch $key_file_path && chmod 600 $key_file_path
                 >$key_file_path
                 echo "$content" >>$key_file_path
-              }
-
+              } 
 
             function update_ssh_config() {
                 mkdir -p ~/.ssh
@@ -83,7 +82,7 @@ EOF
                         StrictHostKeyChecking no
                         ServerAliveInterval 60
                         IdentityFile $server_key_file
-EOF                  
+                EOF
                 fi
 
                 chmod 600 ~/.ssh/config
@@ -96,7 +95,7 @@ EOF
               update_ssh_config
 
               echo "content here =>>>>>>>>>>>>>>>>>>"
-              cat ~/.ssh/config
+              cat ~/.ssh/config 
 
               if [ ${{ inputs.set-output }} -eq 1 ]; then
                 output=$(ssh server "
