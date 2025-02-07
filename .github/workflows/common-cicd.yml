@@ -97,6 +97,12 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
+              id: create-check-run
+              with:
+                  name: "Unit test at install"
+
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
 
@@ -114,6 +120,14 @@ jobs:
                   --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
                   --output ${{env.WORKSPACE}}/pylint-output \
                   $(git ls-files '*.py')
+
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: ${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
 
             - name: Send linting result to Telegram
               run: |
@@ -134,6 +148,11 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
+              id: create-check-run
+              with:
+                  name: "Unit test at install"
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
 
@@ -148,6 +167,14 @@ jobs:
                       --config ${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml \
                       --output-file ${{env.WORKSPACE}}/ruff-output \
                       --output-format concise"
+
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: ${{ steps.ruff-linter.conclusion == 'success' && 'success' || 'failure' }}
 
             - name: Send linting result to Telegram
               run: |
