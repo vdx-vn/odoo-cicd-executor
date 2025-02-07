@@ -95,6 +95,9 @@ EOF
               create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
               update_ssh_config
 
+              echo "content here =>>>>>>>>>>>>>>>>>>"
+              cat ~/.ssh/config
+
               if [ ${{ inputs.set-output }} -eq 1 ]; then
                 output=$(ssh server "
                   ${{ inputs.script }}
