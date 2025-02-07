@@ -41,55 +41,47 @@ runs:
         - name: "Download backup file"
           shell: bash
           run: |
+
+              server_key_file=${{ github.workspace }}/$(date +%s)_key
+              proxy_server_key_file=${{ github.workspace }}/$(date +%s)_proxy_key
+              create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$server_key_file"
+              create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
+
+
+              function update_ssh_config() {
+                  mkdir -p ~/.ssh
+                  touch ~/.ssh/config
+                  echo > ~/.ssh/config
+                  cat << EOF > ~/.ssh/config
+                  Host proxy_server
+                      HostName ${{inputs.proxy_host}}
+                      User ${{inputs.proxy_user}}
+                      Port ${{inputs.proxy_port}}
+                      StrictHostKeyChecking no
+                      ServerAliveInterval 60
+                      IdentityFile $proxy_server_key_file
+
+                  Host server
+                      HostName ${{inputs.host}}
+                      User ${{inputs.user}}
+                      Port ${{inputs.port}}
+                      StrictHostKeyChecking no
+                      ServerAliveInterval 60
+                      IdentityFile $server_key_file
+                      ProxyJump proxy_server
+              EOF
+                  chmod 600 ~/.ssh/config
+              }
+
               function create_private_keyfile_from_content() {
-                content="$1"
-                key_file_path="$2"
-                mkdir -p $(dirname $key_file_path)
-                touch $key_file_path && chmod 600 $key_file_path
-                >$key_file_path
-                echo "$content" >>$key_file_path
-              }
+                  content="$1"
+                  key_file_path="$2"
+                  mkdir -p $(dirname $key_file_path)
+                  touch $key_file_path && chmod 600 $key_file_path
+                  >$key_file_path
+                  echo "$content" >>$key_file_path
+              }              
 
-              function generate_ssh_option() {
-                    ssh_options="-o StrictHostKeyChecking=no -o ServerAliveInterval=60"
-                    proxy_user=
-                    if [[ -n "${{ inputs.proxy_host }}" ]]; then
-                        proxy_keyfile_path="${{ github.workspace }}"/$(date +%s)_key_proxy
-                        create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_keyfile_path"
-                        proxy_command="ProxyCommand ssh -i $proxy_keyfile_path ${{inputs.proxy_user}}@${{inputs.proxy_host}} -p ${{inputs.proxy_port}} -W %h:%p"
-                        ssh_options+=" -o \"$proxy_command\""
-                    fi
-                    echo "$ssh_options"
-              }
-
-              ssh_options=$(generate_ssh_option)
-              echo "show me ============================="
-              echo $ssh_options
-              keyfile_path=${{ github.workspace }}/$(date +%s)_key
-              create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path"
-
-              if [[ ${{ inputs.direction }} == "download" ]]; then
-                scp -P ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }} ${{ inputs.local_file }}
-              else
-                file_path=${{ inputs.server_file }}
-                include_file_name=${{ inputs.include_file_name }}
-                if [ $include_file_name == "yes" ]; then
-                    folder_path=$(dirname "$file_path")
-                else
-                    folder_path=$file_path
-                fi
-                
-                # FIXME:
-                scp -P ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
-                echo "start mkdir folder"
-                echo  ssh -p ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }}
-                echo "_________________"
-                ssh -p ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }} "
-                    if [ ! -d "$folder_path" ]; then
-                        mkdir -p $folder_path
-                    fi
-                "
-                echo "end mkdir folddddddddderrrrrrrrrrrrr"
-
-                scp -P ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
-              fi
+              ssh server "
+                  mkdir -p "/tmp/$(date +%s)"
+              "
