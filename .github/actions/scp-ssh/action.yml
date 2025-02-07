@@ -56,32 +56,32 @@ runs:
                 echo > ~/.ssh/config
                 if [[ -n ${{inputs.proxy_host}} ]]; then
                     cat << EOF > ~/.ssh/config
-                    Host proxy_server
-                        HostName ${{inputs.proxy_host}}
-                        User ${{inputs.proxy_user}}
-                        Port ${{inputs.proxy_port}}
-                        StrictHostKeyChecking no
-                        ServerAliveInterval 60
-                        IdentityFile $proxy_server_key_file
+Host proxy_server
+    HostName ${{inputs.proxy_host}}
+    User ${{inputs.proxy_user}}
+    Port ${{inputs.proxy_port}}
+    StrictHostKeyChecking no
+    ServerAliveInterval 60
+    IdentityFile $proxy_server_key_file
 
-                    Host server
-                        HostName ${{inputs.host}}
-                        User ${{inputs.user}}
-                        Port ${{inputs.port}}
-                        StrictHostKeyChecking no
-                        ServerAliveInterval 60
-                        IdentityFile $server_key_file
-                        ProxyJump proxy_server
+Host server
+    HostName ${{inputs.host}}
+    User ${{inputs.user}}
+    Port ${{inputs.port}}
+    StrictHostKeyChecking no
+    ServerAliveInterval 60
+    IdentityFile $server_key_file
+    ProxyJump proxy_server
 EOF
                 else
                     cat << EOF > ~/.ssh/config
-                    Host server
-                        HostName ${{inputs.host}}
-                        User ${{inputs.user}}
-                        Port ${{inputs.port}}
-                        StrictHostKeyChecking no
-                        ServerAliveInterval 60
-                        IdentityFile $server_key_file
+Host server
+    HostName ${{inputs.host}}
+    User ${{inputs.user}}
+    Port ${{inputs.port}}
+    StrictHostKeyChecking no
+    ServerAliveInterval 60
+    IdentityFile $server_key_file
 EOF                  
                 fi
 
