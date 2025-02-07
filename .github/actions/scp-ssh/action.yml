@@ -62,6 +62,8 @@ runs:
               }
 
               ssh_options=$(generate_ssh_option)
+              echo "show me ============================="
+              echo $ssh_options
               keyfile_path=${{ github.workspace }}/$(date +%s)_key
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path"
 
