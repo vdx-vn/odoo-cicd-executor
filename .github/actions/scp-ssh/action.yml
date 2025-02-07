@@ -79,6 +79,8 @@ runs:
                     folder_path=$file_path
                 fi
                 
+                # FIXME:
+                scp -P ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
                 echo "start mkdir folder"
                 echo  ssh -p ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }}
                 echo "_________________"
