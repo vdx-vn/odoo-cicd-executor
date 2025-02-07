@@ -1,0 +1,74 @@
+#!/bin/bash
+function create_private_keyfile_from_content() {
+    content="$1"
+    key_file_path="$2"
+    mkdir -p $(dirname $key_file_path)
+    touch $key_file_path && chmod 600 $key_file_path
+    >$key_file_path
+    echo "$content" >>$key_file_path
+}
+
+server_key_file=${{ github.workspace }}/$(date +%s)_key
+proxy_server_key_file=${{ github.workspace }}/$(date +%s)_proxy_key
+create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$server_key_file"
+create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
+
+function update_ssh_config() {
+    mkdir -p ~/.ssh
+    touch ~/.ssh/config
+    echo > ~/.ssh/config
+    if [[ -n ${{inputs.proxy_host}} ]]; then
+        cat << EOF > ~/.ssh/config
+Host proxy_server
+    HostName ${{inputs.proxy_host}}
+    User ${{inputs.proxy_user}}
+    Port ${{inputs.proxy_port}}
+    StrictHostKeyChecking no
+    ServerAliveInterval 60
+    IdentityFile $proxy_server_key_file
+
+Host server
+    HostName ${{inputs.host}}
+    User ${{inputs.user}}
+    Port ${{inputs.port}}
+    StrictHostKeyChecking no
+    ServerAliveInterval 60
+    IdentityFile $server_key_file
+    ProxyJump proxy_server
+EOF
+                  else
+                      cat << EOF > ~/.ssh/config
+Host server
+    HostName ${{inputs.host}}
+    User ${{inputs.user}}
+    Port ${{inputs.port}}
+    StrictHostKeyChecking no
+    ServerAliveInterval 60
+    IdentityFile $server_key_file
+EOF
+                  fi
+
+                  chmod 600 ~/.ssh/config
+              }
+
+update_ssh_config
+
+if [[ ${{ inputs.direction }} == "download" ]]; then
+    scp server:${{ inputs.server_file }} ${{ inputs.local_file }}
+else
+    file_path=${{ inputs.server_file }}
+    include_file_name=${{ inputs.include_file_name }}
+    if [ $include_file_name == "yes" ]; then
+        folder_path=$(dirname "$file_path")
+    else
+        folder_path=$file_path
+    fi
+
+    ssh server "
+        if [ ! -d "$folder_path" ]; then
+            mkdir -p $folder_path
+        fi
+    "
+
+    scp ${{ inputs.local_file }} server:${{ inputs.server_file }}
+fi
