@@ -70,6 +70,7 @@ env:
     TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
     TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
     SERVER_PRIVATE_KEY: ${{secrets.SERVER_PRIVATE_KEY}}
+    PROXY_SERVER_PRIVATE_KEY: ${{secrets.PROXY_SERVER_PRIVATE_KEY}}
     SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
 
     # ===== Environment variables =====
@@ -78,6 +79,9 @@ env:
     SERVER_HOST: ${{ vars.SERVER_HOST }}
     SERVER_USER: ${{ vars.SERVER_USER }}
     SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
+    PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
+    PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
+    PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
     SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
     SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
@@ -133,7 +137,6 @@ jobs:
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
-                  echo Linter result $result
                   if [[ $result == "failure" ]]; then
                     send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "⚠️Pylint Linter Error⚠️"
                   fi
@@ -392,30 +395,32 @@ jobs:
                   local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
 
-            - name: "Deploy to server"
-              uses: ./.github/actions/ssh-script
-              id: deploy_to_server
-              env:
-                  SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
-                  SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
-                  SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.ODOO_IMAGE_TAG }}"
+            # FIXME: uncomment code
 
-            - name: The Deploy step has failed
-              if: ${{ failure() }}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "failed"
+            # - name: "Deploy to server"
+            #   uses: ./.github/actions/ssh-script
+            #   id: deploy_to_server
+            #   env:
+            #       SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
+            #       SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
+            #       SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
+            #   with:
+            #       host: ${{env.SERVER_HOST}}
+            #       port: ${{env.SERVER_SSH_PORT}}
+            #       user: ${{env.SERVER_USER}}
+            #       ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+            #       script: |
+            #           bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.ODOO_IMAGE_TAG }}"
 
-            - name: The Deploy step has successful
-              if: ${{ success() }}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "success"
+            # - name: The Deploy step has failed
+            #   if: ${{ failure() }}
+            #   run: |
+            #       bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "failed"
+
+            # - name: The Deploy step has successful
+            #   if: ${{ success() }}
+            #   run: |
+            #       bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "success"
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
