@@ -395,8 +395,6 @@ jobs:
                   local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
 
-            # FIXME: uncomment code
-
             - name: "Deploy to server"
               uses: ./.github/actions/ssh-script
               id: deploy_to_server
