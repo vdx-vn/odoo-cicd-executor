@@ -51,7 +51,7 @@ runs:
               }
 
               function generate_ssh_option() {
-                    ssh_options="-o \"StrictHostKeyChecking=no\" -o \"ServerAliveInterval=60\""
+                    ssh_options="-o StrictHostKeyChecking=no -o ServerAliveInterval=60"
                     if [[ -n "${{ inputs.proxy_host }}" ]]; then
                         proxy_keyfile_path="${{ github.workspace }}"/$(date +%s)_key_proxy
                         create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_keyfile_path"
