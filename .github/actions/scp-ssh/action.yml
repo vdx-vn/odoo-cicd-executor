@@ -79,11 +79,13 @@ runs:
                     folder_path=$file_path
                 fi
                 
+                echo "start mkdir folder"
                 ssh -p ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }} "
                     if [ ! -d "$folder_path" ]; then
                         mkdir -p $folder_path
                     fi
                 "
+                echo "end mkdir folddddddddderrrrrrrrrrrrr"
 
                 scp -P ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
               fi
