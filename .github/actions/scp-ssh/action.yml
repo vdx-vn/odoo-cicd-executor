@@ -69,7 +69,7 @@ runs:
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$keyfile_path"
 
               if [[ ${{ inputs.direction }} == "download" ]]; then
-                scp $ssh_options -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }} ${{ inputs.local_file }}
+                scp -P ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }} ${{ inputs.local_file }}
               else
                 file_path=${{ inputs.server_file }}
                 include_file_name=${{ inputs.include_file_name }}
@@ -79,11 +79,11 @@ runs:
                     folder_path=$file_path
                 fi
                 
-                ssh $ssh_options -p ${{ inputs.port }} -i $keyfile_path ${{ inputs.user }}@${{ inputs.host }} "
+                ssh -p ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.user }}@${{ inputs.host }} "
                     if [ ! -d "$folder_path" ]; then
                         mkdir -p $folder_path
                     fi
                 "
 
-                scp $ssh_options -P ${{ inputs.port }} -i $keyfile_path ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
+                scp -P ${{ inputs.port }} -i $keyfile_path $ssh_options ${{ inputs.local_file }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.server_file }}
               fi
