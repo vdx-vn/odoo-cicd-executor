@@ -54,7 +54,7 @@ runs:
               proxy_server_key_file=${{ github.workspace }}/$(date +%s)_proxy_key
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$server_key_file"
               create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
-              update_ssh_config              
+              update_ssh_config
 
               function update_ssh_config() {
                   mkdir -p ~/.ssh
@@ -93,6 +93,8 @@ runs:
 
                   chmod 600 ~/.ssh/config
               }
+
+              update_ssh_config
 
               if [[ ${{ inputs.direction }} == "download" ]]; then
                   scp server:${{ inputs.server_file }} ${{ inputs.local_file }}
