@@ -385,6 +385,10 @@ jobs:
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
 
