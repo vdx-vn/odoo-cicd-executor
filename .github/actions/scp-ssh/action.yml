@@ -41,12 +41,14 @@ runs:
         - name: "Download backup file"
           shell: bash
           run: |
-
-              server_key_file=${{ github.workspace }}/$(date +%s)_key
-              proxy_server_key_file=${{ github.workspace }}/$(date +%s)_proxy_key
-              create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$server_key_file"
-              create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
-
+              function create_private_keyfile_from_content() {
+                  content="$1"
+                  key_file_path="$2"
+                  mkdir -p $(dirname $key_file_path)
+                  touch $key_file_path && chmod 600 $key_file_path
+                  >$key_file_path
+                  echo "$content" >>$key_file_path
+              }
 
               function update_ssh_config() {
                   mkdir -p ~/.ssh
@@ -73,14 +75,12 @@ runs:
                   chmod 600 ~/.ssh/config
               }
 
-              function create_private_keyfile_from_content() {
-                  content="$1"
-                  key_file_path="$2"
-                  mkdir -p $(dirname $key_file_path)
-                  touch $key_file_path && chmod 600 $key_file_path
-                  >$key_file_path
-                  echo "$content" >>$key_file_path
-              }              
+              server_key_file=${{ github.workspace }}/$(date +%s)_key
+              proxy_server_key_file=${{ github.workspace }}/$(date +%s)_proxy_key
+              create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$server_key_file"
+              create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
+              update_ssh_config
+                          
 
               ssh server "
                   mkdir -p "/tmp/$(date +%s)"
