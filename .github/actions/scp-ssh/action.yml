@@ -50,11 +50,6 @@ runs:
                   echo "$content" >>$key_file_path
               }
 
-              server_key_file=${{ github.workspace }}/$(date +%s)_key
-              proxy_server_key_file=${{ github.workspace }}/$(date +%s)_proxy_key
-              create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$server_key_file"
-              create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
-
               function update_ssh_config() {
                   if [[ -n ${{inputs.proxy_host}} ]]; then
                       return
@@ -102,6 +97,10 @@ runs:
                   chmod 600 ~/.ssh/config
               }
 
+              server_key_file=${{ github.workspace }}/$(date +%s)_key
+              proxy_server_key_file=${{ github.workspace }}/$(date +%s)_proxy_key
+              create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$server_key_file"
+              create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
               update_ssh_config
               update_ssh_config_with_proxy
 
