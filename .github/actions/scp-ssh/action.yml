@@ -55,7 +55,7 @@ runs:
                     if [[ -n "${{ inputs.proxy_host }}" ]]; then
                         proxy_keyfile_path="${{ github.workspace }}"/$(date +%s)_key_proxy
                         create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_keyfile_path"
-                        proxy_command="ProxyCommand ssh -i $proxy_keyfile_path -W %h:%p $proxy_user@$proxy_host -p $proxy_port"
+                        proxy_command="ProxyCommand ssh -i $proxy_keyfile_path -W %h:%p ${{inputs.proxy_user}@${{inputs.proxy_host}} -p ${{inputs.proxy_port}}"
                         ssh_options+=" -o \"$proxy_command\""
                     fi
                     echo "$ssh_options"
