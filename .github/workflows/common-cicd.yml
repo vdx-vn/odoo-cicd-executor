@@ -101,7 +101,7 @@ jobs:
               uses: ./.github/actions/create-check-run
               id: create-check-run
               with:
-                  name: "Unit test at install"
+                  name: "Pylint Linter"
 
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
@@ -152,7 +152,7 @@ jobs:
               uses: ./.github/actions/create-check-run
               id: create-check-run
               with:
-                  name: "Unit test at install"
+                  name: "Ruff Linter"
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
 
