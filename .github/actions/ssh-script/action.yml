@@ -16,6 +16,7 @@ inputs:
         required: true
     set-output:
         description: "Will script return output or not (0|1)"
+        type: number
         required: true
         default: 0
 
@@ -105,12 +106,8 @@ runs:
               update_ssh_config_with_proxy
 
               if [ ${{ inputs.set-output }} -eq 1 ]; then
-                output=$(ssh server "
-                  ${{ inputs.script }}
-                ")
+                output=$(ssh server "${{ inputs.script }}")
                 echo "output=$output" >> "$GITHUB_OUTPUT"
               else
-                ssh server "
-                    ${{ inputs.script }}
-                "
+                ssh server "${{ inputs.script }}"
               fi
