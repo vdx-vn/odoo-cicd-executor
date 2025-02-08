@@ -291,6 +291,10 @@ jobs:
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   set-output: 1
                   script: |
                       latest_file=\$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
@@ -316,9 +320,13 @@ jobs:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
 
             - name: "Backup Odoo on server"
               uses: ./.github/actions/ssh-script
@@ -329,6 +337,10 @@ jobs:
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   set-output: 1
                   script: |
                       bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
@@ -348,9 +360,13 @@ jobs:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
                   server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
 
             - name: "Run Integration test"
               id: run_integration_test
@@ -369,8 +385,7 @@ jobs:
         name: Deploy server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        # FIXME: uncommnet
-        # needs: [unit-test-at-install, unit-test-post-install, integration-test]
+        needs: [unit-test-at-install, unit-test-post-install, integration-test]
         steps:
             - uses: actions/checkout@v4
 
