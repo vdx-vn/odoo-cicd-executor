@@ -273,7 +273,7 @@ jobs:
               uses: ./.github/actions/prepare-test-data
 
               # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
-              # so this case, we should create backup a new DB
+              # so this case, we should generate a new DB backup
             - name: Make decision to create a new backup on server
               run: |
                   if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
