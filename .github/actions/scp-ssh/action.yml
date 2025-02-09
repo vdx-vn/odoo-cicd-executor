@@ -51,7 +51,7 @@ runs:
               }
 
               function update_ssh_config() {
-                  if [[ "${{inputs.proxy_host}}" == "" ]]; then
+                  if [[ "${{inputs.proxy_host}}" != "" ]]; then
                       return
                   fi
                   mkdir -p ~/.ssh
