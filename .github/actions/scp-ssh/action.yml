@@ -14,7 +14,6 @@ inputs:
     # Proxy server info
     proxy_host:
         required: false
-        default: "_"
     proxy_user:
         required: false
     proxy_port:
@@ -52,7 +51,7 @@ runs:
               }
 
               function update_ssh_config() {
-                  if [[ "${{inputs.proxy_host}}" != "_" ]]; then
+                  if [[ "${{inputs.proxy_host}}" == "" ]]; then
                       return
                   fi
                   mkdir -p ~/.ssh
@@ -71,7 +70,7 @@ runs:
               }
 
               function update_ssh_config_with_proxy() {
-                  if [[ "${{inputs.proxy_host}}" == "_" ]]; then
+                  if [[ "${{inputs.proxy_host}}" == "" ]]; then
                       return
                   fi
                   mkdir -p ~/.ssh
