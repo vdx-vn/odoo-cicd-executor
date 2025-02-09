@@ -51,9 +51,9 @@ runs:
               }
 
               function update_ssh_config() {
-                  if [[ -n ${{inputs.proxy_host}} ]]; then
+                  if [[ "${{inputs.proxy_host}}" != "" ]]; then
                       return
-                  fi                
+                  fi
                   mkdir -p ~/.ssh
                   touch ~/.ssh/config
                   echo > ~/.ssh/config
@@ -70,7 +70,7 @@ runs:
               }
 
               function update_ssh_config_with_proxy() {
-                  if [[ -z ${{inputs.proxy_host}} ]]; then
+                  if [[ "${{inputs.proxy_host}}" == "" ]]; then
                       return
                   fi
                   mkdir -p ~/.ssh
