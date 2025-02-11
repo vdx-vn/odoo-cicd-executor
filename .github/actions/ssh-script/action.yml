@@ -23,7 +23,6 @@ inputs:
     # Proxy server info
     proxy_host:
         required: false
-        default: "_"
     proxy_user:
         required: false
     proxy_port:
