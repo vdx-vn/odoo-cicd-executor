@@ -8,7 +8,12 @@ on:
             commit_sha:
                 required: true
                 type: string
+            image_tag:
+                required: false
+                type: string
+                default: latest
             branches:
+                required: false
                 type: string
                 default: dev,production
                 description: List of branches related to environment, which contains server information that need to update to the latest images, separate by comma
@@ -35,13 +40,13 @@ jobs:
               run: |
                   cd ${{ github.workspace }}/.build
                   docker build . \
-                        --tag ghcr.io/${{inputs.repo_name}} \
+                        --tag ghcr.io/${{inputs.repo_name}}:${{inputs.image_tag}} \
                         --label "org.opencontainers.image.source=https://github.com/${{inputs.repo_name}}" \
                         --label "github.run.id=${GITHUB_RUN_ID}"
 
             - name: Publish image to GitHub container registry
               run: |
-                  docker push ghcr.io/${{inputs.repo_name}}
+                  docker push ghcr.io/${{inputs.repo_name}}:${{inputs.image_tag}}
 
             - uses: actions/checkout@v4
 
