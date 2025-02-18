@@ -141,10 +141,40 @@ function wait_until_odoo_shutdown {
 }
 
 # declare all useful functions here
+function sad_emojis() {
+    echo "😢 😭 😞 😔 😟 😩 😫 😓 😥 😰 😨 😧 😦 🙁 ☹️ 😣 😖 😱 😡 🤬 😠 😤 😪 😒 😌 😕 😬 🙄 👾 🧟 💔 💩 🐛 🦗 🦟 🐜 🐝 🐞 🪲 🪳 🦂 🕷️ 🕸️ 🦠 🦂 🧠 🙀 🤢 🤮 🤧 🥺 😵 🤯 🥴 🤕 🤒 😷 🤐 🤫 🤥 🤔 💀 ☠️ 👹 👿 👻 😬 😮‍💨 😓 🤨 😔 🫥 🫠 🙃 🥹 😶 😶‍🌫️ 😐 😑 🫤 🫡 🥱 🫨 🤐 🤢 🤮 💔 💦 🫧 🧊 🧯 🛑 ⛔ 📛 🚫 ❌ ⭕ 🔄 🔙 🔚 ⚠️ ⛔ 🚫 🚳 🚭 🚯 🚱 🚷 📵 🔞 ‼️ ⁉️ ❓ ❔ ❕ ❗ 〽️ ⚠️ 🔅 🔆 💢"
+}
+
+function happy_emojis() {
+    echo "🎉 🎈 🎊 🥳 ✨ 🌟 💫 ⭐ 🌠 🎇 🎆 🧨 🪅 🎀 🎁 💝 🎂 🍰 🧁 🍩 🍪 🍫 🍬 🍭 🍯 🥂 🍾 🍷 🍸 🍺 🍻 🍶 🍵 ☕ 🥤 🍼 🥛 🍽️ 🍴 🥄 🥢 🧂 🍋 🍊 🍎 🍏 🍐 🍑 🍒 🍓 🥭 🥑 🍉 🍇 🍈 🍌 🍍 🥝 🥥 🥕 🌽 🥦 🍄 🥜 🌰 🍞 🥐 🥖 🥨 🥯 🥞 🧇 🍕 🍔 🍟 🌭 🌮 🌯 🥙 🥗 🥘 🍲 🍚 🍛 🍝 🍜 🍣 🍱 🍡 🍢 🍧 🍨 🍦 🍮 🍿 🌍 🌎 🌏 🌐 🗺️ 🗾 🏔️ ⛰️ 🌋 🗻 🏞️ 🏖️ 🏜️ 🏝️ 🏟️ 🎡 🎠 🎢 🎪 🎭 🎨 🎤 🎧 🎼 🎵 🎶 🎹 🥁 🎷 🎺 🎸 🎻 💃 🕺 👯‍♀️ 👯‍♂️ 🕴️ 🧘 🙌 👏 🤝 🙏 🤳 💪 🏆 🥇 🥈 🥉 🏅 🎗️ 🎫 🎟️ 🏷️ 💯 🔥 💥 😀 😁 😊 👍 🌈 🎯 🏄 🌺 🌸 🌼 🌷 🌹 🌻 💖 💗 💓 💘 💕 💞 💌 🔆 🌞 🍀 🙂 😃 😄 😆 😉 😋 😎 😍 🤩 🤗 🤭 🥰 🦸 🧚 👑 🌅 🌄 🌝 🎮 🎬 📯 🚀 🎄 🎅 👸 🤸 🤹 👼 🦋 😇 🏵️"
+}
+
 function show_separator {
     x="==============================================="
     separator=($x $x "$1" $x $x)
     printf "%s\n" "${separator[@]}"
+}
+
+function random_emojis() {
+    local EMOJIS=($1)
+    local COUNT=${2:-3} # Default to 3 if no argument is provided
+    local TOTAL_EMOJIS=${#EMOJIS[@]}
+    local RESULT=""
+
+    for ((i = 1; i <= COUNT; i++)); do
+        local RANDOM_INDEX=$((RANDOM % TOTAL_EMOJIS))
+        RESULT+="${EMOJIS[$RANDOM_INDEX]} "
+    done
+
+    echo "$RESULT"
+}
+
+function random_happy_emojis() {
+    echo $(random_emojis "$(happy_emojis)")
+}
+
+function random_sad_emojis() {
+    echo $(random_emojis "$(sad_emojis)")
 }
 
 function get_odoo_container_id {
