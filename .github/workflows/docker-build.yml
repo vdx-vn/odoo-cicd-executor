@@ -83,7 +83,6 @@ jobs:
                   export IFS=","
                   branches=${{ steps.get-repo-branches.outputs.result }}
                   count=1
-                  count=1
                   for branch in $branches; do
                       repo_owner=$(echo ${{inputs.repo_name}} | cut -d '/' -f1)
                       if [ $count -eq 1 ]; then

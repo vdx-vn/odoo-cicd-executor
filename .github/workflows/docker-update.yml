@@ -13,7 +13,6 @@ on:
                 type: string
 jobs:
     update-docker-images-on-server:
-    update-docker-images-on-server:
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.branch}}
         steps:
