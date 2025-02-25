@@ -85,7 +85,7 @@ env:
     SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
     SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
-    SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }}
+    SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }} # add _ to this environment variable to always create backup file from server
 
     # ===== Handle Input for actions/github-script ======
     INPUT_REPO_NAME: ${{inputs.repo_name}}
@@ -276,7 +276,7 @@ jobs:
               # so this case, we should generate a new DB backup
             - name: Make decision to create a new backup on server
               run: |
-                  if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
+                  if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{env.SERVER_BACKUP_PATH}} != "_" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
                     echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
                   else
                     echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
