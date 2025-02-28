@@ -146,11 +146,11 @@ function get_ignore_file_command_pylint {
     if [[ -n $ignore_addons ]]; then
         backup_IFS=$IFS
         IFS=","
-        for addon_name in $full_list_addons; do
+        for addon_name in $ignore_addons; do
             if [[ -z $command ]]; then
-                command=$addon_name/.*\.py
+                command=$addon_name/.*\\.py
             else
-                command="$command;$addon_name"
+                command="$command;$addon_name/.*\\.py"
             fi
         done
         IFS=$backup_IFS
