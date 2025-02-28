@@ -120,12 +120,15 @@ jobs:
             - name: Analysing the code with pylint
               id: pylint-linter
               run: |
+                  source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                  ignore_file_command=$(get_ignore_file_command_pylint ${{inputs.ignore_linters}})
                   python -m pip install --upgrade pip
                   pip install pylint
                   cd ${{env.REPO_PATH}}
                   pylint \
                   --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
                   --output ${{env.WORKSPACE}}/pylint-output \
+                  --ignore-paths $ignore_file_command \
                   $(git ls-files '*.py')
 
             - name: Update Check Run
@@ -139,7 +142,6 @@ jobs:
             - name: Send linting result to Telegram
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  echo $(get_ignore_file_command_pylint ${{inputs.ignore_linters}})
                   result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
                   if [[ $result == "failure" ]]; then
                     send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "⚠️Pylint Linter Error⚠️"
