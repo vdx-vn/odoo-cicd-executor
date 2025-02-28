@@ -40,6 +40,11 @@ function get_list_addons {
     echo $addons
 }
 
+function get_list_addons_ignore_linters {
+    addons_path=$1
+    echo $(get_list_addons_filtered_by_config_option $addons_path "ignore_linter" "true")
+}
+
 function get_list_changed_addons {
     addons_path=$1
     commit_hash=$2
