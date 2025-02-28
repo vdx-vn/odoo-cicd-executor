@@ -139,7 +139,7 @@ jobs:
             - name: Send linting result to Telegram
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  echo $(get_ignore_file_command_pylint)
+                  echo $(get_ignore_file_command_pylint ${{inputs.ignore_linters}})
                   result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
                   if [[ $result == "failure" ]]; then
                     send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "⚠️Pylint Linter Error⚠️"
