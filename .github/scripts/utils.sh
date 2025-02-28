@@ -40,11 +40,6 @@ function get_list_addons {
     echo $addons
 }
 
-function get_list_addons_ignore_linters {
-    addons_path=$1
-    echo $(get_list_addons_filtered_by_config_option $addons_path "ignore_linter" "true")
-}
-
 function get_list_changed_addons {
     addons_path=$1
     commit_hash=$2
@@ -143,6 +138,25 @@ function wait_until_odoo_shutdown {
         total_waited_time=$((total_waited_time + sleep_block))
         sleep $sleep_block
     done
+}
+
+function get_ignore_file_command_pylint {
+    ignore_addons=$1
+    command=
+    if [[ -n $ignore_addons ]]; then
+        backup_IFS=$IFS
+        IFS=","
+        for addon_name in $full_list_addons; do
+            if [[ -z $command ]]; then
+                command=$addon_name/.*\.py
+            else
+                command="$command;$addon_name"
+            fi
+        done
+        IFS=$backup_IFS
+    fi
+    command=$(echo $command | sed "s/;/,/g")
+    echo $command
 }
 
 # declare all useful functions here
