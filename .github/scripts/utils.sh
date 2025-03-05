@@ -193,7 +193,7 @@ function get_ignore_file_command_ruff {
         IFS=$backup_IFS
     fi
     command=$(echo $command | sed "s/;/,/g")
-    command="extend-exclude = [$command,"__manifest__.py", "__init__.py"]"
+    command="extend-exclude = [$command,\"__manifest__.py\", \"__init__.py\"]"
     echo $command
 }
 
