@@ -128,6 +128,9 @@ jobs:
                   pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
                   update_ignore_file_config_pylint "${{inputs.ignore_linters}}" "$pylint_config_file"
 
+                  # FIXME
+                  cat "$pylint_config_file"
+
                   python -m pip install --upgrade pip
                   pip install pylint
                   cd ${{env.REPO_PATH}}
@@ -175,6 +178,9 @@ jobs:
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   ruff_config_file="${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml"
                   update_ignore_file_config_ruff "${{inputs.ignore_linters}}" "$ruff_config_file"
+
+                  # FIXME
+                  cat "$ruff_config_file"
 
             - name: Ruff Linter
               uses: astral-sh/ruff-action@v3
