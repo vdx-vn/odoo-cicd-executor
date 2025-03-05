@@ -15,22 +15,10 @@ function populate_variables() {
 function set_list_addons {
     # Testing all add-ons instead of only the changed add-ons found in the commit.
     custom_addons=$(get_list_addons_should_run_test "$ODOO_ADDONS_PATH" "$IGNORE_TEST")
-    # fixme: remove echo commands
-    echo "list addons: "
-    echo $custom_addons
-    echo "ignore "
-    echo $IGNORE_TEST
-    echo "===="
     declare -g custom_addons
     if [ -z $custom_addons ]; then
         show_separator "Can't find any Odoo custom modules, please recheck your config!"
         exit 1
-    fi
-
-    ignore_demo_data_addons=$(get_list_addons_ignore_demo_data "$ODOO_ADDONS_PATH")
-    declare -g without_demo_addons=
-    if [[ -n $ignore_demo_data_addons ]]; then
-        without_demo_addons=$ignore_demo_data_addons
     fi
 }
 
