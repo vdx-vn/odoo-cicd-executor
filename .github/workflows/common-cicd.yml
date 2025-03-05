@@ -123,12 +123,12 @@ jobs:
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
                   update_ignore_file_config_pylint "${{inputs.ignore_linters}}" "$pylint_config_file"
-                  cat $pylint_config_file
+
                   python -m pip install --upgrade pip
                   pip install pylint
                   cd ${{env.REPO_PATH}}
                   pylint \
-                  --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
+                  --rcfile "$pylint_config_file" \
                   --output ${{env.WORKSPACE}}/pylint-output \
                   $(git ls-files '*.py')
 
