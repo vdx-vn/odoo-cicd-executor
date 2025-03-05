@@ -29,6 +29,7 @@ function update_config_file {
     test_tags=
     echo -en "\ncommand = \
     --stop-after-init \
+    --test-enable \
     --workers 0 \
     --database $ODOO_TEST_DATABASE_NAME \
     --logfile "$ODOO_LOG_FILE_CONTAINER" \
