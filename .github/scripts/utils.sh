@@ -94,7 +94,29 @@ function get_list_addons_filtered_by_config_option {
 
 function get_list_addons_should_run_test {
     addons_path=$1
-    echo $(get_list_addons_filtered_by_config_option $addons_path "ignore_test" "null")
+    ignore_test=$2
+    addons=
+    full_list_addons=$(get_list_addons $addons_path)
+    if [ -z "${ignore_test:-}" ]; then
+        echo $full_list_addons
+        return 0
+    fi
+
+    backup_IFS=$IFS
+    IFS=","
+    for addon_name in $full_list_addons; do
+        if [[ ! "$ignore_test" =~ "$addon_name" ]]; then
+            if [[ -z $addons ]]; then
+                addons=$addon_name
+            else
+                addons="$addons;$addon_name"
+            fi
+        fi
+    done
+    IFS=$backup_IFS
+
+    addons=$(echo $addons | sed "s/;/,/g")
+    echo $addons
 }
 
 function get_list_addons_ignore_demo_data {
@@ -116,6 +138,29 @@ function get_list_addons_ignored_test {
         done
     fi
     echo $addons_ignored_test
+}
+
+function get_ignored_unit_test_addons {
+    addons_ignored_test=$1
+    if [ -z "${addons_ignored_test:-}" ]; then
+        echo ""
+        return 0
+    fi
+    command=
+    if [[ -n $addons_ignored_test ]]; then
+        backup_IFS=$IFS
+        IFS=","
+        for addon_name in $addons_ignored_test; do
+            if [[ -z $command ]]; then
+                command=$addon_name
+            else
+                command="$command;$addon_name"
+            fi
+        done
+        IFS=$backup_IFS
+    fi
+    command=$(echo $command | sed "s/;/,/g")
+    echo $command
 }
 
 function wait_until_odoo_shutdown {

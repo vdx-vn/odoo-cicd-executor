@@ -34,6 +34,9 @@ on:
             ignore_linters:
                 required: false
                 type: string
+            ignore_test:
+                required: false
+                type: string
             python_version:
                 required: false
                 type: string
@@ -63,6 +66,7 @@ env:
     REPOSITORY: ${{ inputs.repo_name }}
     PR_NUMBER: ${{ inputs.pr_number }}
     PR_URL: ${{ inputs.pr_url }}
+    IGNORE_TEST: ${{inputs.ignore_test}}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo

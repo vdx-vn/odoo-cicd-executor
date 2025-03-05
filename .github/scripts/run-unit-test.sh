@@ -14,7 +14,13 @@ function populate_variables() {
 
 function set_list_addons {
     # Testing all add-ons instead of only the changed add-ons found in the commit.
-    custom_addons=$(get_list_addons_should_run_test "$ODOO_ADDONS_PATH")
+    custom_addons=$(get_list_addons_should_run_test "$ODOO_ADDONS_PATH" "$IGNORE_TEST")
+    # fixme: remove echo commands
+    echo "list addons: "
+    echo $custom_addons
+    echo "ignore "
+    echo $IGNORE_TEST
+    echo "===="
     declare -g custom_addons
     if [ -z $custom_addons ]; then
         show_separator "Can't find any Odoo custom modules, please recheck your config!"
