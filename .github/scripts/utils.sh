@@ -203,7 +203,7 @@ function update_ignore_file_config_ruff {
     if [ -z "${ignore_addons:-}" ]; then
         return 0
     fi
-    ignore_commands=$(get_ignore_file_command_pylint "$ignore_addons")
+    ignore_commands=$(get_ignore_file_command_ruff "$ignore_addons")
     sed -i "/extend-exclude/c\\${ignore_commands}" "$config_file"
 }
 
