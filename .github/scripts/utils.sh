@@ -131,7 +131,7 @@ function get_ignore_file_command_pylint {
             if [[ -z $command ]]; then
                 command=$addon_name/.*\\.py
             else
-                command="\"$command\";\"$addon_name/.*\\.py\""
+                command+=";\"$addon_name/.*\\.py\""
             fi
         done
         IFS=$backup_IFS
@@ -163,6 +163,7 @@ function get_ignore_file_command_ruff {
             if [[ -z $command ]]; then
                 command="*/*/$addon_name/**/*\\.py"
             else
+                command+=";\"*/*/$addon_name/**/*\\.py\""
                 command="\"$command\";\"*/*/$addon_name/**/*\\.py\""
             fi
         done
