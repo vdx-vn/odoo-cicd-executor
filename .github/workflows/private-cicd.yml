@@ -58,4 +58,5 @@ jobs:
             pr_url: ${{ inputs.pr_url }}
             enable_linter: ${{ inputs.enable_linter }}
             ignore_linters: ${{inputs.ignore_linters}}
+            ignore_test: ${{inputs.ignore_test}}
         secrets: inherit
