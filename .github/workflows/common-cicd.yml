@@ -121,15 +121,15 @@ jobs:
               id: pylint-linter
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  ignore_file_command=$(get_ignore_file_command_pylint "${{inputs.ignore_linters}}")
-                  echo $ignore_file_command
+                  pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
+                  update_ignore_file_config_pylint "${{inputs.ignore_linters}}" "$pylint_config_file"
+                  cat $pylint_config_file
                   python -m pip install --upgrade pip
                   pip install pylint
                   cd ${{env.REPO_PATH}}
                   pylint \
                   --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
                   --output ${{env.WORKSPACE}}/pylint-output \
-                  --ignore-paths "$ignore_file_command" \
                   $(git ls-files '*.py')
 
             - name: Update Check Run

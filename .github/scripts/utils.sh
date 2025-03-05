@@ -156,7 +156,15 @@ function get_ignore_file_command_pylint {
         IFS=$backup_IFS
     fi
     command=$(echo $command | sed "s/;/,/g")
+    command="ignore-paths = [$command]"
     echo $command
+}
+
+function update_ignore_file_config_pylint {
+    ignore_addons=$1
+    config_file=$2
+    ignore_commands=$(get_ignore_file_command_pylint "$ignore_addons")
+    sed -i "/ignore-paths/c\\${ignore_commands}" "$config_file"
 }
 
 # declare all useful functions here
