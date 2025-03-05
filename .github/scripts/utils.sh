@@ -140,8 +140,13 @@ function wait_until_odoo_shutdown {
     done
 }
 
+# ====== Pylint =======
 function get_ignore_file_command_pylint {
     ignore_addons=$1
+    if [ -z "${ignore_addons:-}" ]; then
+        echo "ignore-paths = []"
+        return 0
+    fi
     command=
     if [[ -n $ignore_addons ]]; then
         backup_IFS=$IFS
@@ -165,6 +170,41 @@ function update_ignore_file_config_pylint {
     config_file=$2
     ignore_commands=$(get_ignore_file_command_pylint "$ignore_addons")
     sed -i "/ignore-paths/c\\${ignore_commands}" "$config_file"
+}
+
+# ===== Ruff ======
+function get_ignore_file_command_ruff {
+    ignore_addons=$1
+    if [ -z "${ignore_addons:-}" ]; then
+        echo 'extend-exclude = ["__manifest__.py", "__init__.py"]'
+        return 0
+    fi
+    command=
+    if [[ -n $ignore_addons ]]; then
+        backup_IFS=$IFS
+        IFS=","
+        for addon_name in $ignore_addons; do
+            if [[ -z $command ]]; then
+                command=$addon_name/.*\\.py
+            else
+                command="\"$command\";\"$addon_name/**/.*\\.py\""
+            fi
+        done
+        IFS=$backup_IFS
+    fi
+    command=$(echo $command | sed "s/;/,/g")
+    command="extend-exclude = [$command,"__manifest__.py", "__init__.py"]"
+    echo $command
+}
+
+function update_ignore_file_config_pylint {
+    ignore_addons=$1
+    config_file=$2
+    if [ -z "${ignore_addons:-}" ]; then
+        return 0
+    fi
+    ignore_commands=$(get_ignore_file_command_pylint "$ignore_addons")
+    sed -i "/extend-exclude/c\\${ignore_commands}" "$config_file"
 }
 
 # declare all useful functions here
