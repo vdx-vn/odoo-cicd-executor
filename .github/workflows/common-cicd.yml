@@ -128,7 +128,7 @@ jobs:
                   pylint \
                   --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
                   --output ${{env.WORKSPACE}}/pylint-output \
-                  --ignore-paths ${ignore_file_command} \
+                  --ignore-paths "$ignore_file_command" \
                   $(git ls-files '*.py')
 
             - name: Update Check Run
