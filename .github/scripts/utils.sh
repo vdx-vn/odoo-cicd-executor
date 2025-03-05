@@ -185,9 +185,9 @@ function get_ignore_file_command_ruff {
         IFS=","
         for addon_name in $ignore_addons; do
             if [[ -z $command ]]; then
-                command=$addon_name/**/*\\.py
+                command=*/*/$addon_name/**/*\\.py
             else
-                command="\"$command\";\"$addon_name/**/*\\.py\""
+                command="\"$command\";\"*/*/$addon_name/**/*\\.py\""
             fi
         done
         IFS=$backup_IFS
