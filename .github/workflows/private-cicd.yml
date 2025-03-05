@@ -41,6 +41,9 @@ on:
             ignore_linters:
                 required: false
                 type: string
+            ignore_test:
+                required: false
+                type: string
 
 jobs:
     call_common_cicd:
