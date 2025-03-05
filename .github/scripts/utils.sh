@@ -197,7 +197,7 @@ function get_ignore_file_command_ruff {
     echo $command
 }
 
-function update_ignore_file_config_pylint {
+function update_ignore_file_config_ruff {
     ignore_addons=$1
     config_file=$2
     if [ -z "${ignore_addons:-}" ]; then
