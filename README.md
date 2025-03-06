@@ -16,6 +16,7 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
    - *Environment secrets:*
      - **SERVER_DB_PASSWORD**: Server database password for the backup process
      - **SERVER_PRIVATE_KEY**: Server private key file for access to the server through SSH or SCP protocol
+     - **PROXY_SERVER_PRIVATE_KEY** (optional): Proxy Server private key file for access to the server through SSH or SCP protocol
      - **TELEGRAM_CHANNEL_ID**: Telegram channel ID for notifications through the Telegram channel
      - **TELEGRAM_TOKEN**: Telegram BOT token (the BOT added to this TELEGRAM_CHANNEL_ID)
 
@@ -28,6 +29,10 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
      - **SERVER_ODOO_URL**: Odoo URL
      - **SERVER_SSH_PORT**: Server SSH port
      - **SERVER_USER**: Username for SSH connection
+
+     - **PROXY_SERVER_HOST** (optional): Proxy Server IP address
+     - **PROXY_SERVER_SSH_PORT** (optional): Proxy Server SSH port
+     - **PROXY_SERVER_USER** (optional): Proxy Username for SSH connection
 
 1. Continuing follow the instruction inside 'README.md' file of the repo *(1)*
 
