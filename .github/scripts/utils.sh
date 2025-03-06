@@ -67,55 +67,31 @@ function get_list_changed_addons {
     echo $common_folders
 }
 
-function get_list_addons_filtered_by_config_option {
-    addons_path=$1
-    option_name=$2
-    option_value=$3
-    addons=
-    full_list_addons=$(get_list_addons $addons_path)
-    if [[ -n $full_list_addons ]]; then
-        backup_IFS=$IFS
-        IFS=","
-        for addon_name in $full_list_addons; do
-            origin_option_value=$(get_cicd_config_for_odoo_addon "$addon_name" "$option_name")
-            if [[ "$origin_option_value" == "$option_value" ]]; then
-                if [[ -z $addons ]]; then
-                    addons=$addon_name
-                else
-                    addons="$addons;$addon_name"
-                fi
-            fi
-        done
-        IFS=$backup_IFS
-    fi
-    addons=$(echo $addons | sed "s/;/,/g")
-    echo $addons
-}
-
 function get_list_addons_should_run_test {
     addons_path=$1
-    echo $(get_list_addons_filtered_by_config_option $addons_path "ignore_test" "null")
-}
-
-function get_list_addons_ignore_demo_data {
-    addons_path=$1
-    echo $(get_list_addons_filtered_by_config_option $addons_path "ignore_demo" "true")
-}
-
-function get_list_addons_ignored_test {
-    addons_ignored_test=
-    addons=$(get_list_addons $1)
-    if [[ -n $addons ]]; then
-        IFS=','
-        read -ra elements <<<"$addons"
-        for addon_name in "${elements[@]}"; do
-            ignore_test=$(get_cicd_config_for_odoo_addon "$addon_name" "ignore_test")
-            if [[ $ignore_test == "null" ]]; then
-                addons_ignored_test="$addons_ignored_test,$addon_name"
-            fi
-        done
+    ignore_test=$2
+    addons=
+    full_list_addons=$(get_list_addons $addons_path)
+    if [ -z "${ignore_test:-}" ]; then
+        echo $full_list_addons
+        return 0
     fi
-    echo $addons_ignored_test
+
+    backup_IFS=$IFS
+    IFS=","
+    for addon_name in $full_list_addons; do
+        if [[ ! "$ignore_test" =~ "$addon_name" ]]; then
+            if [[ -z $addons ]]; then
+                addons=$addon_name
+            else
+                addons="$addons;$addon_name"
+            fi
+        fi
+    done
+    IFS=$backup_IFS
+
+    addons=$(echo $addons | sed "s/;/,/g")
+    echo $addons
 }
 
 function wait_until_odoo_shutdown {
@@ -138,6 +114,73 @@ function wait_until_odoo_shutdown {
         total_waited_time=$((total_waited_time + sleep_block))
         sleep $sleep_block
     done
+}
+
+# ====== Pylint =======
+function get_ignore_file_command_pylint {
+    ignore_addons=$1
+    if [ -z "${ignore_addons:-}" ]; then
+        echo "ignore-paths = []"
+        return 0
+    fi
+    command=
+    if [[ -n $ignore_addons ]]; then
+        backup_IFS=$IFS
+        IFS=","
+        for addon_name in $ignore_addons; do
+            if [[ -z $command ]]; then
+                command="\"$addon_name/.*\\.py\""
+            else
+                command+=";\"$addon_name/.*\\.py\""
+            fi
+        done
+        IFS=$backup_IFS
+    fi
+    command=$(echo $command | sed "s/;/,/g")
+    command="ignore-paths = [$command]"
+    echo $command
+}
+
+function update_ignore_file_config_pylint {
+    ignore_addons=$1
+    config_file=$2
+    ignore_commands=$(get_ignore_file_command_pylint "$ignore_addons")
+    sed -i "/ignore-paths/c\\${ignore_commands}" "$config_file"
+}
+
+# ===== Ruff ======
+function get_ignore_file_command_ruff {
+    ignore_addons=$1
+    if [ -z "${ignore_addons:-}" ]; then
+        echo 'extend-exclude = ["__manifest__.py", "__init__.py"]'
+        return 0
+    fi
+    command=
+    if [[ -n $ignore_addons ]]; then
+        backup_IFS=$IFS
+        IFS=","
+        for addon_name in $ignore_addons; do
+            if [[ -z $command ]]; then
+                command="\"*/*/$addon_name/**/*\\.py\""
+            else
+                command+=";\"*/*/$addon_name/**/*\\.py\""
+            fi
+        done
+        IFS=$backup_IFS
+    fi
+    command=$(echo $command | sed "s/;/,/g")
+    command="extend-exclude = [$command,\"__manifest__.py\", \"__init__.py\"]"
+    echo $command
+}
+
+function update_ignore_file_config_ruff {
+    ignore_addons=$1
+    config_file=$2
+    if [ -z "${ignore_addons:-}" ]; then
+        return 0
+    fi
+    ignore_commands=$(get_ignore_file_command_ruff "$ignore_addons")
+    sed -i "/extend-exclude/c\\${ignore_commands}" "$config_file"
 }
 
 # declare all useful functions here

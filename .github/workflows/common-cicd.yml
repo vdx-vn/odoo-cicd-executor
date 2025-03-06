@@ -31,6 +31,12 @@ on:
                 required: false
                 type: boolean
                 default: false
+            ignore_linters:
+                required: false
+                type: string
+            ignore_test:
+                required: false
+                type: string
             python_version:
                 required: false
                 type: string
@@ -60,6 +66,7 @@ env:
     REPOSITORY: ${{ inputs.repo_name }}
     PR_NUMBER: ${{ inputs.pr_number }}
     PR_URL: ${{ inputs.pr_url }}
+    IGNORE_TEST: ${{inputs.ignore_test}}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
@@ -117,11 +124,15 @@ jobs:
             - name: Analysing the code with pylint
               id: pylint-linter
               run: |
+                  source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                  pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
+                  update_ignore_file_config_pylint "${{inputs.ignore_linters}}" "$pylint_config_file"
+
                   python -m pip install --upgrade pip
                   pip install pylint
                   cd ${{env.REPO_PATH}}
                   pylint \
-                  --rcfile ${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml \
+                  --rcfile "$pylint_config_file" \
                   --output ${{env.WORKSPACE}}/pylint-output \
                   $(git ls-files '*.py')
 
@@ -158,6 +169,12 @@ jobs:
                   name: "Ruff Linter"
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
+
+            - name: Update config
+              run: |
+                  source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                  ruff_config_file="${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml"
+                  update_ignore_file_config_ruff "${{inputs.ignore_linters}}" "$ruff_config_file"
 
             - name: Ruff Linter
               uses: astral-sh/ruff-action@v3
