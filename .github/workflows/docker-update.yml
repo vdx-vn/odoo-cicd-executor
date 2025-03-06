@@ -21,10 +21,15 @@ jobs:
             - name: " Update latest docker images on the server"
               uses: ./.github/actions/ssh-script
               with:
-                  host: ${{vars.SERVER_HOST}}
-                  port: ${{vars.SERVER_SSH_PORT}}
-                  user: ${{vars.SERVER_USER}}
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                  set-output: 1
                   script: |
                       docker login -u ${{ inputs.repo_owner }} -p ${{ secrets.GH_TOKEN }} ghcr.io
                       cd ${{ vars.SERVER_DEPLOY_PATH }}
