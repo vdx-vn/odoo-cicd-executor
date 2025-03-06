@@ -51,8 +51,6 @@ function main() {
     populate_variables "$@"
     set_list_addons
     update_config_file
-    # fixme
-    cat $ODOO_CONFIG_FILE
     start_containers
     wait_until_odoo_shutdown
 
