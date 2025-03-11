@@ -188,9 +188,9 @@ update_config_file() {
         echo -e "\ncommand = -d ${server_odoo_db_name}" >>"${server_config_file}"
     else
         if [[ -z $TO_INSTALL_ADDONS ]]; then
-            echo -e "\ncommand = -d ${server_odoo_db_name} -u ${CUSTOM_ADDONS}" >>"${server_config_file}"
+            echo -e "\ncommand = -d ${server_odoo_db_name} --i18n-overwrite -u ${CUSTOM_ADDONS} " >>"${server_config_file}"
         else
-            echo -e "\ncommand = -d ${server_odoo_db_name} -i ${TO_INSTALL_ADDONS} -u ${CUSTOM_ADDONS}" >>"${server_config_file}"
+            echo -e "\ncommand = -d ${server_odoo_db_name} -i ${TO_INSTALL_ADDONS} --i18n-overwrite -u ${CUSTOM_ADDONS} " >>"${server_config_file}"
         fi
     fi
 }
