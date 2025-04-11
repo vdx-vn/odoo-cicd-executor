@@ -28,8 +28,8 @@ jobs:
                   script: |
                       docker login -u ${{ inputs.repo_owner }} -p ${{ secrets.GH_TOKEN }} ghcr.io
                       cd ${{ vars.SERVER_DEPLOY_PATH }}
-                      docker compose pull
                       docker compose down
+                      docker compose pull
                       docker compose up -d
                       docker image prune -a -f
                       docker logout ghcr.io
