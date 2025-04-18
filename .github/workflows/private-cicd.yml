@@ -44,6 +44,11 @@ on:
             ignore_test:
                 required: false
                 type: string
+            python_version:
+                description: "Python version"
+                required: false
+                type: string
+                default: "3.8"
 
 jobs:
     call_common_cicd:
@@ -59,4 +64,5 @@ jobs:
             enable_linter: ${{ inputs.enable_linter }}
             ignore_linters: ${{inputs.ignore_linters}}
             ignore_test: ${{inputs.ignore_test}}
+            python_version: ${{ inputs.python_version }}
         secrets: inherit

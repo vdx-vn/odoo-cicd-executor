@@ -40,7 +40,6 @@ on:
             python_version:
                 required: false
                 type: string
-                default: "3.8"
 
 env:
     # Common variables
