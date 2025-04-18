@@ -117,7 +117,7 @@ jobs:
               id: pylint-linter
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  ignore_linters=$(echo ${{inputs.additional_args}} | jq -r '.ignore_linters')
+                  ignore_linters=$(echo "${{inputs.additional_args}}"" | jq -r '.ignore_linters')
                   echo "ignore_linters: $ignore_linters"
 
                   pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
