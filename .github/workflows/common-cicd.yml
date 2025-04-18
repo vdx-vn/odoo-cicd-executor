@@ -27,17 +27,10 @@ on:
                 required: false
                 type: string
                 default: odoo/addons
-            enable_linter:
-                required: false
-                type: boolean
-                default: false
-            ignore_linters:
-                required: false
-                type: string
             ignore_test:
                 required: false
                 type: string
-            python_version:
+            additional_args:
                 required: false
                 type: string
 
@@ -103,7 +96,7 @@ jobs:
         name: Pylint Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.enable_linter && (inputs.action == 'test' || inputs.action == 'deploy')
+        if: ${{ fromJson(inputs.additional_args).enable_linter }} && (inputs.action == 'test' || inputs.action == 'deploy')
         steps:
             - uses: actions/checkout@v4
 
@@ -119,13 +112,13 @@ jobs:
             - name: Pylint Linter
               uses: actions/setup-python@v3
               with:
-                  python-version: ${{inputs.python_version}}
+                  python-version: ${{ fromJson(inputs.additional_args).python_version || '3.8'}}
             - name: Analysing the code with pylint
               id: pylint-linter
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
-                  update_ignore_file_config_pylint "${{inputs.ignore_linters}}" "$pylint_config_file"
+                  update_ignore_file_config_pylint "${{ fromJson(inputs.additional_args).ignore_linters }}" "$pylint_config_file"
 
                   python -m pip install --upgrade pip
                   pip install pylint
@@ -157,7 +150,7 @@ jobs:
         name: Ruff Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.enable_linter && (inputs.action == 'test' || inputs.action == 'deploy')
+        if: ${{ fromJson(inputs.additional_args).enable_linter }} && (inputs.action == 'test' || inputs.action == 'deploy')
         steps:
             - uses: actions/checkout@v4
 
@@ -173,7 +166,7 @@ jobs:
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   ruff_config_file="${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml"
-                  update_ignore_file_config_ruff "${{inputs.ignore_linters}}" "$ruff_config_file"
+                  update_ignore_file_config_ruff "${{ fromJson(inputs.additional_args).ignore_linters }}" "$ruff_config_file"
 
             - name: Ruff Linter
               uses: astral-sh/ruff-action@v3

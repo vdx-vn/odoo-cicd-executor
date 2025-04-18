@@ -34,21 +34,27 @@ on:
                 description: "Pull request url"
                 required: false
                 type: string
-            enable_linter:
-                required: false
-                type: boolean
-                default: false
-            ignore_linters:
-                required: false
-                type: string
             ignore_test:
                 required: false
                 type: string
-            python_version:
-                description: "Python version"
+            additional_args:
+                description: "Additional arguments"
                 required: false
                 type: string
-                default: "3.8"
+                default: "{}"
+            # enable_linter:
+            #     required: false
+            #     type: boolean
+            #     default: false
+            # ignore_linters:
+            #     required: false
+            #     type: string
+
+            # python_version:
+            #     description: "Python version"
+            #     required: false
+            #     type: string
+            #     default: "3.8"
 
 jobs:
     call_common_cicd:
@@ -61,8 +67,6 @@ jobs:
             commit_sha: ${{ inputs.commit_sha }}
             pr_number: ${{ inputs.pr_number }}
             pr_url: ${{ inputs.pr_url }}
-            enable_linter: ${{ inputs.enable_linter }}
-            ignore_linters: ${{inputs.ignore_linters}}
             ignore_test: ${{inputs.ignore_test}}
-            python_version: ${{ inputs.python_version }}
+            additional_args: ${{ inputs.additional_args }}
         secrets: inherit
