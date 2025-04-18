@@ -27,6 +27,7 @@ on:
                 required: false
                 type: string
                 default: odoo/addons
+            # FIXME: remove ignore test input later (update all Odoo project to use additional_args)
             ignore_test:
                 required: false
                 type: string
@@ -58,7 +59,7 @@ env:
     REPOSITORY: ${{ inputs.repo_name }}
     PR_NUMBER: ${{ inputs.pr_number }}
     PR_URL: ${{ inputs.pr_url }}
-    IGNORE_TEST: ${{inputs.ignore_test}}
+    IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
@@ -118,7 +119,6 @@ jobs:
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   ignore_linters=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
-                  echo "ignore_linters: $ignore_linters"
 
                   pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
                   update_ignore_file_config_pylint "$ignore_linters" "$pylint_config_file"
@@ -169,7 +169,8 @@ jobs:
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   ruff_config_file="${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml"
-                  update_ignore_file_config_ruff "${{ fromJson(inputs.additional_args).ignore_linters }}" "$ruff_config_file"
+                  ignore_linters=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
+                  update_ignore_file_config_ruff "$ignore_linters" "$ruff_config_file"
 
             - name: Ruff Linter
               uses: astral-sh/ruff-action@v3
