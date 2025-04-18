@@ -97,7 +97,9 @@ jobs:
         name: Pylint Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: ${{ fromJson(inputs.additional_args).enable_linter }} == "true" && (inputs.action == 'test' || inputs.action == 'deploy')
+        # if: ${{ fromJson(inputs.additional_args).enable_linter }} == "true" && (inputs.action == 'test' || inputs.action == 'deploy')
+        if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
+
         steps:
             - uses: actions/checkout@v4
 
