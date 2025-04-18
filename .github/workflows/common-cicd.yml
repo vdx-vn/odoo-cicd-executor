@@ -117,8 +117,11 @@ jobs:
               id: pylint-linter
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                  ignore_linters=$(echo ${{inputs.additional_args}} | jq -r '.ignore_linters')
+                  echo "ignore_linters: $ignore_linters"
+
                   pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
-                  update_ignore_file_config_pylint "${{ fromJson(inputs.additional_args).ignore_linters }}" "$pylint_config_file"
+                  update_ignore_file_config_pylint "$ignore_linters" "$pylint_config_file"
 
                   python -m pip install --upgrade pip
                   pip install pylint
