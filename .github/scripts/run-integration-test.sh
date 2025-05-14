@@ -4,6 +4,7 @@ source "${CICD_UTILS_SCRIPTS_PATH}"
 populate_variables() {
     declare -g received_backup_file_path=$1
     declare -g commit_hash=$2
+    declare -g ignore_test=$3
     declare -g odoo_container_store_backup_folder="/tmp/odoo/restore"
     declare -g extracted_backup_folder_name="odoo"
 
@@ -31,7 +32,7 @@ get_config_value() {
 
 function update_config_file_after_restoration {
     # Test only the changed add-ons found in the commit.
-    custom_addons=$(get_list_changed_addons "$ODOO_ADDONS_PATH" "$commit_hash")
+    custom_addons=$(get_list_changed_addons_should_run_test "$ODOO_ADDONS_PATH" "$commit_hash" "$ignore_test")
     tagged_custom_addons=$(echo $custom_addons | sed "s/,/,\//g" | sed "s/^/\//")
     sed -i "s/^\s*command\s*.*//g" $ODOO_CONFIG_FILE
     echo -en "\ncommand = \
