@@ -67,6 +67,42 @@ function get_list_changed_addons {
     echo $common_folders
 }
 
+function get_list_changed_addons_should_run_test {
+    addons_path=$1
+    commit_hash=$2
+    ignore_test=$3
+    list_changed_addons=$(get_list_changed_addons $addons_path $commit_hash)
+    if [ -z "${list_changed_addons:-}" ]; then
+        echo $(get_list_addons_should_run_test $addons_path $ignore_test)
+        return 0
+    fi
+    # Convert strings to arrays
+    IFS=',' read -r -a a_array <<<"$list_changed_addons"
+    IFS=',' read -r -a b_array <<<"$ignore_test"
+
+    # Create output variable
+    result=()
+
+    # Loop through elements of a and check if they're in b
+    for item in "${a_array[@]}"; do
+        found=false
+        for b_item in "${b_array[@]}"; do
+            if [[ "$item" == "$b_item" ]]; then
+                found=true
+                break
+            fi
+        done
+        if ! $found; then
+            result+=("$item")
+        fi
+    done
+
+    # Join result with commas
+    IFS=','
+    echo "${result[*]}"
+
+}
+
 function get_list_addons_should_run_test {
     addons_path=$1
     ignore_test=$2
