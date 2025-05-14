@@ -27,20 +27,13 @@ on:
                 required: false
                 type: string
                 default: odoo/addons
-            enable_linter:
-                required: false
-                type: boolean
-                default: false
-            ignore_linters:
-                required: false
-                type: string
+            # FIXME: remove ignore test input later (update all Odoo project to use additional_args)
             ignore_test:
                 required: false
                 type: string
-            python_version:
+            additional_args:
                 required: false
                 type: string
-                default: "3.8"
 
 env:
     # Common variables
@@ -66,7 +59,7 @@ env:
     REPOSITORY: ${{ inputs.repo_name }}
     PR_NUMBER: ${{ inputs.pr_number }}
     PR_URL: ${{ inputs.pr_url }}
-    IGNORE_TEST: ${{inputs.ignore_test}}
+    IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
@@ -104,7 +97,8 @@ jobs:
         name: Pylint Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.enable_linter && (inputs.action == 'test' || inputs.action == 'deploy')
+        if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
+
         steps:
             - uses: actions/checkout@v4
 
@@ -120,13 +114,15 @@ jobs:
             - name: Pylint Linter
               uses: actions/setup-python@v3
               with:
-                  python-version: ${{inputs.python_version}}
+                  python-version: ${{ fromJson(inputs.additional_args).python_version || '3.8'}}
             - name: Analysing the code with pylint
               id: pylint-linter
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                  ignore_linters=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
+
                   pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
-                  update_ignore_file_config_pylint "${{inputs.ignore_linters}}" "$pylint_config_file"
+                  update_ignore_file_config_pylint "$ignore_linters" "$pylint_config_file"
 
                   python -m pip install --upgrade pip
                   pip install pylint
@@ -158,7 +154,7 @@ jobs:
         name: Ruff Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.enable_linter && (inputs.action == 'test' || inputs.action == 'deploy')
+        if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             - uses: actions/checkout@v4
 
@@ -174,7 +170,8 @@ jobs:
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   ruff_config_file="${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml"
-                  update_ignore_file_config_ruff "${{inputs.ignore_linters}}" "$ruff_config_file"
+                  ignore_linters=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
+                  update_ignore_file_config_ruff "$ignore_linters" "$ruff_config_file"
 
             - name: Ruff Linter
               uses: astral-sh/ruff-action@v3
@@ -388,7 +385,7 @@ jobs:
             - name: "Run Integration test"
               id: run_integration_test
               run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}"
+                  bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
