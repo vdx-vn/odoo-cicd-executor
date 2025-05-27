@@ -69,6 +69,8 @@ env:
     # ==== Environment secrets =====
     TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
     TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
+    SLACK_CHANNEL_ID: ${{secrets.SLACK_CHANNEL_ID}}
+    SLACK_TOKEN: ${{secrets.SLACK_TOKEN}}
     SERVER_PRIVATE_KEY: ${{secrets.SERVER_PRIVATE_KEY}}
     PROXY_SERVER_PRIVATE_KEY: ${{secrets.PROXY_SERVER_PRIVATE_KEY}}
     SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
@@ -140,12 +142,12 @@ jobs:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                   conclusion: ${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
 
-            - name: Send linting result to Telegram
+            - name: Send linting result to external Chat application
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
                   if [[ $result == "failure" ]]; then
-                    send_file_telegram_default "${{env.WORKSPACE}}/pylint-output" "⚠️Pylint Linter Error⚠️"
+                    send_file_notification "${{env.WORKSPACE}}/pylint-output" "⚠️Pylint Linter Error⚠️"
                   fi
               if: ${{always()}}
 
@@ -193,12 +195,12 @@ jobs:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                   conclusion: ${{ steps.ruff-linter.conclusion == 'success' && 'success' || 'failure' }}
 
-            - name: Send linting result to Telegram
+            - name: Send linting result to external Chat application
               run: |
                   source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                   result=${{ steps.ruff-linter.conclusion == 'success' && 'success' || 'failure' }}
                   if [[ $result == "failure" ]]; then
-                    send_file_telegram_default "${{env.WORKSPACE}}/ruff-output" "⚠️Ruff Linter Error⚠️"
+                    send_file_notification "${{env.WORKSPACE}}/ruff-output" "⚠️Ruff Linter Error⚠️"
                   fi
               if: ${{always()}}
 
