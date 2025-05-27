@@ -489,15 +489,14 @@ function send_slack_file_default {
 # ------------------- General notofication -------------------
 function send_message_notification {
     local message="$1"
-    send_slack_message_default "$message"
-    # send_telegram_message_default "$message"
+    send_slack_message_default "$message" || true
+    send_telegram_message_default "$message" || true
 }
 
 function send_file_notification {
     local file_path="$1"
     local caption="$2"
-    send_slack_file_default "$file_path" "$caption"
-    # send_telegram_file_default "$file_path" "$caption"
-
+    send_slack_file_default "$file_path" "$caption" || true
+    send_telegram_file_default "$file_path" "$caption" || true
 }
 # ------------------- General notofication -------------------
