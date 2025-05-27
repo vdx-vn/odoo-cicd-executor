@@ -6,7 +6,7 @@ function main {
     if [[ $status == "success" ]]; then
         happy_emojis=$(random_happy_emojis)
         message="The [PR \\#$PR_NUMBER]($PR_URL) was merged and deployed to server $happy_emojis"
-        send_message_telegram_default "$message"
+        send_message_notification "$message"
     else
         sad_emojis=$(random_sad_emojis)
         message=$(
@@ -15,7 +15,7 @@ function main {
 Please take a look into the actions log🔬
 EOF
         )
-        send_message_telegram_default "$message"
+        send_message_notification "$message"
     fi
 }
 

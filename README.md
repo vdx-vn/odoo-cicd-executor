@@ -19,6 +19,8 @@ For a newly Odoo repository that needs a CICD process, follow the instructions b
      - **PROXY_SERVER_PRIVATE_KEY** (optional): Proxy Server private key file for access to the server through SSH or SCP protocol
      - **TELEGRAM_CHANNEL_ID**: Telegram channel ID for notifications through the Telegram channel
      - **TELEGRAM_TOKEN**: Telegram BOT token (the BOT added to this TELEGRAM_CHANNEL_ID)
+     - **SLACK_CHANNEL_ID**: Slack channel ID for notifications through Slack channel
+     - **SLACK_TOKEN**: Slack App token
 
    - *Environment variables:*
      - **DB_IMAGE_TAG**: Postgres image tag name defined in the docker-compose.yml file of the private repo

@@ -280,7 +280,7 @@ function analyze_log_file {
     error_exist=$?
     if [ $error_exist -eq 0 ]; then
         cat $ODOO_LOG_FILE_HOST
-        send_file_telegram_default "$ODOO_LOG_FILE_HOST" "$failed_message"
+        send_file_notification "$ODOO_LOG_FILE_HOST" "$failed_message"
         exit 1
     fi
     show_separator "$success_message"
@@ -321,7 +321,7 @@ function create_private_keyfile_from_content() {
 }
 
 # ------------------ Telegram functions -------------------------
-function send_file_telegram {
+function send_telegram_file {
     bot_token=$1
     chat_id=$2
     file_path=$3
@@ -342,7 +342,7 @@ function send_file_telegram {
     fi
 }
 
-function send_message_telegram {
+function send_telegram_message {
     bot_token=$1
     chat_id=$2
     message=$3
@@ -361,17 +361,17 @@ function send_message_telegram {
     fi
 }
 
-function send_file_telegram_default {
+function send_telegram_file_default {
     file_path=$1
     caption=$2
     if [ -s $file_path ]; then
-        send_file_telegram "$TELEGRAM_TOKEN" "$TELEGRAM_CHANNEL_ID" "$file_path" "$caption"
+        send_telegram_file "$TELEGRAM_TOKEN" "$TELEGRAM_CHANNEL_ID" "$file_path" "$caption"
     fi
 }
 
-function send_message_telegram_default {
+function send_telegram_message_default {
     message=$1
-    send_message_telegram "$TELEGRAM_TOKEN" "$TELEGRAM_CHANNEL_ID" "$message"
+    send_telegram_message "$TELEGRAM_TOKEN" "$TELEGRAM_CHANNEL_ID" "$message"
 }
 # ------------------ Telegram functions -------------------------
 
@@ -490,11 +490,14 @@ function send_slack_file_default {
 function send_message_notification {
     local message="$1"
     send_slack_message_default "$message"
+    # send_telegram_message_default "$message"
 }
 
 function send_file_notification {
     local file_path="$1"
     local caption="$2"
     send_slack_file_default "$file_path" "$caption"
+    # send_telegram_file_default "$file_path" "$caption"
+
 }
 # ------------------- General notofication -------------------
