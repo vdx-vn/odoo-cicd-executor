@@ -374,3 +374,116 @@ function send_message_telegram_default {
     send_message_telegram "$TELEGRAM_TOKEN" "$TELEGRAM_CHANNEL_ID" "$message"
 }
 # ------------------ Telegram functions -------------------------
+
+# ------------------ Slack functions -------------------------
+
+function send_message_slack {
+    slack_token=$1
+    channel_id=$2
+    message=$3
+
+    response=$(
+        curl -s -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer ${slack_token}" \
+            -H 'Content-type: application/json' \
+            --data "$(jq -n --arg channel "$channel_id" --arg text "$message" '{channel: $channel, text: $text}')"
+    )
+
+    ok=$(echo "$response" | jq -r '.ok')
+    if [[ "$ok" != "true" ]]; then
+        error_msg=$(echo "$response" | jq -r '.error')
+        echo "Slack API error: $error_msg"
+        return 1
+    fi
+    return 0
+}
+
+function send_message_slack_default {
+    message=$1
+    send_message_slack "$SLACK_TOKEN" "$SLACK_CHANNEL_ID" "$message"
+}
+
+send_slack_file() {
+    # Check if required arguments are provided
+    if [ "$#" -ne 3 ]; then
+        echo "Usage: $0 <file_path> <slack_token> <channel_id>"
+        return 1
+    fi
+
+    local FILE_PATH="$1"
+    local SLACK_TOKEN="$2"
+    local CHANNEL_ID="$3"
+
+    # Check if file exists
+    if [ ! -f "$FILE_PATH" ]; then
+        echo "Error: File '$FILE_PATH' does not exist"
+        return 1
+    fi
+
+    # Check if curl and jq are installed
+    command -v curl >/dev/null 2>&1 || {
+        echo "Error: curl is required but not installed."
+        return 1
+    }
+    command -v jq >/dev/null 2>&1 || {
+        echo "Error: jq is required but not installed."
+        return 1
+    }
+
+    # Get file details
+    local FILE_NAME=$(basename "$FILE_PATH")
+    local FILE_SIZE=$(stat -f%z "$FILE_PATH" 2>/dev/null || stat -c%s "$FILE_PATH" 2>/dev/null)
+
+    # Step 1: Get upload URL
+    echo "Requesting upload URL..."
+    local UPLOAD_RESPONSE=$(curl -s -X POST "https://slack.com/api/files.getUploadURLExternal" \
+        -H "Authorization: Bearer $SLACK_TOKEN" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "filename=$FILE_NAME" \
+        -d "length=$FILE_SIZE")
+
+    # Check if upload URL request was successful
+    local UPLOAD_URL=$(echo "$UPLOAD_RESPONSE" | jq -r '.upload_url')
+    local FILE_ID=$(echo "$UPLOAD_RESPONSE" | jq -r '.file_id')
+    if [ "$(echo "$UPLOAD_RESPONSE" | jq -r '.ok')" != "true" ]; then
+        echo "Error getting upload URL: $(echo "$UPLOAD_RESPONSE" | jq -r '.error')"
+        return 1
+    fi
+
+    # Step 2: Upload file to the provided URL
+    echo "Uploading file to Slack..."
+    local UPLOAD_RESULT=$(curl -s -X POST "$UPLOAD_URL" \
+        -H "Content-Type: application/octet-stream" \
+        --data-binary "@$FILE_PATH")
+
+    # Check if the upload was successful (HTTP 200)
+    if [ $? -ne 0 ]; then
+        echo "Error uploading file"
+        return 1
+    fi
+
+    # Step 3: Complete the upload
+    echo "Completing upload..."
+    local COMPLETE_RESPONSE=$(curl -s -X POST "https://slack.com/api/files.completeUploadExternal" \
+        -H "Authorization: Bearer $SLACK_TOKEN" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "files=[{\"id\":\"$FILE_ID\",\"title\":\"$FILE_NAME\"}]" \
+        -d "channel_id=$CHANNEL_ID")
+
+    # Check if completion was successful
+    if [ "$(echo "$COMPLETE_RESPONSE" | jq -r '.ok')" != "true" ]; then
+        echo "Error completing upload: $(echo "$COMPLETE_RESPONSE" | jq -r '.error')"
+        return 1
+    fi
+
+    echo "File '$FILE_NAME' uploaded successfully to Slack channel $CHANNEL_ID"
+    return 0
+}
+
+function send_slack_file_default {
+    file_path="$1"
+    if [ -s $file_path ]; then
+        send_slack_file "$file_path" "$SLACK_TOKEN" "$SLACK_CHANNEL_ID"
+    fi
+}
+# ------------------ Slack functions -------------------------
