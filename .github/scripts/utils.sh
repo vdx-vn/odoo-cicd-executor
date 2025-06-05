@@ -489,8 +489,9 @@ function send_slack_file_default {
 # ------------------- General notofication -------------------
 function send_message_notification {
     local message="$1"
+    local telegram_message="$2"
     send_slack_message_default "$message" || true
-    send_telegram_message_default "$message" || true
+    send_telegram_message_default "$telegram_message" || true
 }
 
 function send_file_notification {
