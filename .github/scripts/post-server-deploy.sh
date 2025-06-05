@@ -10,7 +10,8 @@ function main {
 🎉🎉🎉 The <${PR_URL}|PR #${PR_NUMBER}> was merged and deployed to server successfully! $happy_emojis
 EOF
         )
-        send_message_notification "$message"
+        telegram_message="🎉🎉🎉 The [PR \\#$PR_NUMBER]($PR_URL) was merged and deployed to server $happy_emojis"
+        send_message_notification "$message" "$telegram_message"
     else
         sad_emojis=$(random_sad_emojis)
         message=$(
@@ -19,7 +20,13 @@ EOF
 Please take a look into the actions log🔬
 EOF
         )
-        send_message_notification "$message"
+        telegram_message=$(
+            cat <<EOF
+🐞🐞🐞 The [PR \\#$PR_NUMBER]($PR_URL) was merged but the deployment to the server failed\\! $sad_emojis 
+Please take a look into the actions log🔬
+EOF
+        )
+        send_message_notification "$message" "$telegram_message"
     fi
 }
 
