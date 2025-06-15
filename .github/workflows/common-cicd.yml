@@ -401,6 +401,7 @@ jobs:
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         needs: [unit-test-at-install, unit-test-post-install, integration-test]
+        if: (fromJson(inputs.additional_args).enable_integration_test == 'true' && always()) || (fromJson(inputs.additional_args).enable_integration_test != 'true')
         steps:
             - uses: actions/checkout@v4
 
