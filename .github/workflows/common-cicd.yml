@@ -268,8 +268,7 @@ jobs:
     integration-test:
         name: Integration test_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        if: inputs.action == 'deploy' && env.IGNORE_INTEGRATION_TEST != 'true'
-
+        if: ${{ inputs.action == 'deploy' && env.IGNORE_INTEGRATION_TEST != 'true'}}
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
