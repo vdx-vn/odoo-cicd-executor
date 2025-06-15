@@ -268,7 +268,7 @@ jobs:
     integration-test:
         name: Integration test_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        if: inputs.action == 'deploy'
+        if: inputs.action == 'deploy' && fromJson(inputs.additional_args).enable_integration_test == 'true'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
@@ -277,13 +277,7 @@ jobs:
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
 
         steps:
-            - name: Stop job early if integration test is ignored
-              if: ${{ env.IGNORE_INTEGRATION_TEST == 'true' }}
-              run: |
-                  echo "Integration test is ignored, stop this job"
-                  exit 0
             - uses: actions/checkout@v4
-
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
