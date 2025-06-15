@@ -268,7 +268,7 @@ jobs:
     integration-test:
         name: Integration test_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        if: inputs.action == 'deploy' && inputs.ignore_integration_test != 'true'
+        if: inputs.action == 'deploy' && env.IGNORE_INTEGRATION_TEST != 'true'
 
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
