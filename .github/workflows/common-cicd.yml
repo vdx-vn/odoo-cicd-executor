@@ -268,7 +268,7 @@ jobs:
     integration-test:
         name: Integration test_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        if: inputs.action == 'deploy' && fromJson(inputs.additional_args).enable_integration_test == 'true'
+        if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
@@ -295,6 +295,10 @@ jobs:
                     echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
                   else
                     echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                  fi
+                  if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=-1" >> $GITHUB_ENV
+                    echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
                   fi
 
             - name: Get the latest backup file from existing backup path on server
@@ -370,6 +374,7 @@ jobs:
 
             - name: "Download backup file"
               uses: ./.github/actions/scp-ssh
+              if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               with:
                   direction: "download"
                   host: ${{env.SERVER_HOST}}
@@ -385,6 +390,7 @@ jobs:
 
             - name: "Run Integration test"
               id: run_integration_test
+              if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               run: |
                   bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
 
@@ -401,7 +407,6 @@ jobs:
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         needs: [unit-test-at-install, unit-test-post-install, integration-test]
-        if: (fromJson(inputs.additional_args).enable_integration_test == 'true' && always()) || (fromJson(inputs.additional_args).enable_integration_test != 'true')
         steps:
             - uses: actions/checkout@v4
 
