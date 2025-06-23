@@ -265,24 +265,29 @@ jobs:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                   conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
 
-    integration-test:
-        name: Integration test_${{inputs.repo_name}}
+    prepare-backup:
+        name: Prepare backup_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        outputs:
+          server_latest_backup_file_path: ${{ steps.update-server-backup-path.outputs.server_latest_backup_file_path }}
+          check_run_id: ${{ steps.create-check-run.outputs.check-run-id }}
+          use_self_hosted: ${{ steps.get_size.outputs.use_self_hosted }}
         env:
-            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
-            SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
-            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
-            GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
+          LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
+          SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
+          SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
+          GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
 
         steps:
             - uses: actions/checkout@v4
+
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
               with:
-                  name: "Integration test"
+                  name: "Prepare backup"
 
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
@@ -291,15 +296,15 @@ jobs:
               # so this case, we should generate a new DB backup
             - name: Make decision to create a new backup on server
               run: |
-                  if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{env.SERVER_BACKUP_PATH}} != "_" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
-                  else
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
-                  fi
-                  if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=-1" >> $GITHUB_ENV
-                    echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
-                  fi
+                if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{env.SERVER_BACKUP_PATH}} != "_" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
+                  echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
+                else
+                  echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                fi
+                if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
+                  echo "NEED_NEW_SERVER_BACKUP_FILE=-1" >> $GITHUB_ENV
+                  echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
+                fi
 
             - name: Get the latest backup file from existing backup path on server
               uses: ./.github/actions/ssh-script
@@ -347,7 +352,7 @@ jobs:
                   local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
                   server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
 
-            - name: "Backup Odoo on server"
+            - name: Backup Odoo on server
               uses: ./.github/actions/ssh-script
               id: backup-on-server
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
@@ -371,8 +376,54 @@ jobs:
                   if [[ -n "$latest_backup_file_path" ]]; then
                     echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
                   fi
+                    
+            - name: Check backup file size
+              id: get_size
+              shell: bash
+              run: |
+                set -euo pipefail
+                echo "use_self_hosted=false" >> "$GITHUB_OUTPUT"
 
-            - name: "Download backup file"
+                if [[ -n "${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}" ]]; then
+                  remote_size=$(ssh -o StrictHostKeyChecking=no \
+                    -p "${{ env.SERVER_SSH_PORT }}" \
+                    "${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}" \
+                    "stat -c%s -- \"${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}\" 2>/dev/null" || true)
+
+                  if [[ "$remote_size" =~ ^[0-9]+$ ]] && (( remote_size > 8*1024*1024*1024 )); then
+                    echo "use_self_hosted=true" >> "$GITHUB_OUTPUT"
+                  fi
+                fi
+
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: success
+
+
+    integration-test:
+        name: Integration test_${{inputs.repo_name}}
+        needs: prepare-backup
+        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        env:
+            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
+            SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
+            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
+            GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
+              id: create-check-run
+              with:
+                  name: "Integration test"
+
+            - name: Download backup file
               uses: ./.github/actions/scp-ssh
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               with:
@@ -388,7 +439,7 @@ jobs:
                   local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
                   server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
 
-            - name: "Run Integration test"
+            - name: Run Integration test
               id: run_integration_test
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               run: |
