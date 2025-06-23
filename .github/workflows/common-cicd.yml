@@ -474,4 +474,4 @@ jobs:
                 id: post-deploy-notification
                 run: |
                     job_url="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/job/${{jobs.deploy-server.id}}"
-                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}" "$job_url"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}"  "$prefix_url" "${{env.GH_TOKEN}}" "${{github.run_id}}" "deploy_to_server"
