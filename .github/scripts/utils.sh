@@ -154,18 +154,22 @@ function wait_until_odoo_shutdown {
 }
 
 function get_github_job_url {
-  local prefix_url="$1"
-  local token="$2"
-  local run_id="$3"
-  local job_name="$4"
+    local prefix_url="$1"
+    local token="$2"
+    local run_id="$3"
+    local job_name="$4"
 
-  # Retrieve job details for the given run id using GitHub Actions API.
-  response=$(curl -s -H "Authorization: token $token" "${prefix_url}/${run_id}/jobs")
+    # Retrieve job details for the given run id using GitHub Actions API.
+    response=$(curl -s -H "Authorization: token $token" "${prefix_url}/${run_id}/jobs")
 
-  # Use jq to filter out the job with the specified job name.
-  job_url=$(echo "$response" | jq ".jobs[] | select(.name == \"$job_name\") | .id")
+    # Use jq to filter out the job with the specified job name and get its id.
+    job_id=$(echo "$response" | jq -r ".jobs[] | select(.name == \"$job_name\") | .id")
 
-  echo "$job_url"
+    if [[ -n "$job_id" && "$job_id" != "null" ]]; then
+        echo "${prefix_url}/${run_id}/jobs/${job_id}"
+    else
+        echo ""
+    fi
 }
 
 # ====== Pylint =======
