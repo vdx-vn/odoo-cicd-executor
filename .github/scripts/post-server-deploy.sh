@@ -13,7 +13,7 @@ function main {
 🍻🎉🍻🎉🍻🎉 The <${PR_URL}|PR #${PR_NUMBER}> was merged and deployed to server successfully! $happy_emojis
 EOF
         )
-        telegram_message="🎉🎉🎉 The [PR \\#$PR_NUMBER]($PR_URL) was merged and deployed to server $happy_emojis"
+        telegram_message="🍻🎉🍻🎉🍻🎉 The [PR \\#$PR_NUMBER]($PR_URL) was merged and deployed to server $happy_emojis"
         send_message_notification "$message" "$telegram_message"
     else
         job_url=$(get_github_job_url "$gh_url" "$gh_token" "$prefix_job_name")
