@@ -103,54 +103,54 @@ jobs:
         if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
 
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Create Check Run
-              uses: ./.github/actions/create-check-run
-              id: create-check-run
-              with:
-                  name: "Pylint Linter"
+            -   name: Create Check Run
+                uses: ./.github/actions/create-check-run
+                id: create-check-run
+                with:
+                    name: "Pylint Linter"
 
-            - name: Test Preparation
-              uses: ./.github/actions/prepare-test-data
+            -   name: Test Preparation
+                uses: ./.github/actions/prepare-test-data
 
-            - name: Pylint Linter
-              uses: actions/setup-python@v3
-              with:
-                  python-version: ${{ fromJson(inputs.additional_args).python_version || '3.8'}}
-            - name: Analysing the code with pylint
-              id: pylint-linter
-              run: |
-                  source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  ignore_linters=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
+            -   name: Pylint Linter
+                uses: actions/setup-python@v3
+                with:
+                    python-version: ${{ fromJson(inputs.additional_args).python_version || '3.8'}}
+            -   name: Analysing the code with pylint
+                id: pylint-linter
+                run: |
+                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                    ignore_linters=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
+                    
+                    pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
+                    update_ignore_file_config_pylint "$ignore_linters" "$pylint_config_file"
+                    
+                    python -m pip install --upgrade pip
+                    pip install pylint
+                    cd ${{env.REPO_PATH}}
+                    pylint \
+                    --rcfile "$pylint_config_file" \
+                    --output ${{env.WORKSPACE}}/pylint-output \
+                    $(git ls-files '*.py')
 
-                  pylint_config_file="${{env.WORKSPACE}}/.github/linters/pylint/pylintrc.toml"
-                  update_ignore_file_config_pylint "$ignore_linters" "$pylint_config_file"
+            -   name: Update Check Run
+                uses: ./.github/actions/update-check-run
+                if: ${{always()}}
+                id: update-check-run
+                with:
+                    check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                    conclusion: ${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
 
-                  python -m pip install --upgrade pip
-                  pip install pylint
-                  cd ${{env.REPO_PATH}}
-                  pylint \
-                  --rcfile "$pylint_config_file" \
-                  --output ${{env.WORKSPACE}}/pylint-output \
-                  $(git ls-files '*.py')
-
-            - name: Update Check Run
-              uses: ./.github/actions/update-check-run
-              if: ${{always()}}
-              id: update-check-run
-              with:
-                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
-
-            - name: Send linting result to external Chat application
-              run: |
-                  source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
-                  if [[ $result == "failure" ]]; then
-                    send_file_notification "${{env.WORKSPACE}}/pylint-output" "⚠️Pylint Linter Error⚠️"
-                  fi
-              if: ${{always()}}
+            -   name: Send linting result to external Chat application
+                run: |
+                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                    result=${{ steps.pylint-linter.conclusion == 'success' && 'success' || 'failure' }}
+                    if [[ $result == "failure" ]]; then
+                      send_file_notification "${{env.WORKSPACE}}/pylint-output" "⚠️Pylint Linter Error⚠️"
+                    fi
+                if: ${{always()}}
 
     # =================== Ruff ====================
     Ruff-Linter:
@@ -159,51 +159,51 @@ jobs:
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Create Check Run
-              uses: ./.github/actions/create-check-run
-              id: create-check-run
-              with:
-                  name: "Ruff Linter"
-            - name: Test Preparation
-              uses: ./.github/actions/prepare-test-data
+            -   name: Create Check Run
+                uses: ./.github/actions/create-check-run
+                id: create-check-run
+                with:
+                    name: "Ruff Linter"
+            -   name: Test Preparation
+                uses: ./.github/actions/prepare-test-data
 
-            - name: Update config
-              run: |
-                  source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  ruff_config_file="${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml"
-                  ignore_linters=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
-                  update_ignore_file_config_ruff "$ignore_linters" "$ruff_config_file"
+            -   name: Update config
+                run: |
+                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                    ruff_config_file="${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml"
+                    ignore_linters=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
+                    update_ignore_file_config_ruff "$ignore_linters" "$ruff_config_file"
 
-            - name: Ruff Linter
-              uses: astral-sh/ruff-action@v3
-              id: ruff-linter
-              with:
-                  # TODO: try to use more Ruff options to validate python files
-                  src: ${{env.REPO_PATH}}
-                  args: " \
+            -   name: Ruff Linter
+                uses: astral-sh/ruff-action@v3
+                id: ruff-linter
+                with:
+                    # TODO: try to use more Ruff options to validate python files
+                    src: ${{env.REPO_PATH}}
+                    args: " \
                       check
                       --config ${{env.WORKSPACE}}/.github/linters/ruff/ruff.toml \
                       --output-file ${{env.WORKSPACE}}/ruff-output \
                       --output-format concise"
 
-            - name: Update Check Run
-              uses: ./.github/actions/update-check-run
-              if: ${{always()}}
-              id: update-check-run
-              with:
-                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.ruff-linter.conclusion == 'success' && 'success' || 'failure' }}
+            -   name: Update Check Run
+                uses: ./.github/actions/update-check-run
+                if: ${{always()}}
+                id: update-check-run
+                with:
+                    check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                    conclusion: ${{ steps.ruff-linter.conclusion == 'success' && 'success' || 'failure' }}
 
-            - name: Send linting result to external Chat application
-              run: |
-                  source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                  result=${{ steps.ruff-linter.conclusion == 'success' && 'success' || 'failure' }}
-                  if [[ $result == "failure" ]]; then
-                    send_file_notification "${{env.WORKSPACE}}/ruff-output" "⚠️Ruff Linter Error⚠️"
-                  fi
-              if: ${{always()}}
+            -   name: Send linting result to external Chat application
+                run: |
+                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                    result=${{ steps.ruff-linter.conclusion == 'success' && 'success' || 'failure' }}
+                    if [[ $result == "failure" ]]; then
+                      send_file_notification "${{env.WORKSPACE}}/ruff-output" "⚠️Ruff Linter Error⚠️"
+                    fi
+                if: ${{always()}}
 
     unit-test-at-install:
         name: Unit test at install_${{inputs.repo_name}}
@@ -211,29 +211,32 @@ jobs:
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Create Check Run
-              uses: ./.github/actions/create-check-run
-              id: create-check-run
-              with:
-                  name: "Unit test at install"
+            -   name: Create Check Run
+                uses: ./.github/actions/create-check-run
+                id: create-check-run
+                with:
+                    name: "Unit test at install"
 
-            - name: Test Preparation
-              uses: ./.github/actions/prepare-test-data
+            -   name: Test Preparation
+                uses: ./.github/actions/prepare-test-data
+            -   name: Print run id
+                run: |
+                    echo "Run ID: ${{ github.run_id }}"
+                    echo "Job ID: ${{ github.job }}"
+            -   name: Run Unit test cases
+                id: run_at_install_unit_test
+                run: |
+                    bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
 
-            - name: Run Unit test cases
-              id: run_at_install_unit_test
-              run: |
-                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
-
-            - name: Update Check Run
-              uses: ./.github/actions/update-check-run
-              if: ${{always()}}
-              id: update-check-run
-              with:
-                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.run_at_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
+            -   name: Update Check Run
+                uses: ./.github/actions/update-check-run
+                if: ${{always()}}
+                id: update-check-run
+                with:
+                    check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                    conclusion: ${{ steps.run_at_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
 
     unit-test-post-install:
         name: Unit test post install_${{inputs.repo_name}}
@@ -241,29 +244,29 @@ jobs:
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Create Check Run
-              uses: ./.github/actions/create-check-run
-              id: create-check-run
-              with:
-                  name: "Unit test post install"
+            -   name: Create Check Run
+                uses: ./.github/actions/create-check-run
+                id: create-check-run
+                with:
+                    name: "Unit test post install"
 
-            - name: Test Preparation
-              uses: ./.github/actions/prepare-test-data
+            -   name: Test Preparation
+                uses: ./.github/actions/prepare-test-data
 
-            - name: Run Unit test cases
-              id: run_post_install_unit_test
-              run: |
-                  bash $CICD_SCRIPTS_PATH/run-unit-test.sh "post_install"
+            -   name: Run Unit test cases
+                id: run_post_install_unit_test
+                run: |
+                    bash $CICD_SCRIPTS_PATH/run-unit-test.sh "post_install"
 
-            - name: Update Check Run
-              uses: ./.github/actions/update-check-run
-              if: ${{always()}}
-              id: update-check-run
-              with:
-                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
+            -   name: Update Check Run
+                uses: ./.github/actions/update-check-run
+                if: ${{always()}}
+                id: update-check-run
+                with:
+                    check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                    conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
 
     integration-test:
         name: Integration test_${{inputs.repo_name}}
@@ -277,193 +280,198 @@ jobs:
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
 
         steps:
-            - uses: actions/checkout@v4
-            - name: Create Check Run
-              uses: ./.github/actions/create-check-run
-              id: create-check-run
-              with:
-                  name: "Integration test"
+            -   uses: actions/checkout@v4
+            -   name: Create Check Run
+                uses: ./.github/actions/create-check-run
+                id: create-check-run
+                with:
+                    name: "Integration test"
 
-            - name: Test Preparation
-              uses: ./.github/actions/prepare-test-data
+            -   name: Test Preparation
+                uses: ./.github/actions/prepare-test-data
 
-              # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
-              # so this case, we should generate a new DB backup
-            - name: Make decision to create a new backup on server
-              run: |
-                  if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{env.SERVER_BACKUP_PATH}} != "_" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
-                  else
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
-                  fi
-                  if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=-1" >> $GITHUB_ENV
-                    echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
-                  fi
+                # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
+                # so this case, we should generate a new DB backup
+            -   name: Make decision to create a new backup on server
+                run: |
+                    if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{env.SERVER_BACKUP_PATH}} != "_" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
+                      echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
+                    else
+                      echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                    fi
+                    if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
+                      echo "NEED_NEW_SERVER_BACKUP_FILE=-1" >> $GITHUB_ENV
+                      echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
+                    fi
 
-            - name: Get the latest backup file from existing backup path on server
-              uses: ./.github/actions/ssh-script
-              id: get-latest-backup-file
-              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  set-output: 1
-                  script: |
-                      latest_file=\$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
-                      if [[ -n \$latest_file ]]; then
-                        echo ${{ env.SERVER_BACKUP_PATH }}/\$latest_file
-                      fi
+            -   name: Get the latest backup file from existing backup path on server
+                uses: ./.github/actions/ssh-script
+                id: get-latest-backup-file
+                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
+                with:
+                    host: ${{env.SERVER_HOST}}
+                    port: ${{env.SERVER_SSH_PORT}}
+                    user: ${{env.SERVER_USER}}
+                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                    proxy_host: ${{env.PROXY_SERVER_HOST}}
+                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                    proxy_user: ${{env.PROXY_SERVER_USER}}
+                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                    set-output: 1
+                    script: |
+                        latest_file=\$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
+                        if [[ -n \$latest_file ]]; then
+                          echo ${{ env.SERVER_BACKUP_PATH }}/\$latest_file
+                        fi
 
-            - name: Update server backup file path variable
-              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
-              run: |
-                  latest_backup_file_path=${{ steps.get-latest-backup-file.outputs.script-output }}
-                  if [[ -n "$latest_backup_file_path" ]]; then
-                    echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
-                  else
-                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
-                  fi
+            -   name: Update server backup file path variable
+                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
+                run: |
+                    latest_backup_file_path=${{ steps.get-latest-backup-file.outputs.script-output }}
+                    if [[ -n "$latest_backup_file_path" ]]; then
+                      echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                    else
+                      echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                    fi
 
-            - name: Upload backup script file to server
-              uses: ./.github/actions/scp-ssh
-              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
-              with:
-                  direction: "upload"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
-                  server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
+            -   name: Upload backup script file to server
+                uses: ./.github/actions/scp-ssh
+                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+                with:
+                    direction: "upload"
+                    host: ${{env.SERVER_HOST}}
+                    port: ${{env.SERVER_SSH_PORT}}
+                    user: ${{env.SERVER_USER}}
+                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                    proxy_host: ${{env.PROXY_SERVER_HOST}}
+                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                    proxy_user: ${{env.PROXY_SERVER_USER}}
+                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                    local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
+                    server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
 
-            - name: "Backup Odoo on server"
-              uses: ./.github/actions/ssh-script
-              id: backup-on-server
-              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  set-output: 1
-                  script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
+            -   name: "Backup Odoo on server"
+                uses: ./.github/actions/ssh-script
+                id: backup-on-server
+                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+                with:
+                    host: ${{env.SERVER_HOST}}
+                    port: ${{env.SERVER_SSH_PORT}}
+                    user: ${{env.SERVER_USER}}
+                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                    proxy_host: ${{env.PROXY_SERVER_HOST}}
+                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                    proxy_user: ${{env.PROXY_SERVER_USER}}
+                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                    set-output: 1
+                    script: |
+                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
 
-            - name: Update server backup file path variable
-              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
-              run: |
-                  latest_backup_file_path=${{ steps.backup-on-server.outputs.script-output }}
-                  if [[ -n "$latest_backup_file_path" ]]; then
-                    echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
-                  fi
+            -   name: Update server backup file path variable
+                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+                run: |
+                    latest_backup_file_path=${{ steps.backup-on-server.outputs.script-output }}
+                    if [[ -n "$latest_backup_file_path" ]]; then
+                      echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                    fi
 
-            - name: "Download backup file"
-              uses: ./.github/actions/scp-ssh
-              if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
-              with:
-                  direction: "download"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
-                  server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
+            -   name: "Download backup file"
+                uses: ./.github/actions/scp-ssh
+                if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
+                with:
+                    direction: "download"
+                    host: ${{env.SERVER_HOST}}
+                    port: ${{env.SERVER_SSH_PORT}}
+                    user: ${{env.SERVER_USER}}
+                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                    proxy_host: ${{env.PROXY_SERVER_HOST}}
+                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                    proxy_user: ${{env.PROXY_SERVER_USER}}
+                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                    local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
+                    server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
 
-            - name: "Run Integration test"
-              id: run_integration_test
-              if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
+            -   name: "Run Integration test"
+                id: run_integration_test
+                if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
+                run: |
+                    bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
 
-            - name: Update Check Run
-              uses: ./.github/actions/update-check-run
-              if: ${{always()}}
-              id: update-check-run
-              with:
-                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
+            -   name: Update Check Run
+                uses: ./.github/actions/update-check-run
+                if: ${{always()}}
+                id: update-check-run
+                with:
+                    check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                    conclusion: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
+
+            -   name: Post Integration Test notification
+                if: ${{always()}}
+                id: post-integration-test-notification
+                run: |
+                    job_url="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/job/${{github.job}}"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}" "$job_url"
+    
 
     deploy-server:
         name: Deploy server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [unit-test-at-install, unit-test-post-install, integration-test]
+        needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Create Check Run
-              uses: ./.github/actions/create-check-run
-              id: create-check-run
-              with:
-                  name: "Deploy to Server"
+            -   name: Create Check Run
+                uses: ./.github/actions/create-check-run
+                id: create-check-run
+                with:
+                    name: "Deploy to Server"
 
-            - name: "Upload deploy script file to server"
-              uses: ./.github/actions/scp-ssh
-              with:
-                  direction: "upload"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
-                  server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
+            -   name: "Upload deploy script file to server"
+                uses: ./.github/actions/scp-ssh
+                with:
+                    direction: "upload"
+                    host: ${{env.SERVER_HOST}}
+                    port: ${{env.SERVER_SSH_PORT}}
+                    user: ${{env.SERVER_USER}}
+                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                    proxy_host: ${{env.PROXY_SERVER_HOST}}
+                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                    proxy_user: ${{env.PROXY_SERVER_USER}}
+                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                    local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
+                    server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
 
-            - name: "Deploy to server"
-              uses: ./.github/actions/ssh-script
-              id: deploy_to_server
-              env:
-                  SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
-                  SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
-                  SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.ODOO_IMAGE_TAG }}"
+            -   name: "Deploy to server"
+                uses: ./.github/actions/ssh-script
+                id: deploy_to_server
+                env:
+                    SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
+                    SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
+                    SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
+                with:
+                    host: ${{env.SERVER_HOST}}
+                    port: ${{env.SERVER_SSH_PORT}}
+                    user: ${{env.SERVER_USER}}
+                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                    proxy_host: ${{env.PROXY_SERVER_HOST}}
+                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                    proxy_user: ${{env.PROXY_SERVER_USER}}
+                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                    script: |
+                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.ODOO_IMAGE_TAG }}"
 
-            - name: The Deploy step has failed
-              if: ${{ failure() }}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "failed"
+            -   name: Update Check Run
+                uses: ./.github/actions/update-check-run
+                if: ${{always()}}
+                id: update-check-run
+                with:
+                    check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                    conclusion: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
 
-            - name: The Deploy step has successful
-              if: ${{ success() }}
-              run: |
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "success"
-
-            - name: Update Check Run
-              uses: ./.github/actions/update-check-run
-              if: ${{always()}}
-              id: update-check-run
-              with:
-                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
+            -   name: Post Deploy notification
+                if: ${{always()}}
+                id: post-deploy-notification
+                run: |
+                    job_url="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/job/${{github.job}}"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}" "$job_url"
