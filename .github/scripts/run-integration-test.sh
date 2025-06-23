@@ -96,10 +96,16 @@ function main() {
     start_containers
     restore_backup
     wait_until_odoo_shutdown
-
+# FIXME: check telegram and slack message is formatted correctly here
     failed_message=$(
         cat <<EOF
-🐞[Integration Test] The [PR \\#$PR_NUMBER]($PR_URL) was merged but the database test failed\\!🐞
+❌🐞❌🐞❌🐞 Integration Test: The <${PR_URL}|PR #${PR_NUMBER}> was merged but the database test failed\\!
+Please take a look at the attached log file🔬
+EOF
+    )
+    telegram_failed_message=$(
+        cat <<EOF
+❌🐞❌🐞❌🐞 Integration Test: The [PR \\#$PR_NUMBER]($PR_URL) was merged but the database test failed\\!🐞
 Please take a look at the attached log file🔬
 EOF
     )
