@@ -277,7 +277,8 @@ function docker_odoo_exec {
 
 function analyze_log_file {
     failed_message=$1
-    success_message=$2
+    telegram_failed_message=$2
+    success_message=$3
     [ -z $success_message ] && success_message="We passed all test cases, well done!"
 
     [ -f ${ODOO_LOG_FILE_HOST} ]
@@ -290,7 +291,7 @@ function analyze_log_file {
     error_exist=$?
     if [ $error_exist -eq 0 ]; then
         cat $ODOO_LOG_FILE_HOST
-        send_file_notification "$ODOO_LOG_FILE_HOST" "$failed_message"
+        send_file_notification "$ODOO_LOG_FILE_HOST" "$failed_message" "$telegram_failed_message"
         exit 1
     fi
     show_separator "$success_message"
@@ -507,7 +508,8 @@ function send_message_notification {
 function send_file_notification {
     local file_path="$1"
     local caption="$2"
+    local telegram_caption="$3"
     send_slack_file_default "$file_path" "$caption" || true
-    send_telegram_file_default "$file_path" "$caption" || true
+    send_telegram_file_default "$file_path" "$telegram_caption" || true
 }
 # ------------------- General notification -------------------

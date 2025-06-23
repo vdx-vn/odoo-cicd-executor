@@ -11,13 +11,13 @@ function main {
         sad_emojis=$(random_sad_emojis)
         message=$(
             cat <<EOF
-❌🐞❌🐞❌🐞 The <${PR_URL}|PR #${PR_NUMBER}> was merged but the integration test failed! $sad_emojis
+❌🐞❌ The <${PR_URL}|PR #${PR_NUMBER}> was merged but the integration test failed! $sad_emojis
 Please take a look into the <${job_url}|CICD Log 🔬>
 EOF
         )
         telegram_message=$(
             cat <<EOF
-❌🐞❌🐞❌🐞 The [PR \\#$PR_NUMBER]($PR_URL) was merged but the integration test failed\\! $sad_emojis
+❌🐞❌ The [PR \\#$PR_NUMBER]($PR_URL) was merged but the integration test failed\\! $sad_emojis
 Please take a look into the [CICD Log 🔬]($job_url)>
 EOF
         )
