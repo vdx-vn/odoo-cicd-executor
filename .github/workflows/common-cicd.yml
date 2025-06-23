@@ -409,7 +409,7 @@ jobs:
                 if: ${{always()}}
                 id: post-integration-test-notification
                 run: |
-                    job_url="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/job/${{github.job}}"
+                    job_url="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/job/${{jobs.integration-test.id}}"
                     bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}" "$job_url"
     
 
@@ -473,5 +473,5 @@ jobs:
                 if: ${{always()}}
                 id: post-deploy-notification
                 run: |
-                    job_url="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/job/${{github.job}}"
+                    job_url="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/job/${{jobs.deploy-server.id}}"
                     bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}" "$job_url"
