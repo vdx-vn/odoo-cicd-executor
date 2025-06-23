@@ -14,6 +14,7 @@ function get_config_value {
     fi
     echo "$value"
 }
+
 function get_changed_files_and_folders_addons_name {
     # Retrieve the names of files and folders that have been changed in the specified commit
     addons_path=$1
@@ -152,6 +153,15 @@ function wait_until_odoo_shutdown {
     done
 }
 
+function get_github_job_url {
+    local gh_url="$1"
+    local gh_token="$2"
+    local regex_value="$3"
+    response=$(curl -s -H "Authorization: token $gh_token" "${gh_url}")
+    job_url=$(echo "$response" | jq -r --arg pattern "$regex_value" '.jobs[] | select(.name | test($pattern)) | .html_url')
+    echo "$job_url"
+}
+
 # ====== Pylint =======
 function get_ignore_file_command_pylint {
     ignore_addons=$1
@@ -267,7 +277,8 @@ function docker_odoo_exec {
 
 function analyze_log_file {
     failed_message=$1
-    success_message=$2
+    telegram_failed_message=$2
+    success_message=$3
     [ -z $success_message ] && success_message="We passed all test cases, well done!"
 
     [ -f ${ODOO_LOG_FILE_HOST} ]
@@ -280,7 +291,7 @@ function analyze_log_file {
     error_exist=$?
     if [ $error_exist -eq 0 ]; then
         cat $ODOO_LOG_FILE_HOST
-        send_file_notification "$ODOO_LOG_FILE_HOST" "$failed_message"
+        send_file_notification "$ODOO_LOG_FILE_HOST" "$failed_message" "$telegram_failed_message"
         exit 1
     fi
     show_separator "$success_message"
@@ -497,7 +508,8 @@ function send_message_notification {
 function send_file_notification {
     local file_path="$1"
     local caption="$2"
+    local telegram_caption="$3"
     send_slack_file_default "$file_path" "$caption" || true
-    send_telegram_file_default "$file_path" "$caption" || true
+    send_telegram_file_default "$file_path" "$telegram_caption" || true
 }
-# ------------------- General notofication -------------------
+# ------------------- General notification -------------------
