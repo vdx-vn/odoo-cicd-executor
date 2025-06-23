@@ -65,7 +65,7 @@ env:
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
     GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
-    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to github container registry
+    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to GitHub container registry
 
     # ==== Environment secrets =====
     TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
@@ -409,8 +409,8 @@ jobs:
                 if: ${{always()}}
                 id: post-integration-test-notification
                 run: |
-                    job_url="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/job/${{jobs.integration-test.id}}"
-                    bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}" "$job_url"
+                    prefix_url="${{github.server_url}}/${{github.repository}}/actions/runs"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}" "$prefix_url" "${{env.GH_TOKEN}}" "${{github.run_id}}" "integration-test"
     
 
     deploy-server:

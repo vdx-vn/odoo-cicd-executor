@@ -14,6 +14,7 @@ function get_config_value {
     fi
     echo "$value"
 }
+
 function get_changed_files_and_folders_addons_name {
     # Retrieve the names of files and folders that have been changed in the specified commit
     addons_path=$1
@@ -150,6 +151,21 @@ function wait_until_odoo_shutdown {
         total_waited_time=$((total_waited_time + sleep_block))
         sleep $sleep_block
     done
+}
+
+function get_github_job_url {
+  local prefix_url="$1"
+  local token="$2"
+  local run_id="$3"
+  local job_name="$4"
+
+  # Retrieve job details for the given run id using GitHub Actions API.
+  response=$(curl -s -H "Authorization: token $token" "${prefix_url}/${run_id}/jobs")
+
+  # Use jq to filter out the job with the specified job name.
+  job_url=$(echo "$response" | jq ".jobs[] | select(.name == \"$job_name\") | .id")
+
+  echo "$job_url"
 }
 
 # ====== Pylint =======
@@ -500,4 +516,4 @@ function send_file_notification {
     send_slack_file_default "$file_path" "$caption" || true
     send_telegram_file_default "$file_path" "$caption" || true
 }
-# ------------------- General notofication -------------------
+# ------------------- General notification -------------------
