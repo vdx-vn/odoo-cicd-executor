@@ -269,7 +269,7 @@ jobs:
                     conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
 
     integration-test:
-        name: Integration test_${{inputs.repo_name}}
+        name: _Integration Test_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
@@ -409,12 +409,12 @@ jobs:
                 if: ${{always()}}
                 id: post-integration-test-notification
                 run: |
-                    prefix_url="${{github.server_url}}/${{github.repository}}/actions/runs"
-                    bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}" "$prefix_url" "${{env.GH_TOKEN}}" "${{github.run_id}}" "integration-test"
+                    prefix_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}" "$prefix_url" "${{env.GH_TOKEN}}" "_Integration Test_"
     
 
     deploy-server:
-        name: Deploy server_${{inputs.repo_name}}
+        name: _Deploy Server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
@@ -473,5 +473,5 @@ jobs:
                 if: ${{always()}}
                 id: post-deploy-notification
                 run: |
-                    prefix_url="${{github.server_url}}/${{github.repository}}/actions/runs"
-                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}"  "$prefix_url" "${{env.GH_TOKEN}}" "${{github.run_id}}" "deploy_to_server"
+                    prefix_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}"  "$prefix_url" "${{env.GH_TOKEN}}" "_Deploy Server_"

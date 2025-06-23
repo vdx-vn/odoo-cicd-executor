@@ -157,19 +157,15 @@ function get_github_job_url {
     local prefix_url="$1"
     local token="$2"
     local run_id="$3"
-    local job_name="$4"
+    local regex_name="$4"
 
     # Retrieve job details for the given run id using GitHub Actions API.
-    response=$(curl -s -H "Authorization: token $token" "${prefix_url}/${run_id}/jobs")
+    local url="${prefix_url}/${run_id}/jobs"
+    response=$(curl -s -H "Authorization: token $token" "${url}")
 
-    # Use jq to filter out the job with the specified job name and get its id.
-    job_id=$(echo "$response" | jq -r ".jobs[] | select(.name == \"$job_name\") | .id")
+    job_url=$(echo "$response" | jq -r --arg pattern "$regex_name" '.jobs[] | select(.name | test($pattern)) | .html_url')
 
-    if [[ -n "$job_id" && "$job_id" != "null" ]]; then
-        echo "${prefix_url}/${run_id}/jobs/${job_id}"
-    else
-        echo ""
-    fi
+    echo "$job_url"
 }
 
 # ====== Pylint =======
