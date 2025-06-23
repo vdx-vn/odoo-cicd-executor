@@ -154,17 +154,11 @@ function wait_until_odoo_shutdown {
 }
 
 function get_github_job_url {
-    local prefix_url="$1"
-    local token="$2"
-    local run_id="$3"
-    local regex_name="$4"
-
-    # Retrieve job details for the given run id using GitHub Actions API.
-    local url="${prefix_url}/${run_id}/jobs"
-    response=$(curl -s -H "Authorization: token $token" "${url}")
-
-    job_url=$(echo "$response" | jq -r --arg pattern "$regex_name" '.jobs[] | select(.name | test($pattern)) | .html_url')
-
+    local gh_url="$1"
+    local gh_token="$2"
+    local regex_value="$3"
+    response=$(curl -s -H "Authorization: token $gh_token" "${gh_url}")
+    job_url=$(echo "$response" | jq -r --arg pattern "$regex_value" '.jobs[] | select(.name | test($pattern)) | .html_url')
     echo "$job_url"
 }
 

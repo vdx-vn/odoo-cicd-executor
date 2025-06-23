@@ -3,7 +3,9 @@ source "${CICD_UTILS_SCRIPTS_PATH}"
 
 function main {
     status=$1
-    job_url=$2
+    gh_url=$2
+    gh_token=$3
+    prefix_job_name=$4
     if [[ $status == "success" ]]; then
         happy_emojis=$(random_happy_emojis)
         message=$(
@@ -14,6 +16,7 @@ EOF
         telegram_message="🎉🎉🎉 The [PR \\#$PR_NUMBER]($PR_URL) was merged and deployed to server $happy_emojis"
         send_message_notification "$message" "$telegram_message"
     else
+        job_url=$(get_github_job_url "$gh_url" "$gh_token" "$prefix_job_name")
         sad_emojis=$(random_sad_emojis)
         message=$(
             cat <<EOF

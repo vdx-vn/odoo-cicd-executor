@@ -3,12 +3,11 @@ source "${CICD_UTILS_SCRIPTS_PATH}"
 
 function main {
     status=$1
-    prefix_url=$2
+    gh_url=$2
     gh_token=$3
-    run_id=$4
-    job_name=$5
+    prefix_job_name=$4
     if [[ $status == "failure" ]]; then
-        job_url=$(get_github_job_url "$prefix_url" "$gh_token" "$run_id" "$job_name")
+        job_url=$(get_github_job_url "$gh_url" "$gh_token" "$prefix_job_name")
         sad_emojis=$(random_sad_emojis)
         message=$(
             cat <<EOF
