@@ -52,9 +52,6 @@ runs:
               } 
 
               function update_ssh_config() {
-                  if [[ -n "${{inputs.proxy_host}}" ]]; then
-                      return
-                  fi
                   mkdir -p ~/.ssh
                   touch ~/.ssh/config
                   echo > ~/.ssh/config
@@ -71,9 +68,6 @@ runs:
               }
 
               function update_ssh_config_with_proxy() {
-                  if [[ -n "${{inputs.proxy_host}}" ]]; then
-                      return
-                  fi
                   mkdir -p ~/.ssh
                   touch ~/.ssh/config
                   echo > ~/.ssh/config
@@ -102,8 +96,11 @@ runs:
               proxy_server_key_file=${{ github.workspace }}/$(date +%s)_proxy_key
               create_private_keyfile_from_content "${{inputs.ssh_key_text}}" "$server_key_file"
               create_private_keyfile_from_content "${{inputs.proxy_ssh_key_text}}" "$proxy_server_key_file"
-              update_ssh_config
-              update_ssh_config_with_proxy
+              if [[ -n "${{inputs.proxy_host}}" ]]; then
+                  update_ssh_config_with_proxy
+              else
+                  update_ssh_config
+              fi
 
               if [ ${{ inputs.set-output }} -eq 1 ]; then
                 output=$(ssh server "${{ inputs.script }}")
