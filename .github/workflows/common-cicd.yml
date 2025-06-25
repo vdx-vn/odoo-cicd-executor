@@ -276,7 +276,7 @@ jobs:
         outputs:
           server_latest_backup_file_path: ${{ steps.update-server-backup-path.outputs.server_latest_backup_file_path }}
           check_run_id: ${{ steps.create-check-run.outputs.check-run-id }}
-          use_self_hosted: ${{ steps.get_size.outputs.use_self_hosted }}
+          use_self_hosted: ${{ steps.get_size.outputs.script-output }}
         env:
           LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
           SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
@@ -370,7 +370,13 @@ jobs:
                   proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   set-output: 1
                   script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh \
+                        "${{env.SERVER_DEPLOY_PATH}}" \
+                        "${{env.SERVER_ODOO_DB_NAME}}" \
+                        "${{secrets.SERVER_DB_PASSWORD}}" \
+                        "${{env.ODOO_IMAGE_TAG}}" \
+                        ${{ env.GITHUB_RUN_ATTEMPT }} \
+                        "${{ (env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH != '_') && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
 
             - name: Update server backup file path variable
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
@@ -381,22 +387,29 @@ jobs:
                   fi
                     
             - name: Check backup file size
+              uses: ./.github/actions/ssh-script
               id: get_size
-              shell: bash
-              run: |
-                set -euo pipefail
-                echo "use_self_hosted=false" >> "$GITHUB_OUTPUT"
-
-                if [[ -n "${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}" ]]; then
-                  remote_size=$(ssh -o StrictHostKeyChecking=no \
-                    -p "${{ env.SERVER_SSH_PORT }}" \
-                    "${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}" \
-                    "stat -c%s -- \"${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}\" 2>/dev/null" || true)
-
-                  if [[ "$remote_size" =~ ^[0-9]+$ ]] && (( remote_size > 8*1024*1024*1024 )); then
-                    echo "use_self_hosted=true" >> "$GITHUB_OUTPUT"
-                  fi
-                fi
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                  set-output: 1
+                  script: |
+                      if [[ -n "${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}" ]]; then
+                        remote_size=$(stat -c%s -- "${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}" 2>/dev/null || echo 0)
+                        if [[ "$remote_size" =~ ^[0-9]+$ ]] && (( remote_size > 8*1024*1024*1024 )); then
+                          echo "use_self_hosted=true"
+                        else
+                          echo "use_self_hosted=false"
+                        fi
+                      else
+                        echo "use_self_hosted=false"
+                      fi
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
