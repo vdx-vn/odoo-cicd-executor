@@ -400,14 +400,26 @@ jobs:
                   proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   set-output: 1
                   script: |
-                      if [[ -n "${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}" ]]; then
-                        remote_size=$(stat -c%s -- "${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}" 2>/dev/null || echo 0)
-                        echo "remote_size=$remote_size"
-                        if [[ -n "$remote_size" && "$remote_size" =~ ^[0-9]+$ ]] && (( remote_size > 8*1024*1024*1024 )); then
-                          echo "use_self_hosted=true"
-                        else
-                          echo "use_self_hosted=false"
-                        fi
+                      set -euo pipefail
+                      SERVER_LATEST_BACKUP_FILE_PATH="${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}"
+                      if [[ -z "$SERVER_LATEST_BACKUP_FILE_PATH" ]]; then
+                        echo "Error: SERVER_LATEST_BACKUP_FILE_PATH environment variable is empty." >&2
+                        echo "use_self_hosted=false"
+                        exit 1
+                      fi
+                      if [[ ! -f "$SERVER_LATEST_BACKUP_FILE_PATH" ]]; then
+                        echo "Warning: Backup file not found at '$SERVER_LATEST_BACKUP_FILE_PATH'. Assuming self-hosted runner is not needed." >&2
+                        echo "use_self_hosted=false"
+                        exit 0
+                      fi
+                      remote_size=$(stat -c%s -- "$SERVER_LATEST_BACKUP_FILE_PATH" 2>/dev/null || echo 0)
+                      if [[ ! "$remote_size" =~ ^[0-9]+$ ]]; then
+                        echo "Error: Could not retrieve file size for '$SERVER_LATEST_BACKUP_FILE_PATH'." >&2
+                        echo "use_self_hosted=false"
+                        exit 1
+                      fi
+                      if (( remote_size > 8*1024*1024*1024 )); then
+                        echo "use_self_hosted=true"
                       else
                         echo "use_self_hosted=false"
                       fi
