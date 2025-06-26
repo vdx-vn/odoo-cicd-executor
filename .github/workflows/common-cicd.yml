@@ -380,11 +380,13 @@ jobs:
 
             - name: Update server backup file path variable
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+              id: update-server-backup-path
               run: |
                   output="${{ steps.backup-on-server.outputs.script-output }}"
                   latest_backup_file_path=$(echo "$output" | awk -F'|' '{print $1}')
                   if [[ -n "$latest_backup_file_path" ]]; then
                     echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                    echo "server_latest_backup_file_path=$latest_backup_file_path" >> $GITHUB_OUTPUT
                   fi
 
             - name: Parse backup file size
@@ -394,7 +396,7 @@ jobs:
                 file_size=$(echo "$output" | awk -F'|' '{print $2}')
                 echo "SERVER_BACKUP_FILE_SIZE=$file_size" >> $GITHUB_ENV
                 echo "server_backup_file_size=$file_size" >> $GITHUB_OUTPUT
-                  
+
             - name: Determine runner based on backup size
               id: determine-runner
               run: |
@@ -422,7 +424,6 @@ jobs:
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
-            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
 
         steps:
@@ -447,7 +448,7 @@ jobs:
                   proxy_user: ${{env.PROXY_SERVER_USER}}
                   proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
-                  server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
+                  server_file: ${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}
 
             - name: Run Integration test
               id: run_integration_test
