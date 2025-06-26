@@ -276,7 +276,7 @@ jobs:
         outputs:
           server_latest_backup_file_path: ${{ steps.update-server-backup-path.outputs.server_latest_backup_file_path }}
           check_run_id: ${{ steps.create-check-run.outputs.check-run-id }}
-          use_self_hosted: ${{ steps.get_size.outputs.script-output }}
+          use_self_hosted: ${{ steps.determine-runner.outputs.use_self_hosted }}
         env:
           LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
           SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
@@ -381,37 +381,29 @@ jobs:
             - name: Update server backup file path variable
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
               run: |
-                  latest_backup_file_path=${{ steps.backup-on-server.outputs.script-output }}
+                  output="${{ steps.backup-on-server.outputs.script-output }}"
+                  latest_backup_file_path=$(echo "$output" | awk -F'|' '{print $1}')
                   if [[ -n "$latest_backup_file_path" ]]; then
                     echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
                   fi
-                    
-            - name: Check backup file size
-              uses: ./.github/actions/ssh-script
-              id: check_backup_size
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  set-output: 1
-                  script: |                  
-                    file="${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}"
-                    if [[ -f "$file" ]]; then
-                      size=$(stat -c%s "$file" || echo 0)
-                    else
-                      size=0
-                    fi
+
+            - name: Parse backup file size
+              id: parse-backup-size
+              run: |
+                output="${{ steps.backup-on-server.outputs.script-output }}"
+                file_size=$(echo "$output" | awk -F'|' '{print $2}')
+                echo "SERVER_BACKUP_FILE_SIZE=$file_size" >> $GITHUB_ENV
+                echo "server_backup_file_size=$file_size" >> $GITHUB_OUTPUT
                   
-                    echo "remote_size=$size"
-                  
-                    (( size > 8*1024*1024*1024 )) \
-                      && echo "use_self_hosted=true" \
-                      || echo "use_self_hosted=false"
+            - name: Determine runner based on backup size
+              id: determine-runner
+              run: |
+                threshold=$((8*1024*1024*1024))
+                if [ "${{ steps.parse-backup-size.outputs.server_backup_file_size }}" -gt "$threshold" ]; then
+                  echo "use_self_hosted=true" >> "$GITHUB_OUTPUT"
+                else
+                  echo "use_self_hosted=false" >> "$GITHUB_OUTPUT"
+                fi
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
