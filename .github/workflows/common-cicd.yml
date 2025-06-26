@@ -282,6 +282,7 @@ jobs:
           SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
           SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
           GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
+          MAX_BACKUP_SIZE_GB: 8
 
         steps:
             - uses: actions/checkout@v4
@@ -388,7 +389,7 @@ jobs:
                     
             - name: Check backup file size
               uses: ./.github/actions/ssh-script
-              id: get_size
+              id: check_backup_size
               with:
                   host: ${{env.SERVER_HOST}}
                   port: ${{env.SERVER_SSH_PORT}}
@@ -400,30 +401,9 @@ jobs:
                   proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                   set-output: 1
                   script: |
-                      set -euo pipefail
-                      SERVER_LATEST_BACKUP_FILE_PATH="${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}"
-                      if [[ -z "$SERVER_LATEST_BACKUP_FILE_PATH" ]]; then
-                        echo "Error: SERVER_LATEST_BACKUP_FILE_PATH environment variable is empty." >&2
-                        echo "use_self_hosted=false"
-                        exit 1
-                      fi
-                      if [[ ! -f "$SERVER_LATEST_BACKUP_FILE_PATH" ]]; then
-                        echo "Warning: Backup file not found at '$SERVER_LATEST_BACKUP_FILE_PATH'. Assuming self-hosted runner is not needed." >&2
-                        echo "use_self_hosted=false"
-                        exit 0
-                      fi
-                      remote_size=$(stat -c%s -- "$SERVER_LATEST_BACKUP_FILE_PATH" 2>/dev/null || echo 0)
-                      if [[ ! "$remote_size" =~ ^[0-9]+$ ]]; then
-                        echo "Error: Could not retrieve file size for '$SERVER_LATEST_BACKUP_FILE_PATH'." >&2
-                        echo "use_self_hosted=false"
-                        exit 1
-                      fi
-                      MAX_SIZE=$((8 * 1024 * 1024 * 1024))
-                      if [[ "$remote_size" -gt "$MAX_SIZE" ]]; then 
-                        echo "use_self_hosted=true"
-                      else
-                        echo "use_self_hosted=false"
-                      fi
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/check-backup-file-size.sh \
+                        "${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}" \
+                        "${{ env.MAX_BACKUP_SIZE_GB }}"
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
@@ -431,7 +411,7 @@ jobs:
               id: update-check-run
               with:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.get_size.conclusion == 'success' && 'success' || 'failure' }}
+                  conclusion: ${{ steps.check_backup_size.conclusion == 'success' && 'success' || 'failure' }}
 
 
     integration-test:
