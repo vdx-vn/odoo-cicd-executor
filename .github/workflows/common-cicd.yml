@@ -418,7 +418,8 @@ jobs:
                         echo "use_self_hosted=false"
                         exit 1
                       fi
-                      if (( remote_size > 8*1024*1024*1024 )); then
+                      MAX_SIZE=$((8 * 1024 * 1024 * 1024))
+                      if [[ "$remote_size" -gt "$MAX_SIZE" ]]; then 
                         echo "use_self_hosted=true"
                       else
                         echo "use_self_hosted=false"
