@@ -285,7 +285,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-   
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
@@ -433,6 +432,9 @@ jobs:
               id: create-check-run
               with:
                   name: "Integration test"
+
+            - name: Test Preparation
+              uses: ./.github/actions/prepare-test-data
 
             - name: Download backup file
               uses: ./.github/actions/scp-ssh
