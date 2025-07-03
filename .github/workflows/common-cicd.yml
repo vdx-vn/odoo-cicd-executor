@@ -334,6 +334,7 @@ jobs:
                   latest_backup_file_path=${{ steps.get-latest-backup-file.outputs.script-output }}
                   if [[ -n "$latest_backup_file_path" ]]; then
                     echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                    echo "server_latest_backup_file_path=$latest_backup_file_path" >> $GITHUB_OUTPUT
                   else
                     echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
                   fi
