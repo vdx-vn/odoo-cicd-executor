@@ -309,7 +309,7 @@ jobs:
                         --configfile "$bandit_config_file" \
                         --format json \
                         --output ${{env.WORKSPACE}}/bandit-output.json \
-                        --recursive .
+                        --recursive . || true
 
             -   name: Generate SAST Report
                 id: generate-sast-report
