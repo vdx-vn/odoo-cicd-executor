@@ -267,8 +267,8 @@ function generate_bandit_summary_report {
     echo "# SAST Security Scan Report (Bandit)" > "$report_file"
     echo "" >> "$report_file"
     echo "**Scan Date:** $(date)" >> "$report_file"
-    echo "**Repository:** ${{env.REPOSITORY}}" >> "$report_file"
-    echo "**Branch:** ${{env.TARGET_BRANCH}}" >> "$report_file"
+    echo "**Repository:** $REPOSITORY" >> "$report_file"
+    echo "**Branch:** $TARGET_BRANCH" >> "$report_file"
     echo "" >> "$report_file"
 
     # Bandit results
