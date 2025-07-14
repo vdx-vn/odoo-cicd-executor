@@ -274,7 +274,7 @@ jobs:
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         outputs:
-          server_latest_backup_file_path: ${{ steps.update-server-backup-path.outputs.server_latest_backup_file_path }}
+          server_latest_backup_file_path: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_path }}
           check_run_id: ${{ steps.create-check-run.outputs.check-run-id }}
           use_self_hosted: ${{ steps.determine-runner.outputs.use_self_hosted }}
         env:
