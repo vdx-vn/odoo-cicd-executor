@@ -62,40 +62,40 @@ env:
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
 
-    # ==== Repository secrets ====
-    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
-    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
-    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to GitHub container registry
+    # # ==== Repository secrets ====
+    # GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
+    # GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
+    # GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to GitHub container registry
 
-    # ==== Environment secrets =====
-    TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
-    TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
-    SLACK_CHANNEL_ID: ${{secrets.SLACK_CHANNEL_ID}}
-    SLACK_TOKEN: ${{secrets.SLACK_TOKEN}}
-    SERVER_PRIVATE_KEY: ${{secrets.SERVER_PRIVATE_KEY}}
-    PROXY_SERVER_PRIVATE_KEY: ${{secrets.PROXY_SERVER_PRIVATE_KEY}}
-    SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
+    # # ==== Environment secrets =====
+    # TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
+    # TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
+    # SLACK_CHANNEL_ID: ${{secrets.SLACK_CHANNEL_ID}}
+    # SLACK_TOKEN: ${{secrets.SLACK_TOKEN}}
+    # SERVER_PRIVATE_KEY: ${{secrets.SERVER_PRIVATE_KEY}}
+    # PROXY_SERVER_PRIVATE_KEY: ${{secrets.PROXY_SERVER_PRIVATE_KEY}}
+    # SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
 
-    # ===== Environment variables =====
-    ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
-    DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
-    SERVER_HOST: ${{ vars.SERVER_HOST }}
-    SERVER_USER: ${{ vars.SERVER_USER }}
-    SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
-    PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
-    PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
-    PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
-    SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
-    SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
-    SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
-    SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }} # add _ to this environment variable to always create backup file from server
+    # # ===== Environment variables =====
+    # ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
+    # DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
+    # SERVER_HOST: ${{ vars.SERVER_HOST }}
+    # SERVER_USER: ${{ vars.SERVER_USER }}
+    # SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
+    # PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
+    # PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
+    # PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
+    # SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
+    # SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
+    # SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
+    # SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }} # add _ to this environment variable to always create backup file from server
 
     # ===== Handle Input for actions/github-script ======
     INPUT_REPO_NAME: ${{inputs.repo_name}}
     INPUT_COMMIT_SHA: ${{inputs.commit_sha}}
 
 jobs:
-    # ================== Pylint ===================
+    # ================== Pylint ==================
     Pylint-Linter:
         name: Pylint Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
@@ -104,6 +104,12 @@ jobs:
 
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/export-secrets-vault
+                with:
+                    vault_addr: https://secret.vdx.vn
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -160,6 +166,12 @@ jobs:
         if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/export-secrets-vault
+                with:
+                    vault_addr: https://secret.vdx.vn
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -212,6 +224,12 @@ jobs:
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/export-secrets-vault
+                with:
+                    vault_addr: https://secret.vdx.vn
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -245,6 +263,12 @@ jobs:
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/export-secrets-vault
+                with:
+                    vault_addr: https://secret.vdx.vn
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -285,7 +309,13 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-   
+            - name: get-secrets-vault
+              uses: ./.github/actions/export-secrets-vault
+              with:
+                  vault_addr: https://secret.vdx.vn
+                  token: ${{ secrets.VAULT_TOKEN }}
+                  secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
+
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
@@ -427,6 +457,13 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+            - name: get-secrets-vault
+              uses: ./.github/actions/export-secrets-vault
+              with:
+                  vault_addr: https://secret.vdx.vn
+                  token: ${{ secrets.VAULT_TOKEN }}
+                  secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
+
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
@@ -477,6 +514,12 @@ jobs:
         needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/export-secrets-vault
+                with:
+                    vault_addr: https://secret.vdx.vn
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
