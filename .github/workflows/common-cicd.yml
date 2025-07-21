@@ -515,7 +515,7 @@ jobs:
               with:
                   direction: "download"
                   host: 192.168.98.107
-                  port: ${{env.SERVER_SSH_PORT}}
+                  port: 22
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   proxy_host: ${{env.PROXY_SERVER_HOST}}
