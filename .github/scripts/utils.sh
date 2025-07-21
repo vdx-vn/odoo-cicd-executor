@@ -257,7 +257,13 @@ function update_ignore_file_config_bandit {
     ignore_addons=$1
     config_file=$2
     ignore_commands=$(get_ignore_file_command_bandit "$ignore_addons")
-    sed -i "/exclude_dirs:/,/^[^ ]/c\\${ignore_commands}" "$config_file"
+    tmp_file=$(mktemp)
+    awk -v repl="$ignore_commands" '
+        BEGIN {inblock=0}
+        /^exclude_dirs:/ {print repl; inblock=1; next}
+        inblock && /^[^ ]/ {inblock=0}
+        !inblock {print}
+    ' "$config_file" > "$tmp_file" && mv "$tmp_file" "$config_file"
 }
 
 function generate_bandit_summary_report {

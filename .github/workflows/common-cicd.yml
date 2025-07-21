@@ -490,7 +490,8 @@ jobs:
     integration-test:
         name: _Integration Test_${{inputs.repo_name}}
         needs: prepare-backup
-        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+#        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+        runs-on: self-hosted
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
