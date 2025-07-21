@@ -79,7 +79,7 @@ env:
     # ===== Environment variables =====
     ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
     DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
-    SERVER_HOST: 192.168.98.107
+    SERVER_HOST: ${{ vars.SERVER_HOST }}
     SERVER_USER: ${{ vars.SERVER_USER }}
     SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
     PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
@@ -514,7 +514,7 @@ jobs:
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               with:
                   direction: "download"
-                  host: ${{env.SERVER_HOST}}
+                  host: 192.168.98.107
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
