@@ -514,7 +514,7 @@ jobs:
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               with:
                   direction: "download"
-                  host: ${{env.SERVER_HOST}}
+                  host: 192.168.98.107
                   port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
