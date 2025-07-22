@@ -490,8 +490,7 @@ jobs:
     integration-test:
         name: _Integration Test_${{inputs.repo_name}}
         needs: prepare-backup
-#        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
-        runs-on: self-hosted
+        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
@@ -509,13 +508,20 @@ jobs:
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
 
+            - name: Override server host/port if self-hosted
+              run: |
+                  if [[ "${{ runner.name }}" == *"self-hosted"* ]]; then
+                    echo "SERVER_HOST=192.168.98.107" >> $GITHUB_ENV
+                    echo "SERVER_SSH_PORT=22" >> $GITHUB_ENV
+                  fi
+
             - name: Download backup file
               uses: ./.github/actions/scp-ssh
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               with:
                   direction: "download"
-                  host: 192.168.98.107
-                  port: 22
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
                   user: ${{env.SERVER_USER}}
                   ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
                   proxy_host: ${{env.PROXY_SERVER_HOST}}
