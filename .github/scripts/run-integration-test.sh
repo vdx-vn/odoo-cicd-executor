@@ -94,53 +94,61 @@ restore_backup() {
 function cleanup_after_integration_test {
     show_separator "Start cleanup after integration test"
 
-    # Xóa container Odoo nếu còn tồn tại
     odoo_container_id=$(get_odoo_container_id)
     if [ -n "$odoo_container_id" ]; then
         echo "[CLEANUP] Removing Odoo container: $odoo_container_id"
         docker rm -f "$odoo_container_id" >/dev/null 2>&1 || true
     fi
 
-    # Xóa container DB nếu còn tồn tại
     db_container_id=$(docker ps -aq --filter "name=db")
     if [ -n "$db_container_id" ]; then
         echo "[CLEANUP] Removing DB container: $db_container_id"
         docker rm -f $db_container_id >/dev/null 2>&1 || true
     fi
 
-    # Xóa các container exited/dangling liên quan đến test
     echo "[CLEANUP] Pruning exited/dangling containers"
     docker container prune -f >/dev/null 2>&1 || true
 
-    # Xóa volume dangling (không còn sử dụng)
     DANGLING_VOLUMES=$(docker volume ls -f "dangling=true" -q)
     if [ -n "$DANGLING_VOLUMES" ]; then
         echo "[CLEANUP] Removing dangling volumes"
         docker volume rm $DANGLING_VOLUMES >/dev/null 2>&1 || true
     fi
 
-    # Xóa network tạm (nếu có)
     TEST_NETWORKS=$(docker network ls --filter "dangling=true" -q)
     if [ -n "$TEST_NETWORKS" ]; then
         echo "[CLEANUP] Removing dangling networks"
         docker network rm $TEST_NETWORKS >/dev/null 2>&1 || true
     fi
 
-    # Xóa file backup tạm nếu có
     if [ -n "$received_backup_file_path" ] && [ -f "$received_backup_file_path" ]; then
         echo "[CLEANUP] Removing temporary backup file: $received_backup_file_path"
         rm -f "$received_backup_file_path"
     fi
 
-    # Xóa log Odoo nếu sinh ra trong quá trình test
     if [ -n "$ODOO_LOG_FILE_HOST" ] && [ -f "$ODOO_LOG_FILE_HOST" ]; then
         echo "[CLEANUP] Removing Odoo log file: $ODOO_LOG_FILE_HOST"
         rm -f "$ODOO_LOG_FILE_HOST"
     fi
 
-    # Xóa các thư mục tạm nếu có
-    [ -d "/tmp/odoo/restore" ] && { echo "[CLEANUP] Removing /tmp/odoo/restore"; rm -rf /tmp/odoo/restore; }
-    [ -d "/tmp/odoo/backup" ] && { echo "[CLEANUP] Removing /tmp/odoo/backup"; rm -rf /tmp/odoo/backup; }
+    if [ -d "/tmp/odoo/restore" ] && [ -w "/tmp/odoo/restore" ]; then
+        echo "[CLEANUP] Removing /tmp/odoo/restore"
+        rm -rf /tmp/odoo/restore
+    else
+        echo "[CLEANUP] Skip /tmp/odoo/restore (no permission)"
+    fi
+
+    if [ -d "/tmp/odoo/backup" ] && [ -w "/tmp/odoo/backup" ]; then
+        echo "[CLEANUP] Removing /tmp/odoo/backup"
+        rm -rf /tmp/odoo/backup
+    else
+        echo "[CLEANUP] Skip /tmp/odoo/backup (no permission)"
+    fi
+
+    if [ -n "$GITHUB_WORKSPACE" ] && [ -d "$GITHUB_WORKSPACE" ]; then
+        echo "[CLEANUP] Removing all files in workspace: $GITHUB_WORKSPACE"
+        rm -rf "$GITHUB_WORKSPACE"/* || echo "[CLEANUP] Skip workspace (no permission)"
+    fi
 
     show_separator "Cleanup finished"
 }
