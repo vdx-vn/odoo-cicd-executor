@@ -109,6 +109,9 @@ function cleanup_after_integration_test {
     echo "[CLEANUP] Pruning exited/dangling containers"
     docker container prune -f >/dev/null 2>&1 || true
 
+    echo "[CLEANUP] Removing unused Docker images"
+    docker image prune -a -f >/dev/null 2>&1 || true
+
     DANGLING_VOLUMES=$(docker volume ls -f "dangling=true" -q)
     if [ -n "$DANGLING_VOLUMES" ]; then
         echo "[CLEANUP] Removing dangling volumes"
