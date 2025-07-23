@@ -510,12 +510,6 @@ jobs:
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
 
-            - name: Override server host/port if self-hosted
-              if: contains(runner.labels, 'self-hosted')
-              run: |
-                  echo "SERVER_HOST=${{ env.SERVER_SH_HOST }}"  >> $GITHUB_ENV
-                  echo "SERVER_SSH_PORT=${{ env.SERVER_SH_PORT }}" >> $GITHUB_ENV
-
             - name: Check if integration test steps should be ignored
               run: |
                   if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
