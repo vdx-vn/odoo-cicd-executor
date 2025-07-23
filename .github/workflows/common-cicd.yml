@@ -495,8 +495,6 @@ jobs:
         env:
             SERVER_SH_HOST: "192.168.98.107" # self-hosted server host
             SERVER_SH_PORT: "22" # self-hosted server ssh port
-            SERVER_HOST: ${{ runner.labels == 'self-hosted' && env.SERVER_SH_HOST || env.SERVER_HOST }}
-            SERVER_SSH_PORT: ${{ runner.labels == 'self-hosted' && env.SERVER_SH_PORT || env.SERVER_SSH_PORT }}
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
@@ -517,6 +515,12 @@ jobs:
                   if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
                     echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
                   fi
+
+            - name: Override server host/port if self-hosted
+              if: contains(runner.labels, 'self-hosted')
+              run: |
+                  echo "SERVER_HOST=${{ env.SERVER_SH_HOST }}"  >> $GITHUB_ENV
+                  echo "SERVER_SSH_PORT=${{ env.SERVER_SH_PORT }}" >> $GITHUB_ENV
 
             - name: Download backup file
               uses: ./.github/actions/scp-ssh
