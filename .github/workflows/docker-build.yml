@@ -36,17 +36,18 @@ jobs:
                   repo_owner=$(echo "${{inputs.repo_name}}" | cut -d'/' -f1)
                   echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u $repo_owner --password-stdin
 
-            - name: Build image
+            - name: Build & Publish image to GitHub container registry
               run: |
                   cd ${{ github.workspace }}/.build
+                  current_date=$(date +%Y%m%d)
                   docker build . \
                         --tag ghcr.io/${{inputs.repo_name}}:${{inputs.image_tag}} \
+                        --tag ghcr.io/${{inputs.repo_name}}:${current_date} \
                         --label "org.opencontainers.image.source=https://github.com/${{inputs.repo_name}}" \
                         --label "github.run.id=${GITHUB_RUN_ID}"
 
-            - name: Publish image to GitHub container registry
-              run: |
                   docker push ghcr.io/${{inputs.repo_name}}:${{inputs.image_tag}}
+                  docker push ghcr.io/${{inputs.repo_name}}:${current_date}
 
             - uses: actions/checkout@v4
 
