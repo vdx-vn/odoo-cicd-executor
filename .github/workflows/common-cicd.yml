@@ -85,6 +85,8 @@ env:
     PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
     PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
     PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
+    SERVER_SH_HOST: ${{ vars.SERVER_SH_HOST }} # "192.168.98.107": self-hosted server host
+    SERVER_SH_PORT: ${{ vars.SERVER_SH_PORT }} # "22": self-hosted server ssh port
     SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
     SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
@@ -317,7 +319,7 @@ jobs:
                     source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                     generate_bandit_summary_report \
                         "${{env.WORKSPACE}}/bandit-output.json" \
-                        "${{env.WORKSPACE}}/sast-report.md"
+                        "${{env.WORKSPACE}}/sast-report.md" || true
 
             -   name: Update Check Run
                 uses: ./.github/actions/update-check-run
@@ -489,12 +491,9 @@ jobs:
     integration-test:
         name: _Integration Test_${{inputs.repo_name}}
         needs: prepare-backup
-#        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
-        runs-on: self-hosted
+        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
-            SERVER_SH_HOST: "192.168.98.107" # self-hosted server host
-            SERVER_SH_PORT: "22" # self-hosted server ssh port
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
@@ -522,11 +521,8 @@ jobs:
                     echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
                   fi
 
-            - name: Debug runner labels
-              run: echo "RUNNER_LABELS = $RUNNER_LABELS"
-
             - name: Override server host/port if self-hosted
-              if: contains(env.RUNNER_LABELS, 'self-hosted')
+              if: needs.prepare-backup.outputs.use_self_hosted == 'true'
               run: |
                   echo "SERVER_HOST=${{ env.SERVER_SH_HOST }}"  >> $GITHUB_ENV
                   echo "SERVER_SSH_PORT=${{ env.SERVER_SH_PORT }}" >> $GITHUB_ENV
