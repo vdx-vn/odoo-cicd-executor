@@ -123,31 +123,31 @@ function cleanup_after_integration_test {
 
     if [ -n "$received_backup_file_path" ] && [ -f "$received_backup_file_path" ]; then
         echo "[CLEANUP] Removing temporary backup file: $received_backup_file_path"
-        rm -f "$received_backup_file_path"
+        sudo rm -f "$received_backup_file_path"
     fi
 
     if [ -n "$ODOO_LOG_FILE_HOST" ] && [ -f "$ODOO_LOG_FILE_HOST" ]; then
         echo "[CLEANUP] Removing Odoo log file: $ODOO_LOG_FILE_HOST"
-        rm -f "$ODOO_LOG_FILE_HOST"
+        sudo rm -f "$ODOO_LOG_FILE_HOST"
     fi
 
     if [ -d "/tmp/odoo/restore" ] && [ -w "/tmp/odoo/restore" ]; then
         echo "[CLEANUP] Removing /tmp/odoo/restore"
-        rm -rf /tmp/odoo/restore
+        sudo rm -rf /tmp/odoo/restore
     else
         echo "[CLEANUP] Skip /tmp/odoo/restore (no permission)"
     fi
 
     if [ -d "/tmp/odoo/backup" ] && [ -w "/tmp/odoo/backup" ]; then
         echo "[CLEANUP] Removing /tmp/odoo/backup"
-        rm -rf /tmp/odoo/backup
+        sudo rm -rf /tmp/odoo/backup
     else
         echo "[CLEANUP] Skip /tmp/odoo/backup (no permission)"
     fi
 
     if [ -n "$GITHUB_WORKSPACE" ] && [ -d "$GITHUB_WORKSPACE" ]; then
         echo "[CLEANUP] Removing all files in workspace: $GITHUB_WORKSPACE"
-        rm -rf "$GITHUB_WORKSPACE"/* || echo "[CLEANUP] Skip workspace (no permission)"
+        sudo rm -rf "$GITHUB_WORKSPACE"/* || echo "[CLEANUP] Skip workspace (no permission)"
     fi
 
     show_separator "Cleanup finished"
