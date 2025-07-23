@@ -82,6 +82,8 @@ env:
     SERVER_HOST: ${{ vars.SERVER_HOST }}
     SERVER_USER: ${{ vars.SERVER_USER }}
     SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
+    SERVER_SH_HOST: 192.168.98.107
+    SERVER_SH_PORT: 22
     PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
     PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
     PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
@@ -494,6 +496,8 @@ jobs:
         runs-on: self-hosted
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
+            SERVER_HOST: ${{ runner.labels == 'self-hosted' && vars.SERVER_SH_HOST || vars.SERVER_HOST }}
+            SERVER_SSH_PORT: ${{ runner.labels == 'self-hosted' && vars.SERVER_SH_PORT || vars.SERVER_SSH_PORT }}
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
