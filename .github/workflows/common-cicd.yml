@@ -82,8 +82,8 @@ env:
     SERVER_HOST: ${{ vars.SERVER_HOST }}
     SERVER_USER: ${{ vars.SERVER_USER }}
     SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
-    SERVER_SH_HOST: 192.168.98.107
-    SERVER_SH_PORT: 22
+    SERVER_SH_HOST: "192.168.98.107" # self-hosted server host
+    SERVER_SH_PORT: "22" # self-hosted server ssh port
     PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
     PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
     PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
@@ -512,13 +512,6 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
-
-            - name: Override server host/port if self-hosted
-              run: |
-                  if [[ "${{ runner.labels }}" == *"self-hosted"* ]]; then
-                    echo "SERVER_HOST=192.168.98.107" >> $GITHUB_ENV
-                    echo "SERVER_SSH_PORT=22" >> $GITHUB_ENV
-                  fi
 
             - name: Download backup file
               uses: ./.github/actions/scp-ssh
