@@ -82,8 +82,6 @@ env:
     SERVER_HOST: ${{ vars.SERVER_HOST }}
     SERVER_USER: ${{ vars.SERVER_USER }}
     SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
-    SERVER_SH_HOST: "192.168.98.107" # self-hosted server host
-    SERVER_SH_PORT: "22" # self-hosted server ssh port
     PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
     PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
     PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
@@ -376,7 +374,6 @@ jobs:
                 fi
                 if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
                   echo "NEED_NEW_SERVER_BACKUP_FILE=-1" >> $GITHUB_ENV
-                  echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
                 fi
 
             - name: Get the latest backup file from existing backup path on server
@@ -496,8 +493,10 @@ jobs:
         runs-on: self-hosted
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
-            SERVER_HOST: ${{ runner.labels == 'self-hosted' && vars.SERVER_SH_HOST || vars.SERVER_HOST }}
-            SERVER_SSH_PORT: ${{ runner.labels == 'self-hosted' && vars.SERVER_SH_PORT || vars.SERVER_SSH_PORT }}
+            SERVER_SH_HOST: "192.168.98.107" # self-hosted server host
+            SERVER_SH_PORT: "22" # self-hosted server ssh port
+            SERVER_HOST: ${{ runner.labels == 'self-hosted' && env.SERVER_SH_HOST || env.SERVER_HOST }}
+            SERVER_SSH_PORT: ${{ runner.labels == 'self-hosted' && env.SERVER_SH_PORT || env.SERVER_SSH_PORT }}
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
             GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
@@ -512,6 +511,12 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
+
+            - name: Check if integration test steps should be ignored
+              run: |
+                  if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
+                    echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
+                  fi
 
             - name: Download backup file
               uses: ./.github/actions/scp-ssh
