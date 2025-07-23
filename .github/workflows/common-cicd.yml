@@ -511,7 +511,7 @@ jobs:
 
             - name: Override server host/port if self-hosted
               run: |
-                  if [[ "${{ runner.name }}" == *"self-hosted"* ]]; then
+                  if [[ "${{ runner.labels }}" == *"self-hosted"* ]]; then
                     echo "SERVER_HOST=192.168.98.107" >> $GITHUB_ENV
                     echo "SERVER_SSH_PORT=22" >> $GITHUB_ENV
                   fi
