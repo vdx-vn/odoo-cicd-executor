@@ -522,11 +522,8 @@ jobs:
                     echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
                   fi
 
-            - name: Debug runner labels
-              run: echo "RUNNER_LABELS = $RUNNER_LABELS"
-
             - name: Override server host/port if self-hosted
-              if: contains(env.RUNNER_LABELS, 'self-hosted')
+#              if: needs.prepare-backup.outputs.use_self_hosted == 'true'
               run: |
                   echo "SERVER_HOST=${{ env.SERVER_SH_HOST }}"  >> $GITHUB_ENV
                   echo "SERVER_SSH_PORT=${{ env.SERVER_SH_PORT }}" >> $GITHUB_ENV
