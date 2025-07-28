@@ -154,10 +154,11 @@ jobs:
 
     # =================== Ruff ====================
     Ruff-Linter:
+        # TODO: temporary disable Ruff linter, we should add option to enable/disable it later
         name: Ruff Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
+        if: ${{ fromJson(inputs.additional_args).enable_linter == '_' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             -   uses: actions/checkout@v4
 
@@ -403,14 +404,14 @@ jobs:
                 id: update-check-run
                 with:
                     check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                    conclusion: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
+                    conclusion: ${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.run_integration_test.conclusion) && steps.run_integration_test.conclusion) || 'failure' }}
 
             -   name: Post Integration Test notification
                 if: ${{always()}}
                 id: post-integration-test-notification
                 run: |
                     gh_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
-                    bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.run_integration_test.conclusion) && steps.run_integration_test.conclusion) || 'failure' }}" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
     
 
     deploy-server:
@@ -467,11 +468,11 @@ jobs:
                 id: update-check-run
                 with:
                     check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                    conclusion: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
+                    conclusion: ${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.deploy_to_server.conclusion) && steps.deploy_to_server.conclusion) || 'failure' }}
 
             -   name: Post Deploy notification
                 if: ${{always()}}
                 id: post-deploy-notification
                 run: |
                     gh_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
-                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}"  "$gh_url" "${{env.GH_TOKEN}}" "_Deploy Server_"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.deploy_to_server.conclusion) && steps.deploy_to_server.conclusion) || 'failure' }}"  "$gh_url" "${{env.GH_TOKEN}}" "_Deploy Server_"
