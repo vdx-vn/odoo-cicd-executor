@@ -229,6 +229,126 @@ function update_ignore_file_config_ruff {
     sed -i "/extend-exclude/c\\${ignore_commands}" "$config_file"
 }
 
+# ====== SAST Functions =======
+function get_ignore_file_command_bandit {
+    ignore_addons=$1
+    if [ -z "${ignore_addons:-}" ]; then
+        echo "exclude_dirs: []"
+        return 0
+    fi
+    command=
+    if [[ -n $ignore_addons ]]; then
+        backup_IFS=$IFS
+        IFS=","
+        for addon_name in $ignore_addons; do
+            if [[ -z $command ]]; then
+                command="- \"$addon_name\""
+            else
+                command+="\n  - \"$addon_name\""
+            fi
+        done
+        IFS=$backup_IFS
+    fi
+    command="exclude_dirs:\n  $command"
+    echo -e $command
+}
+
+function update_ignore_file_config_bandit {
+    ignore_addons=$1
+    config_file=$2
+    ignore_commands=$(get_ignore_file_command_bandit "$ignore_addons")
+    tmp_file=$(mktemp)
+    awk -v repl="$ignore_commands" '
+        BEGIN {inblock=0}
+        /^exclude_dirs:/ {print repl; inblock=1; next}
+        inblock && /^[^ ]/ {inblock=0}
+        !inblock {print}
+    ' "$config_file" > "$tmp_file" && mv "$tmp_file" "$config_file"
+}
+
+function generate_bandit_summary_report {
+    bandit_output=$1
+    report_file=$2
+
+    echo "# SAST Security Scan Report (Bandit)" > "$report_file"
+    echo "" >> "$report_file"
+    echo "**Scan Date:** $(date)" >> "$report_file"
+    echo "**Repository:** $REPOSITORY" >> "$report_file"
+    echo "**Branch:** $TARGET_BRANCH" >> "$report_file"
+    echo "" >> "$report_file"
+
+    # Bandit results
+    if [[ -f "$bandit_output" ]]; then
+        bandit_issues=$(jq '.results | length' "$bandit_output" 2>/dev/null || echo "0")
+        echo "## 🔍 Security Issues Found: $bandit_issues" >> "$report_file"
+        echo "" >> "$report_file"
+
+        if [[ "$bandit_issues" -gt 0 ]]; then
+            echo "### Detailed Issues:" >> "$report_file"
+            echo "" >> "$report_file"
+
+            # Group by severity
+            high_issues=$(jq '.results[] | select(.issue_severity == "HIGH")' "$bandit_output" 2>/dev/null)
+            medium_issues=$(jq '.results[] | select(.issue_severity == "MEDIUM")' "$bandit_output" 2>/dev/null)
+            low_issues=$(jq '.results[] | select(.issue_severity == "LOW")' "$bandit_output" 2>/dev/null)
+
+            # High severity issues
+            if [[ -n "$high_issues" ]]; then
+                echo "#### High Severity Issues:" >> "$report_file"
+                jq -r '.results[] | select(.issue_severity == "HIGH") | "- **\(.filename):\(.line_number)** - \(.issue_text) (Test: \(.test_name))"' "$bandit_output" >> "$report_file" 2>/dev/null
+                echo "" >> "$report_file"
+            fi
+
+            # Medium severity issues
+            if [[ -n "$medium_issues" ]]; then
+                echo "#### Medium Severity Issues:" >> "$report_file"
+                jq -r '.results[] | select(.issue_severity == "MEDIUM") | "- **\(.filename):\(.line_number)** - \(.issue_text) (Test: \(.test_name))"' "$bandit_output" >> "$report_file" 2>/dev/null
+                echo "" >> "$report_file"
+            fi
+
+            # Low severity issues
+            if [[ -n "$low_issues" ]]; then
+                echo "#### Low Severity Issues:" >> "$report_file"
+                jq -r '.results[] | select(.issue_severity == "LOW") | "- **\(.filename):\(.line_number)** - \(.issue_text) (Test: \(.test_name))"' "$bandit_output" >> "$report_file" 2>/dev/null
+                echo "" >> "$report_file"
+            fi
+
+            # Summary by severity
+            high_count=$(echo "$high_issues" | jq -s 'length' 2>/dev/null || echo "0")
+            medium_count=$(echo "$medium_issues" | jq -s 'length' 2>/dev/null || echo "0")
+            low_count=$(echo "$low_issues" | jq -s 'length' 2>/dev/null || echo "0")
+
+            echo "### 📊 Summary:" >> "$report_file"
+            echo "- High: $high_count" >> "$report_file"
+            echo "- Medium: $medium_count" >> "$report_file"
+            echo "- Low: $low_count" >> "$report_file"
+            echo "- **Total: $bandit_issues**" >> "$report_file"
+            echo "" >> "$report_file"
+
+            # Check against threshold
+            severity_threshold="${SAST_SEVERITY_THRESHOLD:-medium}"
+            if [[ "$severity_threshold" == "high" && "$high_count" -gt 0 ]]; then
+                echo "## ⚠️ Security scan failed: High severity issues found!" >> "$report_file"
+                exit 1
+            elif [[ "$severity_threshold" == "medium" && ($high_count -gt 0 || $medium_count -gt 0) ]]; then
+                echo "## ⚠️ Security scan failed: Medium or higher severity issues found!" >> "$report_file"
+                exit 1
+            else
+                echo "## ✅ Security scan passed: No issues above threshold ($severity_threshold)!" >> "$report_file"
+                exit 0
+            fi
+        else
+            echo "## ✅ No security issues found!" >> "$report_file"
+            echo "" >> "$report_file"
+            echo "Your code passed all security checks! 🎉" >> "$report_file"
+            exit 0
+        fi
+    else
+        echo "## ❌ Error: Could not read Bandit output file" >> "$report_file"
+        exit 1
+    fi
+}
+
 # declare all useful functions here
 function sad_emojis() {
     echo "😢 😭 😞 😔 😟 😩 😫 😓 😥 😰 😨 😧 😦 🙁 ☹️ 😣 😖 😱 😡 🤬 😠 😤 😪 😒 😌 😕 😬 🙄 👾 🧟 💔 💩 🐛 🦗 🦟 🐜 🐝 🐞 🪲 🪳 🦂 🕷️ 🕸️ 🦠 🦂 🧠 🙀 🤢 🤮 🤧 🥺 😵 🤯 🥴 🤕 🤒 😷 🤐 🤫 🤥 🤔 💀 ☠️ 👹 👿 👻 😬 😮‍💨 😓 🤨 😔 🫥 🫠 🙃 🥹 😶 😶‍🌫️ 😐 😑 🫤 🫡 🥱 🫨 🤐 🤢 🤮 💔 💦 🫧 🧊 🧯 🛑 ⛔ 📛 🚫 ❌ ⭕ 🔄 🔙 🔚 ⚠️ ⛔ 🚫 🚳 🚭 🚯 🚱 🚷 📵 🔞 ‼️ ⁉️ ❓ ❔ ❕ ❗ 〽️ ⚠️ 🔅 🔆 💢"
