@@ -275,7 +275,7 @@ jobs:
         name: Static Application Security Testing_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.action == 'test' || inputs.action == 'deploy'
+        if: ${{ fromJson(inputs.additional_args).enable_sast == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             -   uses: actions/checkout@v4
 
@@ -509,12 +509,6 @@ jobs:
 
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
-
-            - name: Override server host/port if self-hosted
-              if: contains(runner.labels, 'self-hosted')
-              run: |
-                  echo "SERVER_HOST=${{ env.SERVER_SH_HOST }}"  >> $GITHUB_ENV
-                  echo "SERVER_SSH_PORT=${{ env.SERVER_SH_PORT }}" >> $GITHUB_ENV
 
             - name: Check if integration test steps should be ignored
               run: |
