@@ -295,7 +295,7 @@ jobs:
                 # so this case, we should generate a new DB backup
             -   name: Make decision to create a new backup on server
                 run: |
-                    if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{env.SERVER_BACKUP_PATH}} != "_" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
+                    if [[ -n "${{env.SERVER_BACKUP_PATH}}" && "${{env.SERVER_BACKUP_PATH}}" != "_" && "${{ env.GITHUB_RUN_ATTEMPT }}" == "1" ]]; then
                       echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
                     else
                       echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
