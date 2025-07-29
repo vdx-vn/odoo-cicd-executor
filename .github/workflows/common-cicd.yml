@@ -62,15 +62,17 @@ env:
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
 
+    # ==== Vault secrets ====
+    VAULT_ADDR: ${{ secrets.VAULT_ADDR }} # Vault address
+    VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }} # Vault token
+    VAULT_SECRET_PATHS: ${{ secrets.VAULT_SECRET_PATHS }} # Comma-separated list of Vault secret paths (KV v2)
+
     # ==== Repository secrets ====
 #    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
 #    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
 #    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to GitHub container registry
 
     # ==== Environment secrets =====
-    VAULT_ADDR: https://secret.vdx.vn
-    VAULT_TOKEN: hvs.CAESIHMNadql--2VqIZw-mYevOQqCLDE1FLHHxpubtDw0tH5Gh4KHGh2cy5yZGhPSDNUWTdjbUl0bFZnYzFkeUxWako # Vault token to access secrets
-    VAULT_SECRET_PATHS: vdx-vn/cicd-test/dev/ # Comma-separated list of Vault secret paths (KV v2)
 #    TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
 #    TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
 #    SLACK_CHANNEL_ID: ${{secrets.SLACK_CHANNEL_ID}}
@@ -111,9 +113,9 @@ jobs:
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
                 with:
-                    vault_addr: ${{ env.VAULT_ADDR }}
-                    token: ${{ env.VAULT_TOKEN }}
-                    secret_paths: ${{ env.VAULT_SECRET_PATHS }}
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -173,9 +175,9 @@ jobs:
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
                 with:
-                    vault_addr: ${{ env.VAULT_ADDR }}
-                    token: ${{ env.VAULT_TOKEN }}
-                    secret_paths: ${{ env.VAULT_SECRET_PATHS }}
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -230,9 +232,9 @@ jobs:
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
                 with:
-                    vault_addr: ${{ env.VAULT_ADDR }}
-                    token: ${{ env.VAULT_TOKEN }}
-                    secret_paths: ${{ env.VAULT_SECRET_PATHS }}
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -268,9 +270,9 @@ jobs:
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
                 with:
-                    vault_addr: ${{ env.VAULT_ADDR }}
-                    token: ${{ env.VAULT_TOKEN }}
-                    secret_paths: ${{ env.VAULT_SECRET_PATHS }}
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -303,9 +305,9 @@ jobs:
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
                 with:
-                    vault_addr: ${{ env.VAULT_ADDR }}
-                    token: ${{ env.VAULT_TOKEN }}
-                    secret_paths: ${{ env.VAULT_SECRET_PATHS }}
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -387,9 +389,9 @@ jobs:
             - name: get-secrets-vault
               uses: ./.github/actions/get-secrets-vault
               with:
-                  vault_addr: ${{ env.VAULT_ADDR }}
-                  token: ${{ env.VAULT_TOKEN }}
-                  secret_paths: ${{ env.VAULT_SECRET_PATHS }}
+                  vault_addr: ${{ secrets.VAULT_ADDR }}
+                  token: ${{ secrets.VAULT_TOKEN }}
+                  secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
                 
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
@@ -537,9 +539,9 @@ jobs:
             - name: get-secrets-vault
               uses: ./.github/actions/get-secrets-vault
               with:
-                  vault_addr: ${{ env.VAULT_ADDR }}
-                  token: ${{ env.VAULT_TOKEN }}
-                  secret_paths: ${{ env.VAULT_SECRET_PATHS }}
+                  vault_addr: ${{ secrets.VAULT_ADDR }}
+                  token: ${{ secrets.VAULT_TOKEN }}
+                  secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
@@ -609,9 +611,9 @@ jobs:
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
                 with:
-                    vault_addr: ${{ env.VAULT_ADDR }}
-                    token: ${{ env.VAULT_TOKEN }}
-                    secret_paths: ${{ env.VAULT_SECRET_PATHS }}
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
