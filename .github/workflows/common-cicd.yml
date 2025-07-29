@@ -62,35 +62,40 @@ env:
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
 
+    # ==== Vault secrets ====
+    VAULT_ADDR: ${{ secrets.VAULT_ADDR }} # Vault address
+    VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }} # Vault token
+    VAULT_SECRET_PATHS: ${{ secrets.VAULT_SECRET_PATHS }} # Comma-separated list of Vault secret paths (KV v2)
+
     # ==== Repository secrets ====
-    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
-    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
-    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to GitHub container registry
+#    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
+#    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
+#    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to GitHub container registry
 
     # ==== Environment secrets =====
-    TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
-    TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
-    SLACK_CHANNEL_ID: ${{secrets.SLACK_CHANNEL_ID}}
-    SLACK_TOKEN: ${{secrets.SLACK_TOKEN}}
-    SERVER_PRIVATE_KEY: ${{secrets.SERVER_PRIVATE_KEY}}
-    PROXY_SERVER_PRIVATE_KEY: ${{secrets.PROXY_SERVER_PRIVATE_KEY}}
-    SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
+#    TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
+#    TELEGRAM_TOKEN: ${{secrets.TELEGRAM_TOKEN}}
+#    SLACK_CHANNEL_ID: ${{secrets.SLACK_CHANNEL_ID}}
+#    SLACK_TOKEN: ${{secrets.SLACK_TOKEN}}
+#    SERVER_PRIVATE_KEY: ${{secrets.SERVER_PRIVATE_KEY}}
+#    PROXY_SERVER_PRIVATE_KEY: ${{secrets.PROXY_SERVER_PRIVATE_KEY}}
+#    SERVER_DB_PASSWORD: ${{secrets.SERVER_DB_PASSWORD}}
 
     # ===== Environment variables =====
-    ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
-    DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
-    SERVER_HOST: ${{ vars.SERVER_HOST }}
-    SERVER_USER: ${{ vars.SERVER_USER }}
-    SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
-    PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
-    PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
-    PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
-    SERVER_SH_HOST: ${{ vars.SERVER_SH_HOST }} # "192.168.98.107": self-hosted server host
-    SERVER_SH_PORT: ${{ vars.SERVER_SH_PORT }} # "22": self-hosted server ssh port
-    SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
-    SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
-    SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
-    SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }} # add _ to this environment variable to always create backup file from server
+#    ODOO_IMAGE_TAG: ${{ vars.ODOO_IMAGE_TAG }}
+#    DB_IMAGE_TAG: ${{ vars.DB_IMAGE_TAG }}
+#    SERVER_HOST: ${{ vars.SERVER_HOST }}
+#    SERVER_USER: ${{ vars.SERVER_USER }}
+#    SERVER_SSH_PORT: ${{ vars.SERVER_SSH_PORT }}
+#    PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
+#    PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
+#    PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
+#    SERVER_SH_HOST: ${{ vars.SERVER_SH_HOST }} # "192.168.98.107": self-hosted server host
+#    SERVER_SH_PORT: ${{ vars.SERVER_SH_PORT }} # "22": self-hosted server ssh port
+#    SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
+#    SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
+#    SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
+#    SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }} # add _ to this environment variable to always create backup file from server
 
     # ===== Handle Input for actions/github-script ======
     INPUT_REPO_NAME: ${{inputs.repo_name}}
@@ -101,11 +106,16 @@ jobs:
     Pylint-Linter:
         name: Pylint Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
 
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/get-secrets-vault
+                with:
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -156,12 +166,18 @@ jobs:
 
     # =================== Ruff ====================
     Ruff-Linter:
+        # TODO: temporary disable Ruff linter, we should add option to enable/disable it later
         name: Ruff Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
+        if: ${{ fromJson(inputs.additional_args).enable_linter == '_' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/get-secrets-vault
+                with:
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -210,10 +226,15 @@ jobs:
     unit-test-at-install:
         name: Unit test at install_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/get-secrets-vault
+                with:
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -243,10 +264,15 @@ jobs:
     unit-test-post-install:
         name: Unit test post install_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/get-secrets-vault
+                with:
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -273,10 +299,15 @@ jobs:
     static-application-security-testing:
         name: Static Application Security Testing_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.action == 'test' || inputs.action == 'deploy'
+        if: ${{ fromJson(inputs.additional_args).enable_sast == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/get-secrets-vault
+                with:
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -330,19 +361,18 @@ jobs:
                     conclusion: ${{ steps.generate-sast-report.conclusion == 'success' && 'success' || 'failure' }}
 
             -   name: Send SAST result to external Chat application
+                if: ${{always()}}
                 run: |
                     source ${{env.CICD_UTILS_SCRIPTS_PATH}}
                     result=${{ steps.generate-sast-report.conclusion == 'success' && 'success' || 'failure' }}
                     if [[ $result == "failure" ]]; then
                       send_file_notification "${{env.WORKSPACE}}/sast-report.md" "🔒SAST Security Scan Issues🔒"
                     fi
-                if: ${{always()}}
 
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         if: inputs.action == 'deploy'
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         outputs:
           server_latest_backup_file_path: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_path }}
           check_run_id: ${{ steps.create-check-run.outputs.check-run-id }}
@@ -356,6 +386,13 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+            - name: get-secrets-vault
+              uses: ./.github/actions/get-secrets-vault
+              with:
+                  vault_addr: ${{ secrets.VAULT_ADDR }}
+                  token: ${{ secrets.VAULT_TOKEN }}
+                  secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
+                
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
@@ -492,7 +529,6 @@ jobs:
         name: _Integration Test_${{inputs.repo_name}}
         needs: prepare-backup
         runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
@@ -500,6 +536,13 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+            - name: get-secrets-vault
+              uses: ./.github/actions/get-secrets-vault
+              with:
+                  vault_addr: ${{ secrets.VAULT_ADDR }}
+                  token: ${{ secrets.VAULT_TOKEN }}
+                  secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
+
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
@@ -556,15 +599,21 @@ jobs:
               id: post-integration-test-notification
               run: |
                   gh_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
+                  bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.run_integration_test.conclusion) && steps.run_integration_test.conclusion) || 'failure' }}" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
+
 
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
         steps:
             -   uses: actions/checkout@v4
+            -   name: get-secrets-vault
+                uses: ./.github/actions/get-secrets-vault
+                with:
+                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    token: ${{ secrets.VAULT_TOKEN }}
+                    secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
@@ -612,11 +661,11 @@ jobs:
                 id: update-check-run
                 with:
                     check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                    conclusion: ${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}
+                    conclusion: ${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.deploy_to_server.conclusion) && steps.deploy_to_server.conclusion) || 'failure' }}
 
             -   name: Post Deploy notification
                 if: ${{always()}}
                 id: post-deploy-notification
                 run: |
                     gh_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
-                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ steps.deploy_to_server.conclusion == 'success' && 'success' || 'failure' }}"  "$gh_url" "${{env.GH_TOKEN}}" "_Deploy Server_"
+                    bash ${{env.CICD_SCRIPTS_PATH}}/post-server-deploy.sh "${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.deploy_to_server.conclusion) && steps.deploy_to_server.conclusion) || 'failure' }}"  "$gh_url" "${{env.GH_TOKEN}}" "_Deploy Server_"
