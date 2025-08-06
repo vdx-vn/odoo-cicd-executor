@@ -210,8 +210,12 @@ reset_config_file() {
 }
 
 update_odoo_services() {
-    cd "${server_docker_compose_path}"
-    docker compose restart
+    odoo_container_id=$(get_odoo_container_id $odoo_image_tag)
+    if [[ -z $odoo_container_id ]]; then
+        echo "There is no running Odoo container with tag name '$odoo_image_tag'"
+        exit 1
+    fi
+    docker restart $odoo_container_id
 }
 
 function get_odoo_login_url() {
