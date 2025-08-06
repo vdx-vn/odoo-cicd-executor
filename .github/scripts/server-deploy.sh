@@ -230,7 +230,7 @@ function wait_until_odoo_available {
     IFS=',' read -ra separate_addons_list <<<$CUSTOM_ADDONS
     total_addons=${#separate_addons_list[@]}
     # each block wait 5s
-    maximum_count=$((24 + ((total_addons * ESITATE_TIME_EACH_ADDON) / 5)))
+    maximum_count=$((24 + (total_addons * ESITATE_TIME_EACH_ADDON) / 5)))
     count=1
     if [[ $maximum_count -le $count ]]; then
         return
