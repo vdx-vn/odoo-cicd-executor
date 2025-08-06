@@ -210,8 +210,12 @@ reset_config_file() {
 }
 
 update_odoo_services() {
-    cd "${server_docker_compose_path}"
-    docker compose restart
+    odoo_container_id=$(get_odoo_container_id $odoo_image_tag)
+    if [[ -z $odoo_container_id ]]; then
+        echo "There is no running Odoo container with tag name '$odoo_image_tag'"
+        exit 1
+    fi
+    docker restart $odoo_container_id
 }
 
 function get_odoo_login_url() {
@@ -230,7 +234,7 @@ function wait_until_odoo_available {
     IFS=',' read -ra separate_addons_list <<<$CUSTOM_ADDONS
     total_addons=${#separate_addons_list[@]}
     # each block wait 5s
-    maximum_count=$((24 + (total_addons * ESITATE_TIME_EACH_ADDON) / 5))
+    maximum_count=$(((total_addons * ESITATE_TIME_EACH_ADDON) / 5))
     count=1
     if [[ $maximum_count -le $count ]]; then
         return
