@@ -20,13 +20,14 @@ get_config_value() {
 }
 
 function get_odoo_container_id {
-    docker ps -q -a | xargs docker inspect --format '{{.Id}} {{.Config.Image}}' | awk -v img="${odoo_image_tag}" '$2 == img {print $1}'
+    cd "${server_docker_compose_path}"
+    docker compose ps -q odoo
 }
 
 execute_command_inside_odoo_container() {
-    odoo_container_id=$(get_odoo_container_id $odoo_image_tag)
+    odoo_container_id=$(get_odoo_container_id)
     if [[ -z $odoo_container_id ]]; then
-        echo "There is no running Odoo container with tag name '$odoo_image_tag'"
+        echo "There is no running Odoo container"
         exit 1
     fi
     docker exec $odoo_container_id sh -c "$@"
@@ -210,9 +211,9 @@ reset_config_file() {
 }
 
 update_odoo_services() {
-    odoo_container_id=$(get_odoo_container_id $odoo_image_tag)
+    odoo_container_id=$(get_odoo_container_id)
     if [[ -z $odoo_container_id ]]; then
-        echo "There is no running Odoo container with tag name '$odoo_image_tag'"
+        echo "There is no running Odoo container"
         exit 1
     fi
     docker restart $odoo_container_id
