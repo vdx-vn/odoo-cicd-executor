@@ -606,8 +606,7 @@ jobs:
                     proxy_user: ${{env.PROXY_SERVER_USER}}
                     proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                     script: |
-                        IGNORE_AUTO_INSTALL_ADDONS=$(echo '${{ inputs.additional_args }}' | jq -r '.ignore_auto_install // empty')
-#                        IGNORE_AUTO_INSTALL_ADDONS=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_linters')
+                        IGNORE_AUTO_INSTALL_ADDONS=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_auto_install')
                         echo "test here====================="
                         echo $IGNORE_AUTO_INSTALL_ADDONS
                         echo "test here====================="
