@@ -5,7 +5,7 @@ server_config_file=$3         # the path to Odoo config file
 server_odoo_url=$4            # odoo service url, to check service is up or not
 server_odoo_db_name=$5
 server_odoo_db_password=$6
-odoo_image_tag=$7
+ignore_auto_install_addons=$7 # if true, then don't install addons automatically, just update them
 
 original_repo_remote_name="origin"
 CUSTOM_ADDONS=
@@ -51,7 +51,8 @@ get_list_of_addons_to_be_installed() {
         return
     fi
     list_installed_addons=$(get_list_installed_addons)
-    echo $(get_unique_addons_list_with_other_addons_list "$list_changed_addons" "$list_installed_addons")
+    filtered_need_to_be_installed=$(get_unique_addons_list_with_other_addons_list "$list_changed_addons" "$list_installed_addons")
+    echo $(get_unique_addons_list_with_other_addons_list "$filtered_need_to_be_installed" "$ignore_auto_install_addons")
 }
 
 function get_changed_files_and_folders_addons_name {
@@ -180,6 +181,10 @@ set_list_addons() {
     declare -g TO_INSTALL_ADDONS
     CUSTOM_ADDONS=$(get_list_changed_addons "$server_custom_addons_path")
     TO_INSTALL_ADDONS=$(get_list_of_addons_to_be_installed "$CUSTOM_ADDONS")
+    echo "=========================="
+    echo "Install me"
+    echo $TO_INSTALL_ADDONS
+    echo "=========================="
 }
 
 update_config_file() {
