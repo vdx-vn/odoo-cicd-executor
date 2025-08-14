@@ -61,6 +61,7 @@ env:
     PR_URL: ${{ inputs.pr_url }}
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
+    IGNORE_AUTO_INSTALL_ADDONS: ${{ fromJson(inputs.additional_args).ignore_auto_install || 'false' }}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
@@ -596,6 +597,7 @@ jobs:
                     SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
                     SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
                     SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
+                    IGNORE_AUTO_INSTALL_ADDONS: ${{env.IGNORE_AUTO_INSTALL_ADDONS }}
                 with:
                     host: ${{env.SERVER_HOST}}
                     port: ${{env.SERVER_SSH_PORT}}
@@ -606,11 +608,7 @@ jobs:
                     proxy_user: ${{env.PROXY_SERVER_USER}}
                     proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                     script: |
-                        IGNORE_AUTO_INSTALL_ADDONS=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_auto_install')
-                        echo "test here====================="
-                        echo $IGNORE_AUTO_INSTALL_ADDONS
-                        echo "test here====================="
-                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "$IGNORE_AUTO_INSTALL_ADDONS"
+                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.IGNORE_AUTO_INSTALL_ADDONS }}"
 
             -   name: Update Check Run
                 uses: ./.github/actions/update-check-run
