@@ -557,6 +557,11 @@ jobs:
               run: |
                   bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
 
+            - name: Force fail (for testing notification)
+              run: |
+                  echo "🚨 Forcing integration test failure"
+                  exit 1
+
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
               if: ${{always()}}
