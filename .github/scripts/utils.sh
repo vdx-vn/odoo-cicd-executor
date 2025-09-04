@@ -661,21 +661,18 @@ function create_telegram_failed_message() {
     local sad_emojis=$5
 
 #    local telegram_user=$(find_telegram_user "$github_username")
-    local telegram_user="drewsec"
+    local telegram_user="@drewsec"
 
     local user_tag=""
 
     if [ -n "$telegram_user" ]; then
-        if [[ "$telegram_user" =~ ^@ ]]; then
-            user_tag="\\n\\n👤 Responsible Developer: $telegram_user"
-        else
-            user_tag="\\n\\n👤 Responsible Developer: [User](tg://user?id=$telegram_user)"
-        fi
+        user_tag="👤 Responsible Developer: $telegram_user"
     fi
 
     cat <<EOF
 ❌🐞❌ ${test_type}: A few test cases for the [PR \\#$pr_number]($pr_url) did not pass\\! $sad_emojis
-Please take a look at the attached log file🔬$user_tag
+Please take a look at the attached log file🔬
+$user_tag
 EOF
 }
 # ------------------- General notification -------------------
