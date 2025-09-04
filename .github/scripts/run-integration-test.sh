@@ -165,6 +165,8 @@ function main() {
     restore_backup
     wait_until_odoo_shutdown
 
+    sad_emojis=$(random_sad_emojis)
+
     failed_message=$(
         cat <<EOF
 ❌🐞❌ Integration Test: The <${PR_URL}|PR #${PR_NUMBER}> was merged but the database test failed!
@@ -178,7 +180,7 @@ EOF
 # EOF
 #     )
 
-    telegram_failed_message=$(create_telegram_failed_message "Integration Test" "$PR_NUMBER" "$PR_URL" "$commit_author" "$sad_emojis")
+    telegram_failed_message=$(create_telegram_failed_message "Integration Test" "$PR_NUMBER" "$PR_URL" "$COMMIT_AUTHOR" "$sad_emojis")
 
     analyze_log_file "$failed_message" "$telegram_failed_message"
 }
