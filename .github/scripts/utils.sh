@@ -638,18 +638,15 @@ function find_telegram_user() {
     local mapping_file="$WORKSPACE/.github/notification/user-mapping.json"
 
     if [ -f "$mapping_file" ]; then
-        local telegram_username=$(jq -r ".github_users.\"$github_username\".telegram_username" "$mapping_file" 2>/dev/null)
-        local telegram_id=$(jq -r ".github_users.\"$github_username\".telegram_id" "$mapping_file" 2>/dev/null)
-
-        if [ "$telegram_username" != "null" ] && [ "$telegram_username" != "" ]; then
-            echo "$telegram_username"
-        elif [ "$telegram_id" != "null" ] && [ "$telegram_id" != "" ]; then
-            echo "$telegram_id"
+        local raw=$(jq -r ".github_users.\"$github_username\".telegram_username // .github_users.\"$github_username\"" "$mapping_file" 2>/dev/null)
+        if [ "$raw" != "null" ] && [ -n "$raw" ]; then
+            raw="${raw#@}"
+            echo "@$raw"
         else
-            echo ""
+            echo "0"
         fi
     else
-        echo ""
+        echo "0"
     fi
 }
 
@@ -660,11 +657,9 @@ function create_telegram_failed_message() {
     local github_username=$4
     local sad_emojis=$5
 
-#    local telegram_user=$(find_telegram_user "$github_username")
-    local telegram_user="@drewsec"
-
+    local telegram_user=$(find_telegram_user "$github_username")
+    # local telegram_user="@drewsec"
     local user_tag=""
-
     if [ -n "$telegram_user" ]; then
         user_tag="👤 Responsible Developer: $telegram_user"
     fi
