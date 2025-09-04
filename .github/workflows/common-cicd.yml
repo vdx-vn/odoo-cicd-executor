@@ -61,6 +61,8 @@ env:
     PR_URL: ${{ inputs.pr_url }}
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
+    COMMIT_AUTHOR: ${{ inputs.commit_author || github.actor }}
+    COMMIT_AUTHOR_NAME: ${{ inputs.commit_author_name || github.event.head_commit.author.name || github.actor }}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
@@ -224,12 +226,17 @@ jobs:
 
             -   name: Test Preparation
                 uses: ./.github/actions/prepare-test-data
+
             -   name: Print run id
                 run: |
                     echo "Run ID: ${{ github.run_id }}"
                     echo "Job ID: ${{ github.job }}"
+
             -   name: Run Unit test cases
                 id: run_at_install_unit_test
+                env:
+                    COMMIT_AUTHOR: ${{ env.COMMIT_AUTHOR }}
+                    COMMIT_AUTHOR_NAME: ${{ env.COMMIT_AUTHOR_NAME }}
                 run: |
                     bash $CICD_SCRIPTS_PATH/run-unit-test.sh "at_install"
 
@@ -260,6 +267,9 @@ jobs:
 
             -   name: Run Unit test cases
                 id: run_post_install_unit_test
+                env:
+                    COMMIT_AUTHOR: ${{ env.COMMIT_AUTHOR }}
+                    COMMIT_AUTHOR_NAME: ${{ env.COMMIT_AUTHOR_NAME }}
                 run: |
                     bash $CICD_SCRIPTS_PATH/run-unit-test.sh "post_install"
 
@@ -541,6 +551,9 @@ jobs:
             - name: Run Integration test
               id: run_integration_test
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
+              env:
+                  COMMIT_AUTHOR: ${{ env.COMMIT_AUTHOR }}
+                  COMMIT_AUTHOR_NAME: ${{ env.COMMIT_AUTHOR_NAME }}
               run: |
                   bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
 

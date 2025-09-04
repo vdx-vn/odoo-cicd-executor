@@ -632,4 +632,48 @@ function send_file_notification {
     send_slack_file_default "$file_path" "$caption" || true
     send_telegram_file_default "$file_path" "$telegram_caption" || true
 }
+
+function find_telegram_user() {
+    local github_username=$1
+    local mapping_file="$WORKSPACE/.github/config/user-mapping.json"
+
+    if [ -f "$mapping_file" ]; then
+        local telegram_username=$(jq -r ".github_users.\"$github_username\".telegram_username" "$mapping_file" 2>/dev/null)
+        local telegram_id=$(jq -r ".github_users.\"$github_username\".telegram_id" "$mapping_file" 2>/dev/null)
+
+        if [ "$telegram_username" != "null" ] && [ "$telegram_username" != "" ]; then
+            echo "$telegram_username"
+        elif [ "$telegram_id" != "null" ] && [ "$telegram_id" != "" ]; then
+            echo "$telegram_id"
+        else
+            echo ""
+        fi
+    else
+        echo ""
+    fi
+}
+
+function create_telegram_failed_message() {
+    local test_type=$1
+    local pr_number=$2
+    local pr_url=$3
+    local github_username=$4
+    local sad_emojis=$5
+
+    local telegram_user=$(find_telegram_user "$github_username")
+    local user_tag=""
+
+    if [ -n "$telegram_user" ]; then
+        if [[ "$telegram_user" =~ ^@ ]]; then
+            user_tag="\\n\\n👤 **Responsible Developer:** $telegram_user"
+        else
+            user_tag="\\n\\n👤 **Responsible Developer:** [User]($telegram_user)"
+        fi
+    fi
+
+    cat <<EOF
+❌🐞❌ ${test_type}: A few test cases for the [PR \\#$pr_number]($pr_url) did not pass\\! $sad_emojis
+Please take a look at the attached log file🔬$user_tag
+EOF
+}
 # ------------------- General notification -------------------

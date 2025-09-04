@@ -42,6 +42,14 @@ on:
                 required: false
                 type: string
                 default: "{}"
+            commit_author:
+                description: "GitHub username of the commit author"
+                required: false
+                type: string
+            commit_author_name:
+                description: "Full name of the commit author"
+                required: false
+                type: string            
             # enable_linter:
             #     required: false
             #     type: boolean
@@ -69,4 +77,6 @@ jobs:
             pr_url: ${{ inputs.pr_url }}
             ignore_test: ${{inputs.ignore_test}}
             additional_args: ${{ inputs.additional_args }}
+            commit_author: ${{ inputs.commit_author }}
+            commit_author_name: ${{ inputs.commit_author_name }}
         secrets: inherit

@@ -171,12 +171,15 @@ function main() {
 Please take a look at the attached log file🔬
 EOF
     )
-    telegram_failed_message=$(
-        cat <<EOF
-❌🐞❌ Integration Test: The [PR \\#$PR_NUMBER]($PR_URL) was merged but the database test failed\\!🐞
-Please take a look at the attached log file🔬
-EOF
-    )
+#     telegram_failed_message=$(
+#         cat <<EOF
+# ❌🐞❌ Integration Test: The [PR \\#$PR_NUMBER]($PR_URL) was merged but the database test failed\\!🐞
+# Please take a look at the attached log file🔬
+# EOF
+#     )
+
+    telegram_failed_message=$(create_telegram_failed_message "Integration Test" "$PR_NUMBER" "$PR_URL" "$commit_author" "$sad_emojis")
+
     analyze_log_file "$failed_message" "$telegram_failed_message"
 }
 
