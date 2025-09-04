@@ -634,12 +634,13 @@ function send_file_notification {
 }
 
 function find_telegram_user() {
-    local github_username=$1
+    local github_username="$1"
     local mapping_file="$WORKSPACE/.github/notification/user-mapping.json"
 
     if [ -f "$mapping_file" ]; then
-        local raw=$(jq -r ".github_users.\"$github_username\".telegram_username // .github_users.\"$github_username\"" "$mapping_file" 2>/dev/null)
-        if [ "$raw" != "null" ] && [ -n "$raw" ]; then
+        local raw
+        raw=$(jq -r ".github_users.\"$github_username\"" "$mapping_file" 2>/dev/null)
+        if [ -n "$raw" ] && [ "$raw" != "null" ]; then
             raw="${raw#@}"
             echo "@$raw"
         else

@@ -510,6 +510,11 @@ jobs:
               with:
                   name: "Integration test"
 
+            - name: Force fail (for testing notification)
+              run: |
+                  echo "🚨 Forcing integration test failure"
+                  exit 1
+
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
 
@@ -546,11 +551,6 @@ jobs:
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               run: |
                   bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
-
-            - name: Force fail (for testing notification)
-              run: |
-                  echo "🚨 Forcing integration test failure"
-                  exit 1
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
