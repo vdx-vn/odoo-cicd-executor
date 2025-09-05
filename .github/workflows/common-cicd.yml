@@ -61,7 +61,7 @@ env:
     PR_URL: ${{ inputs.pr_url }}
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
-    COMMIT_AUTHOR: ${{ fromJson(inputs.additional_args).pr_author || github.actor }}
+    COMMIT_AUTHOR: ${{ fromJson(inputs.additional_args).pr_author }}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
