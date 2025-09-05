@@ -180,7 +180,7 @@ EOF
 # EOF
 #     )
 
-    telegram_failed_message=$(create_telegram_failed_message "$type_message" "$PR_NUMBER" "$PR_URL" "$COMMIT_AUTHOR" "$sad_emojis")
+    telegram_failed_message=$(create_telegram_failed_message "Integration Test" "$PR_NUMBER" "$PR_URL" "$COMMIT_AUTHOR" "$sad_emojis")
 
     analyze_log_file "$failed_message" "$telegram_failed_message"
 }
