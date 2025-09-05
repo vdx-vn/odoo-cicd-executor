@@ -6,6 +6,8 @@ function main {
     gh_url=$2
     gh_token=$3
     prefix_job_name=$4
+    local commit_author="${COMMIT_AUTHOR:-$GITHUB_ACTOR}"
+
     if [[ $status == "success" ]]; then
         happy_emojis=$(random_happy_emojis)
         message=$(
@@ -24,12 +26,13 @@ EOF
 Please take a look into the <${job_url}|CICD Log 🔬>
 EOF
         )
-        telegram_message=$(
-            cat <<EOF
-❌🐞❌ The [PR \\#$PR_NUMBER]($PR_URL) was merged but the deployment to the server failed\\! $sad_emojis
-Please take a look into the [CICD Log 🔬]($job_url)
-EOF
-        )
+         telegram_message=$(
+             cat <<EOF
+ ❌🐞❌ The [PR \\#$PR_NUMBER]($PR_URL) was merged but the deployment to the server failed\\! $sad_emojis
+ Please take a look into the [CICD Log 🔬]($job_url)
+ EOF
+         )
+
         send_message_notification "$message" "$telegram_message"
     fi
 }

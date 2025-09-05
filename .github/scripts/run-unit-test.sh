@@ -62,12 +62,8 @@ Please take a look at the attached log file🔬
 EOF
     )
 
-    telegram_failed_message=$(
-        cat <<EOF
-❌🐞❌ ${type_message}: A few unit test cases for the [PR \\#$PR_NUMBER]($PR_URL) did not pass\\! $sad_emojis
-Please take a look at the attached log file🔬
-EOF
-    )
+    telegram_failed_message=$(create_telegram_failed_message "$type_message" "$PR_NUMBER" "$PR_URL" "$COMMIT_AUTHOR" "$sad_emojis")
+
     analyze_log_file "$failed_message" "$telegram_failed_message"
 }
 
