@@ -510,11 +510,6 @@ jobs:
               with:
                   name: "Integration test"
 
-            - name: Force fail (for testing notification)
-              run: |
-                  echo "🚨 Forcing integration test failure"
-                  exit 1
-
             - name: Test Preparation
               uses: ./.github/actions/prepare-test-data
 
@@ -565,8 +560,7 @@ jobs:
               id: post-integration-test-notification
               run: |
                   gh_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
-                  bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "failure" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
-#                  bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.run_integration_test.conclusion) && steps.run_integration_test.conclusion) || 'failure' }}" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
+                  bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.run_integration_test.conclusion) && steps.run_integration_test.conclusion) || 'failure' }}" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
 
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}

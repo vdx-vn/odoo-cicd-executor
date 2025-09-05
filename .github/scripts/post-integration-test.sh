@@ -21,7 +21,6 @@ EOF
 Please take a look into the [CICD Log 🔬]($job_url)
 EOF
         )
-#        telegram_message=$(create_telegram_failed_message "Integration Test" "$PR_NUMBER" "$PR_URL" "$COMMIT_AUTHOR" "😞")
 
         send_message_notification "$message" "$telegram_message"
     fi
