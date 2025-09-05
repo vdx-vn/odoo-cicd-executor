@@ -32,7 +32,6 @@ EOF
  Please take a look into the [CICD Log 🔬]($job_url)
  EOF
          )
-#        telegram_message=$(create_telegram_failed_message "Deploy Server" "$PR_NUMBER" "$PR_URL" "$commit_author" "😞")
 
         send_message_notification "$message" "$telegram_message"
     fi

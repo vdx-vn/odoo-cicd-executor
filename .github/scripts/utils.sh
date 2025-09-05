@@ -659,7 +659,6 @@ function create_telegram_failed_message() {
     local sad_emojis=$5
 
     local telegram_user=$(find_telegram_user "$github_username")
-    # local telegram_user="@drewsec"
     local user_tag=""
     if [ -n "$telegram_user" ]; then
         user_tag="👤 Responsible Developer: $telegram_user"
