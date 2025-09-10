@@ -8,7 +8,11 @@ main() {
     populate_variables "$@"
     check_required_files
     backup_file_path=$(create_backup_inside_container)
-    copy_backup_to_host $backup_file_path
+    host_backup_path=$(copy_backup_to_host "$backup_file_path")
+    backup_file_size=$(get_file_size "$host_backup_path")
+
+    echo "${host_backup_path}|${backup_file_size}"
+
     delete_old_backup_files_inside_container
 }
 
@@ -170,6 +174,15 @@ create_zip_file_backup() {
     new_backup_zip_file_path="${sub_backup_folder_name}.zip"
     execute_command_inside_odoo_container "cd $sub_backup_folder && zip -rq ../${new_backup_zip_file_path} . && rm -rf $sub_backup_folder_name"
     echo "${docker_backup_folder}/${new_backup_zip_file_path}"
+}
+
+get_file_size() {
+    local file_path="$1"
+    if [[ -f "$file_path" ]]; then
+        stat -c%s "$file_path"
+    else
+        echo 0
+    fi
 }
 
 delete_old_backup_files_inside_container() {

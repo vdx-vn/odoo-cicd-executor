@@ -90,12 +90,82 @@ restore_backup() {
     restart_instance
 }
 
+# ===================== CLEANUP FUNCTIONS ==========================
+function cleanup_after_integration_test {
+    show_separator "Start cleanup after integration test"
+
+    odoo_container_id=$(get_odoo_container_id)
+    if [ -n "$odoo_container_id" ]; then
+        echo "[CLEANUP] Removing Odoo container: $odoo_container_id"
+        docker rm -f "$odoo_container_id" >/dev/null 2>&1 || true
+    fi
+
+    db_container_id=$(docker ps -aq --filter "name=db")
+    if [ -n "$db_container_id" ]; then
+        echo "[CLEANUP] Removing DB container: $db_container_id"
+        docker rm -f $db_container_id >/dev/null 2>&1 || true
+    fi
+
+    echo "[CLEANUP] Pruning exited/dangling containers"
+    docker container prune -f >/dev/null 2>&1 || true
+
+    echo "[CLEANUP] Removing unused Docker images"
+    docker image prune -a -f >/dev/null 2>&1 || true
+
+    DANGLING_VOLUMES=$(docker volume ls -f "dangling=true" -q)
+    if [ -n "$DANGLING_VOLUMES" ]; then
+        echo "[CLEANUP] Removing dangling volumes"
+        docker volume rm $DANGLING_VOLUMES >/dev/null 2>&1 || true
+    fi
+
+    TEST_NETWORKS=$(docker network ls --filter "dangling=true" -q)
+    if [ -n "$TEST_NETWORKS" ]; then
+        echo "[CLEANUP] Removing dangling networks"
+        docker network rm $TEST_NETWORKS >/dev/null 2>&1 || true
+    fi
+
+    if [ -n "$received_backup_file_path" ] && [ -f "$received_backup_file_path" ]; then
+        echo "[CLEANUP] Removing temporary backup file: $received_backup_file_path"
+        sudo rm -f "$received_backup_file_path"
+    fi
+
+    if [ -n "$ODOO_LOG_FILE_HOST" ] && [ -f "$ODOO_LOG_FILE_HOST" ]; then
+        echo "[CLEANUP] Removing Odoo log file: $ODOO_LOG_FILE_HOST"
+        sudo rm -f "$ODOO_LOG_FILE_HOST"
+    fi
+
+    if [ -d "/tmp/odoo/restore" ] && [ -w "/tmp/odoo/restore" ]; then
+        echo "[CLEANUP] Removing /tmp/odoo/restore"
+        sudo rm -rf /tmp/odoo/restore
+    else
+        echo "[CLEANUP] Skip /tmp/odoo/restore (no permission)"
+    fi
+
+    if [ -d "/tmp/odoo/backup" ] && [ -w "/tmp/odoo/backup" ]; then
+        echo "[CLEANUP] Removing /tmp/odoo/backup"
+        sudo rm -rf /tmp/odoo/backup
+    else
+        echo "[CLEANUP] Skip /tmp/odoo/backup (no permission)"
+    fi
+
+    if [ -n "$GITHUB_WORKSPACE" ] && [ -d "$GITHUB_WORKSPACE" ]; then
+        echo "[CLEANUP] Removing all files in workspace: $GITHUB_WORKSPACE"
+        sudo rm -rf "$GITHUB_WORKSPACE"/* || echo "[CLEANUP] Skip workspace (no permission)"
+    fi
+
+    show_separator "Cleanup finished"
+}
+
 function main() {
     populate_variables "$@"
+    trap cleanup_after_integration_test EXIT
+
     update_config_file
     start_containers
     restore_backup
     wait_until_odoo_shutdown
+
+    sad_emojis=$(random_sad_emojis)
 
     failed_message=$(
         cat <<EOF
@@ -103,12 +173,9 @@ function main() {
 Please take a look at the attached log file🔬
 EOF
     )
-    telegram_failed_message=$(
-        cat <<EOF
-❌🐞❌ Integration Test: The [PR \\#$PR_NUMBER]($PR_URL) was merged but the database test failed\\!🐞
-Please take a look at the attached log file🔬
-EOF
-    )
+
+    telegram_failed_message=$(create_telegram_failed_message "Integration Test" "$PR_NUMBER" "$PR_URL" "$COMMIT_AUTHOR" "$sad_emojis")
+
     analyze_log_file "$failed_message" "$telegram_failed_message"
 }
 

@@ -21,6 +21,7 @@ EOF
 Please take a look into the [CICD Log 🔬]($job_url)
 EOF
         )
+
         send_message_notification "$message" "$telegram_message"
     fi
 }

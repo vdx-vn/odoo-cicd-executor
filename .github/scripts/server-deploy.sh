@@ -12,21 +12,22 @@ CUSTOM_ADDONS=
 
 get_config_value() {
     param=$1
-    grep -q -E \"^\s*\b${param}\b\s*=\" "$server_config_file"
+    grep -q -E "^\s*${param}\s*=" "$server_config_file"
     if [[ $? == 0 ]]; then
-        value=$(grep -E \"^\s*\b${param}\b\s*=\" "$server_config_file" | cut -d \" \" -f3 | sed 's/[\"\n\r]//g')
+        value=$(grep -E "^\s*${param}\s*=" "$server_config_file" | head -n1 | cut -d '=' -f2- | xargs)
     fi
     echo "$value"
 }
 
 function get_odoo_container_id {
-    docker ps -q -a | xargs docker inspect --format '{{.Id}} {{.Config.Image}}' | awk -v img="${odoo_image_tag}" '$2 == img {print $1}'
+    cd "${server_docker_compose_path}"
+    docker compose ps -q odoo
 }
 
 execute_command_inside_odoo_container() {
-    odoo_container_id=$(get_odoo_container_id $odoo_image_tag)
+    odoo_container_id=$(get_odoo_container_id)
     if [[ -z $odoo_container_id ]]; then
-        echo "There is no running Odoo container with tag name '$odoo_image_tag'"
+        echo "There is no running Odoo container"
         exit 1
     fi
     docker exec $odoo_container_id sh -c "$@"
@@ -210,8 +211,12 @@ reset_config_file() {
 }
 
 update_odoo_services() {
-    cd "${server_docker_compose_path}"
-    docker compose restart
+    odoo_container_id=$(get_odoo_container_id)
+    if [[ -z $odoo_container_id ]]; then
+        echo "There is no running Odoo container"
+        exit 1
+    fi
+    docker restart $odoo_container_id
 }
 
 function get_odoo_login_url() {
@@ -230,7 +235,7 @@ function wait_until_odoo_available {
     IFS=',' read -ra separate_addons_list <<<$CUSTOM_ADDONS
     total_addons=${#separate_addons_list[@]}
     # each block wait 5s
-    maximum_count=$(((total_addons * ESITATE_TIME_EACH_ADDON) / 5))
+    maximum_count=$((24 + ((total_addons * ESITATE_TIME_EACH_ADDON) / 5)))
     count=1
     if [[ $maximum_count -le $count ]]; then
         return

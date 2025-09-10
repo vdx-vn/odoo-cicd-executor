@@ -61,6 +61,7 @@ env:
     PR_URL: ${{ inputs.pr_url }}
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
+    COMMIT_AUTHOR: ${{ fromJson(inputs.additional_args).pr_author }}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
@@ -85,6 +86,8 @@ env:
     PROXY_SERVER_HOST: ${{ vars.PROXY_SERVER_HOST }}
     PROXY_SERVER_USER: ${{ vars.PROXY_SERVER_USER }}
     PROXY_SERVER_SSH_PORT: ${{ vars.PROXY_SERVER_SSH_PORT }}
+    SERVER_SH_HOST: ${{ vars.SERVER_SH_HOST }} # "192.168.98.107": self-hosted server host
+    SERVER_SH_PORT: ${{ vars.SERVER_SH_PORT }} # "22": self-hosted server ssh port
     SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
     SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
@@ -222,10 +225,12 @@ jobs:
 
             -   name: Test Preparation
                 uses: ./.github/actions/prepare-test-data
+
             -   name: Print run id
                 run: |
                     echo "Run ID: ${{ github.run_id }}"
                     echo "Job ID: ${{ github.job }}"
+
             -   name: Run Unit test cases
                 id: run_at_install_unit_test
                 run: |
@@ -269,134 +274,56 @@ jobs:
                     check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                     conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
 
-    integration-test:
-        name: _Integration Test_${{inputs.repo_name}}
+    static-application-security-testing:
+        name: Static Application Security Testing_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        env:
-            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
-            SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
-            SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
-            GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
-
+        if: ${{ fromJson(inputs.additional_args).enable_sast == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             -   uses: actions/checkout@v4
+
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
                 id: create-check-run
                 with:
-                    name: "Integration test"
+                    name: "SAST Security Scan"
 
             -   name: Test Preparation
                 uses: ./.github/actions/prepare-test-data
 
-                # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
-                # so this case, we should generate a new DB backup
-            -   name: Make decision to create a new backup on server
-                run: |
-                    if [[ -n "${{env.SERVER_BACKUP_PATH}}" && "${{env.SERVER_BACKUP_PATH}}" != "_" && "${{ env.GITHUB_RUN_ATTEMPT }}" == "1" ]]; then
-                      echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
-                    else
-                      echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
-                    fi
-                    if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
-                      echo "NEED_NEW_SERVER_BACKUP_FILE=-1" >> $GITHUB_ENV
-                      echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
-                    fi
-
-            -   name: Get the latest backup file from existing backup path on server
-                uses: ./.github/actions/ssh-script
-                id: get-latest-backup-file
-                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
+            -   name: Setup Python
+                uses: actions/setup-python@v3
                 with:
-                    host: ${{env.SERVER_HOST}}
-                    port: ${{env.SERVER_SSH_PORT}}
-                    user: ${{env.SERVER_USER}}
-                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                    proxy_host: ${{env.PROXY_SERVER_HOST}}
-                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                    proxy_user: ${{env.PROXY_SERVER_USER}}
-                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                    set-output: 1
-                    script: |
-                        latest_file=\$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
-                        if [[ -n \$latest_file ]]; then
-                          echo ${{ env.SERVER_BACKUP_PATH }}/\$latest_file
-                        fi
+                    python-version: ${{ fromJson(inputs.additional_args).python_version || '3.8'}}
 
-            -   name: Update server backup file path variable
-                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
+            -   name: Install Bandit
                 run: |
-                    latest_backup_file_path=${{ steps.get-latest-backup-file.outputs.script-output }}
-                    if [[ -n "$latest_backup_file_path" ]]; then
-                      echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
-                    else
-                      echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
-                    fi
+                    python -m pip install --upgrade pip
+                    pip install bandit
 
-            -   name: Upload backup script file to server
-                uses: ./.github/actions/scp-ssh
-                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
-                with:
-                    direction: "upload"
-                    host: ${{env.SERVER_HOST}}
-                    port: ${{env.SERVER_SSH_PORT}}
-                    user: ${{env.SERVER_USER}}
-                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                    proxy_host: ${{env.PROXY_SERVER_HOST}}
-                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                    proxy_user: ${{env.PROXY_SERVER_USER}}
-                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                    local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
-                    server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-
-            -   name: "Backup Odoo on server"
-                uses: ./.github/actions/ssh-script
-                id: backup-on-server
-                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
-                with:
-                    host: ${{env.SERVER_HOST}}
-                    port: ${{env.SERVER_SSH_PORT}}
-                    user: ${{env.SERVER_USER}}
-                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                    proxy_host: ${{env.PROXY_SERVER_HOST}}
-                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                    proxy_user: ${{env.PROXY_SERVER_USER}}
-                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                    set-output: 1
-                    script: |
-                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh "${{env.SERVER_DEPLOY_PATH}}" "${{env.SERVER_ODOO_DB_NAME}}" "${{secrets.SERVER_DB_PASSWORD}}" "${{env.ODOO_IMAGE_TAG}}" ${{ env.GITHUB_RUN_ATTEMPT }} "${{ env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
-
-            -   name: Update server backup file path variable
-                if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+            -   name: Run Bandit Security Scan
+                id: bandit-scan
                 run: |
-                    latest_backup_file_path=${{ steps.backup-on-server.outputs.script-output }}
-                    if [[ -n "$latest_backup_file_path" ]]; then
-                      echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
-                    fi
+                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                    ignore_sast=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_sast')
+                    
+                    bandit_config_file="${{env.WORKSPACE}}/.github/sast/bandit.yaml"
+                    update_ignore_file_config_bandit "$ignore_sast" "$bandit_config_file"
+                    
+                    cd ${{env.REPO_PATH}}
+                    bandit \
+                        --configfile "$bandit_config_file" \
+                        --format json \
+                        --output ${{env.WORKSPACE}}/bandit-output.json \
+                        --recursive . || true
 
-            -   name: "Download backup file"
-                uses: ./.github/actions/scp-ssh
-                if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
-                with:
-                    direction: "download"
-                    host: ${{env.SERVER_HOST}}
-                    port: ${{env.SERVER_SSH_PORT}}
-                    user: ${{env.SERVER_USER}}
-                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                    proxy_host: ${{env.PROXY_SERVER_HOST}}
-                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                    proxy_user: ${{env.PROXY_SERVER_USER}}
-                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                    local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
-                    server_file: ${{ env.SERVER_LATEST_BACKUP_FILE_PATH }}
-
-            -   name: "Run Integration test"
-                id: run_integration_test
-                if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
+            -   name: Generate SAST Report
+                id: generate-sast-report
                 run: |
-                    bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
+                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                    generate_bandit_summary_report \
+                        "${{env.WORKSPACE}}/bandit-output.json" \
+                        "${{env.WORKSPACE}}/sast-report.md" || true
 
             -   name: Update Check Run
                 uses: ./.github/actions/update-check-run
@@ -404,15 +331,237 @@ jobs:
                 id: update-check-run
                 with:
                     check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                    conclusion: ${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.run_integration_test.conclusion) && steps.run_integration_test.conclusion) || 'failure' }}
+                    conclusion: ${{ steps.generate-sast-report.conclusion == 'success' && 'success' || 'failure' }}
 
-            -   name: Post Integration Test notification
+            -   name: Send SAST result to external Chat application
                 if: ${{always()}}
-                id: post-integration-test-notification
                 run: |
-                    gh_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
-                    bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.run_integration_test.conclusion) && steps.run_integration_test.conclusion) || 'failure' }}" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
-    
+                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
+                    result=${{ steps.generate-sast-report.conclusion == 'success' && 'success' || 'failure' }}
+                    if [[ $result == "failure" ]]; then
+                      send_file_notification "${{env.WORKSPACE}}/sast-report.md" "🔒SAST Security Scan Issues🔒"
+                    fi
+
+    prepare-backup:
+        name: Prepare backup_${{inputs.repo_name}}
+        runs-on: ubuntu-latest
+        if: inputs.action == 'deploy'
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        outputs:
+          server_latest_backup_file_path: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_path }}
+          check_run_id: ${{ steps.create-check-run.outputs.check-run-id }}
+          use_self_hosted: ${{ steps.determine-runner.outputs.use_self_hosted }}
+        env:
+          LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
+          SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
+          SERVER_LATEST_BACKUP_FILE_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}/.odoo.zip
+          SERVER_LATEST_BACKUP_FILE_SIZE: 0
+          GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
+              id: create-check-run
+              with:
+                  name: "Prepare backup"
+
+            - name: Test Preparation
+              uses: ./.github/actions/prepare-test-data
+
+              # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
+              # so this case, we should generate a new DB backup
+            - name: Make decision to create a new backup on server
+              run: |
+                if [[ -n ${{env.SERVER_BACKUP_PATH}} && ${{env.SERVER_BACKUP_PATH}} != "_" && ${{ env.GITHUB_RUN_ATTEMPT }} == 1 ]]; then
+                  echo "NEED_NEW_SERVER_BACKUP_FILE=0" >> $GITHUB_ENV
+                else
+                  echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                fi
+                if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
+                  echo "NEED_NEW_SERVER_BACKUP_FILE=-1" >> $GITHUB_ENV
+                fi
+
+            - name: Get the latest backup file from existing backup path on server
+              uses: ./.github/actions/ssh-script
+              id: get-latest-backup-file
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                  set-output: 1
+                  script: |
+                      latest_file=\$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
+                      if [[ -n \$latest_file ]]; then
+                        file_path=${{ env.SERVER_BACKUP_PATH }}/\$latest_file
+                        file_size=\$(stat -c%s \$file_path)
+                        echo \$file_path\|\$file_size
+                      fi
+
+            - name: Update server backup file path variable
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
+              run: |
+                  output="${{ steps.get-latest-backup-file.outputs.script-output }}"
+                  latest_backup_file_path=$(echo "$output" | awk -F'|' '{print $1}')
+                  latest_backup_file_size=$(echo "$output" | awk -F'|' '{print $2}')
+                  if [[ -n "$latest_backup_file_path" ]]; then
+                    echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                    echo "SERVER_LATEST_BACKUP_FILE_SIZE=$latest_backup_file_size" >> $GITHUB_ENV
+                  else
+                    echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
+                  fi
+
+            - name: Upload backup script file to server
+              uses: ./.github/actions/scp-ssh
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+              with:
+                  direction: "upload"
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                  local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
+                  server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
+
+            - name: Backup Odoo on server
+              uses: ./.github/actions/ssh-script
+              id: backup-on-server
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+              with:
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                  set-output: 1
+                  script: |
+                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh \
+                        "${{env.SERVER_DEPLOY_PATH}}" \
+                        "${{env.SERVER_ODOO_DB_NAME}}" \
+                        "${{secrets.SERVER_DB_PASSWORD}}" \
+                        "${{env.ODOO_IMAGE_TAG}}" \
+                        ${{ env.GITHUB_RUN_ATTEMPT }} \
+                        "${{ (env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH != '_') && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
+
+            - name: Update server backup file path variable
+              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
+              id: update-server-backup-path
+              run: |
+                  output="${{ steps.backup-on-server.outputs.script-output }}"
+                  latest_backup_file_path=$(echo "$output" | awk -F'|' '{print $1}')
+                  latest_backup_file_size=$(echo "$output" | awk -F'|' '{print $2}')
+                  if [[ -n "$latest_backup_file_path" ]]; then
+                    echo "SERVER_LATEST_BACKUP_FILE_PATH=$latest_backup_file_path" >> $GITHUB_ENV
+                    echo "SERVER_LATEST_BACKUP_FILE_SIZE=$latest_backup_file_size" >> $GITHUB_ENV
+                  fi
+
+            - name: Set job output from ENV
+              id: set-latest-backup-path
+              run: |
+                  echo "server_latest_backup_file_path=$SERVER_LATEST_BACKUP_FILE_PATH" >> "$GITHUB_OUTPUT"
+
+            - name: Determine runner based on backup size
+              id: determine-runner
+              run: |
+                threshold=$((8*1024*1024*1024))
+                if [ "$SERVER_LATEST_BACKUP_FILE_SIZE" -gt "$threshold" ]; then
+                  echo "use_self_hosted=true" >> "$GITHUB_OUTPUT"
+                else
+                  echo "use_self_hosted=false" >> "$GITHUB_OUTPUT"
+                fi
+
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: ${{ steps.determine-runner.conclusion == 'success' && 'success' || 'failure' }}
+
+
+    integration-test:
+        name: _Integration Test_${{inputs.repo_name}}
+        needs: prepare-backup
+        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        env:
+            LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
+            SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
+            GITHUB_RUN_ATTEMPT: ${{github.run_attempt}}
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Create Check Run
+              uses: ./.github/actions/create-check-run
+              id: create-check-run
+              with:
+                  name: "Integration test"
+
+            - name: Test Preparation
+              uses: ./.github/actions/prepare-test-data
+
+            - name: Check if integration test steps should be ignored
+              run: |
+                  if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
+                    echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
+                  fi
+
+            - name: Override server host/port if self-hosted
+              if: needs.prepare-backup.outputs.use_self_hosted == 'true'
+              run: |
+                  echo "SERVER_HOST=${{ env.SERVER_SH_HOST }}"  >> $GITHUB_ENV
+                  echo "SERVER_SSH_PORT=${{ env.SERVER_SH_PORT }}" >> $GITHUB_ENV
+
+            - name: Download backup file
+              uses: ./.github/actions/scp-ssh
+              if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
+              with:
+                  direction: "download"
+                  host: ${{env.SERVER_HOST}}
+                  port: ${{env.SERVER_SSH_PORT}}
+                  user: ${{env.SERVER_USER}}
+                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+                  proxy_host: ${{env.PROXY_SERVER_HOST}}
+                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+                  proxy_user: ${{env.PROXY_SERVER_USER}}
+                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+                  local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
+                  server_file: ${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}
+
+            - name: Run Integration test
+              id: run_integration_test
+              if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
+              run: |
+                  bash ${{env.CICD_SCRIPTS_PATH}}/run-integration-test.sh "${{env.LOCAL_BACKUP_FILE_PATH}}" "${{inputs.commit_sha}}" "${{env.IGNORE_TEST}}"
+
+            - name: Update Check Run
+              uses: ./.github/actions/update-check-run
+              if: ${{always()}}
+              id: update-check-run
+              with:
+                  check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
+                  conclusion: ${{ steps.run_integration_test.conclusion == 'success' && 'success' || 'failure' }}
+
+            - name: Post Integration Test notification
+              if: ${{always()}}
+              id: post-integration-test-notification
+              run: |
+                  gh_url="https://api.github.com/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs"
+                  bash ${{env.CICD_SCRIPTS_PATH}}/post-integration-test.sh "${{ (contains(fromJson('["success","skipped", "cancelled"]'), steps.run_integration_test.conclusion) && steps.run_integration_test.conclusion) || 'failure' }}" "$gh_url" "${{env.GH_TOKEN}}" "_Integration Test_"
+
 
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
