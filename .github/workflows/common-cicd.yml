@@ -106,6 +106,7 @@ jobs:
     Pylint-Linter:
         name: Pylint Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: ${{ fromJson(inputs.additional_args).enable_linter == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
 
         steps:
@@ -169,6 +170,7 @@ jobs:
         # TODO: temporary disable Ruff linter, we should add option to enable/disable it later
         name: Ruff Linter_${{inputs.repo_name}}
         runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: ${{ fromJson(inputs.additional_args).enable_linter == '_' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             -   uses: actions/checkout@v4
@@ -226,6 +228,7 @@ jobs:
     unit-test-at-install:
         name: Unit test at install_${{inputs.repo_name}}
         runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
             -   uses: actions/checkout@v4
@@ -264,6 +267,7 @@ jobs:
     unit-test-post-install:
         name: Unit test post install_${{inputs.repo_name}}
         runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
         steps:
             -   uses: actions/checkout@v4
@@ -299,6 +303,7 @@ jobs:
     static-application-security-testing:
         name: Static Application Security Testing_${{inputs.repo_name}}
         runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: ${{ fromJson(inputs.additional_args).enable_sast == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
         steps:
             -   uses: actions/checkout@v4
@@ -372,6 +377,7 @@ jobs:
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
         runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'deploy'
         outputs:
           server_latest_backup_file_path: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_path }}
@@ -529,6 +535,7 @@ jobs:
         name: _Integration Test_${{inputs.repo_name}}
         needs: prepare-backup
         runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
             SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
@@ -605,6 +612,7 @@ jobs:
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
+        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
         steps:
             -   uses: actions/checkout@v4
