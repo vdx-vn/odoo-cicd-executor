@@ -118,6 +118,12 @@ jobs:
                     token: ${{ secrets.VAULT_TOKEN }}
                     secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
+            -   name: Debug Vault vars
+                run: |
+                    echo "ODOO_IMAGE_TAG=${ODOO_IMAGE_TAG:-<empty>}"
+                    echo "DB_IMAGE_TAG=${DB_IMAGE_TAG:-<empty>}"
+                    echo "GH_CHECK_RUNS_MANAGER_TOKEN prefix: ${GH_CHECK_RUNS_MANAGER_TOKEN:0:8}****"
+
             -   name: Create Check Run
                 uses: ./.github/actions/create-check-run
                 id: create-check-run
