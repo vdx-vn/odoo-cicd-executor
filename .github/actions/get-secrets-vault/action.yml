@@ -1,96 +1,52 @@
-name: get-secrets-vault
-description: Export KV v2 secrets from direct children (leaf) under a base folder
-
+name: 'get-secrets-vault'
+description: 'Export all key-value pairs from Vault secret path(s) to environment'
 inputs:
   vault_addr:
-    description: Vault address
     required: true
+    description: 'Vault address'
   token:
-    description: Vault token
     required: true
+    description: 'Vault token'
   secret_paths:
-    description: Comma-separated BASE folders (without mount), e.g. vdx-vn/cicd-test/dev
     required: true
-  mount:
-    description: KV v2 mount name
-    required: false
-    default: kv
-  skip_verify:
-    description: Set VAULT_SKIP_VERIFY (1 to skip TLS verify)
-    required: false
-    default: "1"
-
+    description: 'Comma-separated list of Vault secret paths (KV v2)'
 runs:
-  using: composite
+  using: "composite"
   steps:
     - shell: bash
       run: |
-        set -euo pipefail
-
-        command -v jq >/dev/null 2>&1 || { sudo apt-get update -y && sudo apt-get install -y jq; }
-        if ! command -v vault >/dev/null 2>&1; then
+        if ! command -v vault &> /dev/null; then
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
           sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-          sudo apt-get update -y && sudo apt-get install -y vault
+          sudo apt-get update && sudo apt-get install vault -y
         fi
-
         export VAULT_ADDR="${{ inputs.vault_addr }}"
         export VAULT_TOKEN="${{ inputs.token }}"
-        export VAULT_SKIP_VERIFY="${{ inputs.skip_verify }}"
-        MOUNT="${{ inputs.mount }}"
+        MOUNT="kv"
 
-        echo "[get-secrets-vault] VAULT_ADDR=$VAULT_ADDR"
-        echo "[get-secrets-vault] MOUNT=$MOUNT"
-        echo "[get-secrets-vault] BASES=${{ inputs.secret_paths }}"
-        echo "[get-secrets-vault] VAULT_SKIP_VERIFY=$VAULT_SKIP_VERIFY"
-
-        kv_get() {
-          local p="$1"
-          echo "[get-secrets-vault] GET  $MOUNT/$p"
-          vault kv get -mount="$MOUNT" -format=json "$p" 2> >(tee /dev/stderr >&2) || true
-        }
-        kv_list() {
-          echo "[get-secrets-vault] LIST $MOUNT/$1"
-          local out; out="$(vault kv list -mount="$MOUNT" -format=json "$1" 2> >(tee /dev/stderr >&2) || true)"
-          if [ -z "$out" ] || ! echo "$out" | jq -e . >/dev/null 2>&1; then
-            local p="$1"; [[ "$p" == */ ]] || p="$p/"
-            echo "[get-secrets-vault] LIST $MOUNT/$p"
-            out="$(vault kv list -mount="$MOUNT" -format=json "$p" 2> >(tee /dev/stderr >&2) || true)"
-          fi
-          printf "%s" "$out"
-        }
-        export_json() {
-          local js="$1"
-          [ -n "$js" ] && [ "$(echo "$js" | jq -r 'try .data.data != null catch "false"')" = "true" ] || return 1
-          echo "$js" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | while IFS='=' read -r k v; do
-            echo "${k^^}=$v" >> "$GITHUB_ENV"
+        get_all_secret_paths() {
+          local base_path="$1"
+          local children
+          children=$(vault kv list -mount="kv" -format=json "$base_path" 2>/dev/null | jq -r '.[]' || true)
+          for child in $children; do
+            if [[ "$child" == */ ]]; then
+              get_all_secret_paths "${base_path}${child}"
+            else
+              echo "${base_path}${child}"
+            fi
           done
         }
 
-        IFS=',' read -ra BASES <<< "${{ inputs.secret_paths }}"
-        exported=0
-        for base in "${BASES[@]}"; do
-          base="${base%/}"
-          # list các leaf trực tiếp: ví dụ 'infra', 'info', ...
-          children="$(kv_list "$base" | jq -r 'try .[] catch empty' 2>/dev/null || true)"
-          if [ -z "$children" ]; then
-            echo "[get-secrets-vault] Warning: No children under $base"
-            continue
-          fi
-          while IFS= read -r leaf; do
-            [ -z "$leaf" ] && continue
-            # chỉ đọc đúng cấp con (không đệ quy)
-            path="$base/$leaf"
-            js="$(kv_get "$path" | jq -r 'try . catch empty' 2>/dev/null || true)"
-            if export_json "$js"; then
-              echo "[get-secrets-vault] Exported keys from $path"
-              exported=1
+        IFS=',' read -ra PATHS <<< "${{ inputs.secret_paths }}"
+        for base_path in "${PATHS[@]}"; do
+          for secret_path in $(get_all_secret_paths "$base_path"); do
+            secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
+            if [ -n "$secret_json" ] && [ "$(echo "$secret_json" | jq '.data.data != null')" = "true" ]; then
+              echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | while IFS='=' read -r k v; do
+                echo "${k^^}=$v" >> $GITHUB_ENV
+              done
             else
-              echo "[get-secrets-vault] Warning: No data or cannot access $path" >&2
+              echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
             fi
-          done <<< "$children"
+          done
         done
-
-        if [ "$exported" -eq 0 ]; then
-          echo "[get-secrets-vault] Warning: No data exported from any base path!"
-        fi
