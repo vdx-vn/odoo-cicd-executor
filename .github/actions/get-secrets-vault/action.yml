@@ -1,11 +1,25 @@
-name: 'get-secrets-vault'
-description: 'Export KV v2 secrets from all leaf nodes under a base folder'
+name: get-secrets-vault
+description: Export KV v2 secrets from direct children (leaf) under a base folder
+
 inputs:
-  vault_addr:  { required: true,  description: 'Vault address' }
-  token:       { required: true,  description: 'Vault token' }
-  secret_paths:{ required: true,  description: 'Comma-separated BASE folders (without mount), e.g. vdx-vn/cicd-test/dev' }
-  mount:       { required: false, default: kv, description: 'KV v2 mount name' }
-  skip_verify: { required: false, default: '1', description: 'VAULT_SKIP_VERIFY (1 to skip TLS verify)' }
+  vault_addr:
+    description: Vault address
+    required: true
+  token:
+    description: Vault token
+    required: true
+  secret_paths:
+    description: Comma-separated BASE folders (without mount), e.g. vdx-vn/cicd-test/dev
+    required: true
+  mount:
+    description: KV v2 mount name
+    required: false
+    default: kv
+  skip_verify:
+    description: Set VAULT_SKIP_VERIFY (1 to skip TLS verify)
+    required: false
+    default: "1"
+
 runs:
   using: composite
   steps:
@@ -30,8 +44,11 @@ runs:
         echo "[get-secrets-vault] BASES=${{ inputs.secret_paths }}"
         echo "[get-secrets-vault] VAULT_SKIP_VERIFY=$VAULT_SKIP_VERIFY"
 
-        # ---- helpers (giữ log debug, tách stdout/stderr) ----
-        kv_get()  { echo "[get-secrets-vault] GET  $MOUNT/$1"; vault kv get  -mount="$MOUNT" -format=json "$1" 2> >(tee /dev/stderr >&2) || true; }
+        kv_get() {
+          local p="$1"
+          echo "[get-secrets-vault] GET  $MOUNT/$p"
+          vault kv get -mount="$MOUNT" -format=json "$p" 2> >(tee /dev/stderr >&2) || true
+        }
         kv_list() {
           echo "[get-secrets-vault] LIST $MOUNT/$1"
           local out; out="$(vault kv list -mount="$MOUNT" -format=json "$1" 2> >(tee /dev/stderr >&2) || true)"
@@ -42,7 +59,6 @@ runs:
           fi
           printf "%s" "$out"
         }
-
         export_json() {
           local js="$1"
           [ -n "$js" ] && [ "$(echo "$js" | jq -r 'try .data.data != null catch "false"')" = "true" ] || return 1
@@ -51,22 +67,30 @@ runs:
           done
         }
 
-        walk_children() {
-          local base="${1%/}"
-          local children; children="$(kv_list "$base" | jq -r 'try .[] catch empty' 2>/dev/null || true)"
-          [ -z "$children" ] && { echo "[get-secrets-vault] Warning: No children under $base"; return 0; }
-          while IFS= read -r child; do
-            [ -z "$child" ] && continue
-            local path="$base/$child"
-            # nếu list được => folder; ngược lại coi là leaf
-            if kv_list "$path" | jq -e . >/dev/null 2>&1; then
-              walk_children "$path"
+        IFS=',' read -ra BASES <<< "${{ inputs.secret_paths }}"
+        exported=0
+        for base in "${BASES[@]}"; do
+          base="${base%/}"
+          # list các leaf trực tiếp: ví dụ 'infra', 'info', ...
+          children="$(kv_list "$base" | jq -r 'try .[] catch empty' 2>/dev/null || true)"
+          if [ -z "$children" ]; then
+            echo "[get-secrets-vault] Warning: No children under $base"
+            continue
+          fi
+          while IFS= read -r leaf; do
+            [ -z "$leaf" ] && continue
+            # chỉ đọc đúng cấp con (không đệ quy)
+            path="$base/$leaf"
+            js="$(kv_get "$path" | jq -r 'try . catch empty' 2>/dev/null || true)"
+            if export_json "$js"; then
+              echo "[get-secrets-vault] Exported keys from $path"
+              exported=1
             else
-              export_json "$(kv_get "$path" | jq -r 'try . catch empty' 2>/dev/null || true)" \
-                || echo "[get-secrets-vault] Warning: No data or cannot access $path" >&2
+              echo "[get-secrets-vault] Warning: No data or cannot access $path" >&2
             fi
           done <<< "$children"
-        }
+        done
 
-        IFS=',' read -ra BASES <<< "${{ inputs.secret_paths }}"
-        for b in "${BASES[@]}"; do walk_children "$b"; done
+        if [ "$exported" -eq 0 ]; then
+          echo "[get-secrets-vault] Warning: No data exported from any base path!"
+        fi
