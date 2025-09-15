@@ -68,9 +68,9 @@ env:
     VAULT_SECRET_PATHS: ${{ secrets.VAULT_SECRET_PATHS }} # Comma-separated list of Vault secret paths (KV v2)
 
     # ==== Repository secrets ====
-#    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
-#    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
-#    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to GitHub container registry
+    GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
+    GH_CHECK_RUNS_MANAGER_TOKEN: ${{ secrets.GH_CHECK_RUNS_MANAGER_TOKEN }} # token use to create and update check run
+    GH_TOKEN: ${{secrets.GH_TOKEN}} # token use to build and push package to GitHub container registry
 
     # ==== Environment secrets =====
 #    TELEGRAM_CHANNEL_ID: ${{secrets.TELEGRAM_CHANNEL_ID}}
