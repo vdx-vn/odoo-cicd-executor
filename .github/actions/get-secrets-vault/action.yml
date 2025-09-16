@@ -44,6 +44,11 @@ runs:
             if [ -n "$secret_json" ] && [ "$(echo "$secret_json" | jq '.data.data != null')" = "true" ]; then
               echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | while IFS='=' read -r k v; do
                 echo "${k^^}=$v" >> $GITHUB_ENV
+                case "${k^^}" in
+                  SERVER_DB_PASSWORD|SERVER_PRIVATE_KEY|TELEGRAM_CHANNEL_ID|TELEGRAM_TOKEN)
+                    echo "::add-mask::$v"
+                    ;;
+                esac
               done
             else
               echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
