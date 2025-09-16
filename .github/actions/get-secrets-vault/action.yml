@@ -42,16 +42,15 @@ runs:
           for secret_path in $(get_all_secret_paths "$base_path"); do
             secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
             if [ -n "$secret_json" ] && [ "$(echo "$secret_json" | jq '.data.data != null')" = "true" ]; then
-              echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | while IFS='=' read -r k v; do
+              jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' <<< "$secret_json" | \
+              while IFS='=' read -r k v; do
                 if [[ "$k" =~ (PASSWORD|TOKEN|PRIVATE|KEY|ID) ]]; then
                   echo "::add-mask::$v"
-                  echo "$v" | tr ' ' '\n' | while read -r line; do
-                    if [[ -n "$line" ]]; then
-                      echo "::add-mask::$line"
-                    fi
-                  done
+                  while IFS= read -r line; do
+                    [[ -n "$line" ]] && echo "::add-mask::$line"
+                  done <<< "$v"
                 fi
-                echo "${k^^}=$v" >> $GITHUB_ENV
+                echo "${k^^}=$v" >> "$GITHUB_ENV"
               done
             else
               echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
