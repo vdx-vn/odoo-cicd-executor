@@ -15,8 +15,6 @@ runs:
   steps:
     - shell: bash
       run: |
-        set -euo pipefail
-
         if ! command -v vault &> /dev/null; then
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
           sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
@@ -43,23 +41,12 @@ runs:
         IFS=',' read -ra PATHS <<< "${{ inputs.secret_paths }}"
         for base_path in "${PATHS[@]}"; do
           for secret_path in $(get_all_secret_paths "$base_path"); do
-            secret_json=$(vault kv get -mount="$MOUNT" -format=json "$secret_path" 2>/dev/null || echo "")
+            secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
             if [ -n "$secret_json" ] && [ "$(echo "$secret_json" | jq '.data.data != null')" = "true" ]; then
-              echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | \
-              while IFS='=' read -r k v; do
-                KEY_UPPER=$(echo "$k" | tr '[:lower:]' '[:upper:]')
-                if [[ "$KEY_UPPER" == *PASSWORD* ]] || [[ "$KEY_UPPER" == *TOKEN* ]] || [[ "$KEY_UPPER" == *PRIVATE_KEY* ]]; then
-                  if [[ "$v" != *"/"* ]] && \
-                     [[ ! "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
-                     [[ ! "$v" =~ ^[A-Za-z0-9._-]+$ ]]; then
-                    echo "::add-mask::$v"
-                    echo "[get-secrets-vault] Masked key: $KEY_UPPER"
-                  else
-                    echo "[get-secrets-vault] Skip mask for $KEY_UPPER (looks like path/host/filename)"
-                  fi
-                fi
-                echo "[get-secrets-vault] Exporting key: $KEY_UPPER"
-                echo "$KEY_UPPER=$v" >> $GITHUB_ENV
+              echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | while IFS='=' read -r k v; do
+#                echo "::add-mask::$v"
+#                echo "[get-secrets-vault] Exporting key: ${k^^}"
+                echo "${k^^}=$v" >> $GITHUB_ENV
               done
             else
               echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
