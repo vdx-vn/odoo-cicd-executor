@@ -23,7 +23,6 @@ runs:
 
         export VAULT_ADDR="${{ inputs.vault_addr }}"
         export VAULT_TOKEN="${{ inputs.token }}"
-        MOUNT="kv"
 
         get_all_secret_paths() {
           local base_path="$1"
@@ -42,11 +41,20 @@ runs:
         for base_path in "${PATHS[@]}"; do
           for secret_path in $(get_all_secret_paths "$base_path"); do
             secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
-            if [ -n "$secret_json" ] && [ "$(echo "$secret_json" | jq '.data.data != null')" = "true" ]; then
-              echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | while IFS='=' read -r k v; do
-                echo "::add-mask::$v"
-                echo "[get-secrets-vault] Exporting key: ${k^^}"
-                echo "${k^^}=$v" >> $GITHUB_ENV
+            if [ -n "$secret_json" ] && [ "$(jq '.data.data != null' <<< "$secret_json")" = "true" ]; then
+              jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' <<< "$secret_json" | \
+              while IFS='=' read -r k v; do
+                key_upper=$(echo "$k" | tr '[:lower:]' '[:upper:]')
+                if [[ ! "$key_upper" =~ ^[A-Z0-9_]+$ ]]; then
+                  continue
+                fi
+                if [[ "$key_upper" =~ (PASSWORD|TOKEN|PRIVATE|KEY|ID) ]]; then
+                  echo "::add-mask::$v"
+                  while IFS= read -r line; do
+                    [[ -n "$line" ]] && echo "::add-mask::$line"
+                  done <<< "$v"
+                fi
+                echo "${key_upper}=$v" >> "$GITHUB_ENV"
               done
             else
               echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
