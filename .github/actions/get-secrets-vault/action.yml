@@ -48,13 +48,11 @@ runs:
               echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | \
               while IFS='=' read -r k v; do
                 KEY_UPPER=$(echo "$k" | tr '[:lower:]' '[:upper:]')
-                case "$KEY_UPPER" in
-                  *PASSWORD*|*TOKEN*|*SECRET*|*PRIVATE_KEY*)
-                    if [ -n "$v" ]; then
-                      echo "::add-mask::$v"
-                    fi
-                    ;;
-                esac
+                if [[ "$KEY_UPPER" == *PASSWORD* || "$KEY_UPPER" == *TOKEN* || "$KEY_UPPER" == *PRIVATE_KEY* ]]; then
+                  if [ -n "$v" ]; then
+                    echo "::add-mask::$v"
+                  fi
+                fi
                 echo "[get-secrets-vault] Exporting key: $KEY_UPPER"
                 echo "$KEY_UPPER=$v" >> $GITHUB_ENV
               done
