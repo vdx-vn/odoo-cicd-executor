@@ -48,9 +48,14 @@ runs:
               echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | \
               while IFS='=' read -r k v; do
                 KEY_UPPER=$(echo "$k" | tr '[:lower:]' '[:upper:]')
-                if [[ "$KEY_UPPER" == *PASSWORD* || "$KEY_UPPER" == *TOKEN* || "$KEY_UPPER" == *PRIVATE_KEY* ]]; then
-                  if [ -n "$v" ]; then
+                if [[ "$KEY_UPPER" == *PASSWORD* ]] || [[ "$KEY_UPPER" == *TOKEN* ]] || [[ "$KEY_UPPER" == *PRIVATE_KEY* ]]; then
+                  if [[ "$v" != *"/"* ]] && \
+                     [[ ! "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+                     [[ ! "$v" =~ ^[A-Za-z0-9._-]+$ ]]; then
                     echo "::add-mask::$v"
+                    echo "[get-secrets-vault] Masked key: $KEY_UPPER"
+                  else
+                    echo "[get-secrets-vault] Skip mask for $KEY_UPPER (looks like path/host/filename)"
                   fi
                 fi
                 echo "[get-secrets-vault] Exporting key: $KEY_UPPER"
