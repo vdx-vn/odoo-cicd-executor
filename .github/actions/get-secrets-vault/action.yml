@@ -43,8 +43,13 @@ runs:
             secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
             if [ -n "$secret_json" ] && [ "$(echo "$secret_json" | jq '.data.data != null')" = "true" ]; then
               echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | while IFS='=' read -r k v; do
-                if [[ "$k" =~ (PASSWORD|TOKEN|PRIVATE|KEY) ]]; then
+                if [[ "$k" =~ (PASSWORD|TOKEN|PRIVATE|KEY|ID) ]]; then
                   echo "::add-mask::$v"
+                  echo "$v" | tr ' ' '\n' | while read -r line; do
+                    if [[ -n "$line" ]]; then
+                      echo "::add-mask::$line"
+                    fi
+                  done
                 fi
                 echo "${k^^}=$v" >> $GITHUB_ENV
               done
