@@ -44,9 +44,14 @@ runs:
             secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
             if [ -n "$secret_json" ] && [ "$(echo "$secret_json" | jq '.data.data != null')" = "true" ]; then
               echo "$secret_json" | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' | while IFS='=' read -r k v; do
-                echo "::add-mask::$v"
-                echo "[get-secrets-vault] Exporting key: ${k^^}"
-                echo "${k^^}=$v" >> $GITHUB_ENV
+                KEY_UPPER=$(echo "$k" | tr '[:lower:]' '[:upper:]')
+                case "$KEY_UPPER" in
+                  *PASSWORD*|*TOKEN*|*SECRET*|*PRIVATE_KEY*)
+                    echo "::add-mask::$v"
+                    ;;
+                esac
+                echo "[get-secrets-vault] Exporting key: $KEY_UPPER"
+                echo "$KEY_UPPER=$v" >> $GITHUB_ENV
               done
             else
               echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
