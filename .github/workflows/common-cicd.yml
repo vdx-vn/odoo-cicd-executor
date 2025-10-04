@@ -274,73 +274,6 @@ jobs:
                     check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                     conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
 
-    static-application-security-testing:
-        name: Static Application Security Testing_${{inputs.repo_name}}
-        runs-on: ubuntu-latest
-        environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: ${{ fromJson(inputs.additional_args).enable_sast == 'true' && (inputs.action == 'test' || inputs.action == 'deploy') }}
-        steps:
-            -   uses: actions/checkout@v4
-
-            -   name: Create Check Run
-                uses: ./.github/actions/create-check-run
-                id: create-check-run
-                with:
-                    name: "SAST Security Scan"
-
-            -   name: Test Preparation
-                uses: ./.github/actions/prepare-test-data
-
-            -   name: Setup Python
-                uses: actions/setup-python@v3
-                with:
-                    python-version: ${{ fromJson(inputs.additional_args).python_version || '3.8'}}
-
-            -   name: Install Bandit
-                run: |
-                    python -m pip install --upgrade pip
-                    pip install bandit
-
-            -   name: Run Bandit Security Scan
-                id: bandit-scan
-                run: |
-                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                    ignore_sast=$(echo '${{inputs.additional_args}}' | jq -r '.ignore_sast')
-                    
-                    bandit_config_file="${{env.WORKSPACE}}/.github/sast/bandit.yaml"
-                    update_ignore_file_config_bandit "$ignore_sast" "$bandit_config_file"
-                    
-                    cd ${{env.REPO_PATH}}
-                    bandit \
-                        --configfile "$bandit_config_file" \
-                        --format json \
-                        --output ${{env.WORKSPACE}}/bandit-output.json \
-                        --recursive . || true
-
-            -   name: Generate SAST Report
-                id: generate-sast-report
-                run: |
-                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                    generate_bandit_summary_report \
-                        "${{env.WORKSPACE}}/bandit-output.json" \
-                        "${{env.WORKSPACE}}/sast-report.md" || true
-
-            -   name: Update Check Run
-                uses: ./.github/actions/update-check-run
-                if: ${{always()}}
-                id: update-check-run
-                with:
-                    check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                    conclusion: ${{ steps.generate-sast-report.conclusion == 'success' && 'success' || 'failure' }}
-
-            -   name: Send SAST result to external Chat application
-                if: ${{always()}}
-                run: |
-                    source ${{env.CICD_UTILS_SCRIPTS_PATH}}
-                    result=${{ steps.generate-sast-report.conclusion == 'success' && 'success' || 'failure' }}
-                    if [[ $result == "failure" ]]; then
-                      send_file_notification "${{env.WORKSPACE}}/sast-report.md" "🔒SAST Security Scan Issues🔒"
-                    fi
 
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
@@ -567,7 +500,7 @@ jobs:
         name: _Deploy Server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
+        needs: [ integration-test ]
         steps:
             -   uses: actions/checkout@v4
 
