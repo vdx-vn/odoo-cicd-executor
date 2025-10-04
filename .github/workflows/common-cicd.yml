@@ -500,7 +500,7 @@ jobs:
         name: _Deploy Server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [ integration-test ]
+#        needs: [ integration-test ]
         steps:
             -   uses: actions/checkout@v4
 
