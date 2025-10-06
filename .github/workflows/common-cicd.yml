@@ -301,6 +301,7 @@ jobs:
                 run: |
                     python -m pip install --upgrade pip
                     pip install bandit
+
             -   name: Run Bandit Security Scan
                 id: bandit-scan
                 run: |
@@ -316,6 +317,7 @@ jobs:
                         --format json \
                         --output ${{env.WORKSPACE}}/bandit-output.json \
                         --recursive . || true
+
             -   name: Generate SAST Report
                 id: generate-sast-report
                 run: |
@@ -323,6 +325,7 @@ jobs:
                     generate_bandit_summary_report \
                         "${{env.WORKSPACE}}/bandit-output.json" \
                         "${{env.WORKSPACE}}/sast-report.md" || true
+
             -   name: Update Check Run
                 uses: ./.github/actions/update-check-run
                 if: ${{always()}}
