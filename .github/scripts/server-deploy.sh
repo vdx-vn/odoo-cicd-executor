@@ -181,10 +181,6 @@ set_list_addons() {
     declare -g TO_INSTALL_ADDONS
     CUSTOM_ADDONS=$(get_list_changed_addons "$server_custom_addons_path")
     TO_INSTALL_ADDONS=$(get_list_of_addons_to_be_installed "$CUSTOM_ADDONS")
-    echo "=========================="
-    echo "Install me"
-    echo $TO_INSTALL_ADDONS
-    echo "=========================="
 }
 
 update_config_file() {
