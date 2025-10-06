@@ -62,6 +62,7 @@ env:
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
     COMMIT_AUTHOR: ${{ fromJson(inputs.additional_args).pr_author }}
+    IGNORED_AUTO_INSTALL: ${{ fromJson(inputs.additional_args).ignore_auto_install}}
 
     # ==== Repository secrets ====
     GH_SSH_KEY: ${{secrets.GH_SSH_KEY}} # ssh key text to access GitHub repo
@@ -273,7 +274,6 @@ jobs:
                 with:
                     check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
                     conclusion: ${{ steps.run_post_install_unit_test.conclusion == 'success' && 'success' || 'failure' }}
-
 
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
@@ -543,7 +543,7 @@ jobs:
                     proxy_user: ${{env.PROXY_SERVER_USER}}
                     proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                     script: |
-                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.ODOO_IMAGE_TAG }}"
+                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.IGNORED_AUTO_INSTALL }}"
 
             -   name: Update Check Run
                 uses: ./.github/actions/update-check-run
