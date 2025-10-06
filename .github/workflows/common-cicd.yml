@@ -62,6 +62,7 @@ env:
     IGNORE_TEST: ${{ fromJson(inputs.additional_args).ignore_test }}
     IGNORE_INTEGRATION_TEST: ${{ fromJson(inputs.additional_args).ignore_integration_test || 'false' }}
     COMMIT_AUTHOR: ${{ fromJson(inputs.additional_args).pr_author }}
+    IGNORED_AUTO_INSTALL: ${{ fromJson(inputs.additional_args).ignore_auto_install}}
 
     # ==== Vault secrets ====
     VAULT_ADDR: ${{ secrets.VAULT_ADDR }} # Vault address
@@ -615,6 +616,7 @@ jobs:
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
+        if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
         steps:
@@ -664,7 +666,7 @@ jobs:
                     proxy_user: ${{env.PROXY_SERVER_USER}}
                     proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
                     script: |
-                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.ODOO_IMAGE_TAG }}"
+                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.IGNORED_AUTO_INSTALL }}"
 
             -   name: Update Check Run
                 uses: ./.github/actions/update-check-run
