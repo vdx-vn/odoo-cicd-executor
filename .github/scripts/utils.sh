@@ -417,15 +417,15 @@ function analyze_log_file {
     show_separator "$success_message"
 }
 
-function start_db_container() {
-    docker run -d \
-        -p 5432:5432 \
-        --mount type=bind,source=$DOCKER_FOLDER/postgresql,target=/etc/postgresql \
-        -e POSTGRES_PASSWORD=odoo -e POSTGRES_USER=odoo -e POSTGRES_DB=postgres \
-        --name db \
-        $DB_IMAGE_TAG \
-        -c 'config_file=/etc/postgresql/postgresql.conf'
-}
+#function start_db_container() {
+#    docker run -d \
+#        -p 5432:5432 \
+#        --mount type=bind,source=$DOCKER_FOLDER/postgresql,target=/etc/postgresql \
+#        -e POSTGRES_PASSWORD=odoo -e POSTGRES_USER=odoo -e POSTGRES_DB=postgres \
+#        --name db \
+#        $DB_IMAGE_TAG \
+#        -c 'config_file=/etc/postgresql/postgresql.conf'
+#}
 
 function start_odoo_container() {
     docker run -d \
@@ -437,7 +437,7 @@ function start_odoo_container() {
 }
 
 function start_containers() {
-    start_db_container
+#    start_db_container
     start_odoo_container
 }
 
