@@ -432,7 +432,6 @@ function start_odoo_container() {
         --mount type=bind,source=$ODOO_ADDONS_PATH,target=/mnt/custom-addons \
         --mount type=bind,source=$DOCKER_FOLDER/etc,target=/etc/odoo \
         --mount type=bind,source=$DOCKER_FOLDER/logs,target=/var/log/odoo \
-#        --link db:db \
         $ODOO_IMAGE_TAG
 }
 
