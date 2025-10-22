@@ -56,6 +56,10 @@ on:
             #     type: string
             #     default: "3.8"
 
+concurrency:
+  group: cicd-${{ inputs.target_branch }}
+  cancel-in-progress: false
+
 jobs:
     call_common_cicd:
         uses: ./.github/workflows/common-cicd.yml
