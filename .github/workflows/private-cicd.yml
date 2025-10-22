@@ -57,7 +57,7 @@ on:
             #     default: "3.8"
 
 concurrency:
-  group: cicd-${{ inputs.target_branch }}
+  group: cicd-${{ inputs.repo }}-${{ inputs.target_branch }}-${{ inputs.action }}
   cancel-in-progress: false
 
 jobs:
