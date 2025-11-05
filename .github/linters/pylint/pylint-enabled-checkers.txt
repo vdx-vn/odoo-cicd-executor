@@ -36,7 +36,6 @@ chained-comparison
 expression-not-assigned
 function-redefined
 consider-using-with
-cell-var-from-loop
 singleton-comparison
 f-string-without-interpolation
 useless-parent-delegation
