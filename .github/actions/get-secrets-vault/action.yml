@@ -54,7 +54,15 @@ runs:
                     [[ -n "$line" ]] && echo "::add-mask::$line"
                   done <<< "$v"
                 fi
-                echo "${key_upper}=$v" >> "$GITHUB_ENV"
+                if [[ "$v" == *$'\n'* ]]; then
+                {
+                  echo "${key_upper}<<EOF"
+                  echo "$v"
+                  echo "EOF"
+                } >> "$GITHUB_ENV"
+                else
+                  echo "${key_upper}=$v" >> "$GITHUB_ENV"
+                fi
               done
             else
               echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
