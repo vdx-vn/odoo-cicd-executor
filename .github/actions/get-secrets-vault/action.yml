@@ -43,25 +43,23 @@ runs:
             secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
             if [ -n "$secret_json" ] && [ "$(jq '.data.data != null' <<< "$secret_json")" = "true" ]; then
               jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' <<< "$secret_json" | \
-              while IFS='=' read -r k v; do
+              while IFS='=' read -r k v_raw; do
                 key_upper=$(echo "$k" | tr '[:lower:]' '[:upper:]')
                 if [[ ! "$key_upper" =~ ^[A-Z0-9_]+$ ]]; then
                   continue
                 fi
                 if [[ "$key_upper" =~ (PASSWORD|TOKEN|PRIVATE|KEY|ID) ]]; then
-                  echo "::add-mask::$v"
+                  echo "::add-mask::$v_raw"
                   while IFS= read -r line; do
                     [[ -n "$line" ]] && echo "::add-mask::$line"
-                  done <<< "$v"
+                  done <<< "$v_raw"
                 fi
-                if [[ "$v" == *$'\n'* ]]; then
-                {
-                  echo "${key_upper}<<EOF"
-                  echo "$v"
-                  echo "EOF"
-                } >> "$GITHUB_ENV"
+                if [[ "$v_raw" == *$'\n'* ]]; then
+                  echo "${key_upper}<<EOF" >> "$GITHUB_ENV"
+                  printf "%s\n" "$v_raw" >> "$GITHUB_ENV"
+                  echo "EOF" >> "$GITHUB_ENV"
                 else
-                  echo "${key_upper}=$v" >> "$GITHUB_ENV"
+                  echo "${key_upper}=$v_raw" >> "$GITHUB_ENV"
                 fi
               done
             else
