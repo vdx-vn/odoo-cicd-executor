@@ -54,7 +54,11 @@ runs:
                   done <<< "$value"
                 fi
                 if [[ "$value" == *$'\n'* ]]; then
-                  printf '%s\n' "${key_upper}<<GITHUB_ENV_EOF" "$value" "GITHUB_ENV_EOF" >> "$GITHUB_ENV"
+cat <<EOF >> "$GITHUB_ENV"
+${key_upper}<<GITHUB_ENV_EOF
+$value
+GITHUB_ENV_EOF
+EOF
                 else
                   echo "${key_upper}=$value" >> "$GITHUB_ENV"
                 fi
