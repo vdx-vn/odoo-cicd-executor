@@ -15,6 +15,8 @@ runs:
   steps:
     - shell: bash
       run: |
+        set -e
+
         if ! command -v vault &> /dev/null; then
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
           sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
@@ -48,6 +50,8 @@ runs:
                 if [[ ! "$key_upper" =~ ^[A-Z0-9_]+$ ]]; then
                   continue
                 fi
+                v=$(echo "$v" | base64 -d 2>/dev/null || echo "$v")
+                v=$(echo "$v" | sed 's/\\n/\n/g')
                 if [[ "$key_upper" =~ (PASSWORD|TOKEN|PRIVATE|KEY|ID) ]]; then
                   echo "::add-mask::$v"
                   while IFS= read -r line; do
@@ -55,11 +59,11 @@ runs:
                   done <<< "$v"
                 fi
                 if [[ "$v" == *$'\n'* ]]; then
-                {
-                  echo "${key_upper}<<EOF"
-                  echo "$v"
-                  echo "EOF"
-                } >> "$GITHUB_ENV"
+                  {
+                    echo "${key_upper}<<EOF"
+                    echo "$v"
+                    echo "EOF"
+                  } >> "$GITHUB_ENV"
                 else
                   echo "${key_upper}=$v" >> "$GITHUB_ENV"
                 fi
