@@ -52,6 +52,9 @@ runs:
                 fi
                 v=$(echo "$v" | base64 -d 2>/dev/null || echo "$v")
                 v=$(echo "$v" | sed 's/\\n/\n/g')
+                v=$(echo "$v" | sed 's/\r//g')                     
+                v=$(echo "$v" | sed 's/^\xEF\xBB\xBF//' )           
+                v=$(echo "$v" | sed 's/[[:space:]]*$//' )           
                 if [[ "$key_upper" =~ (PASSWORD|TOKEN|PRIVATE|KEY|ID) ]]; then
                   echo "::add-mask::$v"
                   while IFS= read -r line; do
