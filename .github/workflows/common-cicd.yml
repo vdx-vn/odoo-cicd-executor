@@ -98,6 +98,9 @@ env:
     #SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     #SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
     #SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }} # add _ to this environment variable to always create backup file from server
+    #MINIO_BACKUP_BUCKET: ${{ vars.MINIO_BACKUP_BUCKET }} 
+    #MINIO_ACCESS_KEY: ${{ vars.MINIO_ACCESS_KEY }}
+    #MINIO_SECRET_KEY: ${{ vars.MINIO_SECRET_KEY }}
 
     # ===== Handle Input for actions/github-script ======
     INPUT_REPO_NAME: ${{inputs.repo_name}}
@@ -380,7 +383,7 @@ jobs:
 
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
-        runs-on: ubuntu-latest
+        runs-on: ${{inputs.repo_name}}-${{inputs.target_branch}
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         outputs:
@@ -402,11 +405,6 @@ jobs:
                   vault_addr: ${{ secrets.VAULT_ADDR }}
                   token: ${{ secrets.VAULT_TOKEN }}
                   secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
-
-            - name: Debug key
-              run: |
-                    echo "==== SSH PRIVATE KEY PREVIEW ===="
-                    echo "$SERVER_PRIVATE_KEY" | head -5
 
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
@@ -620,7 +618,7 @@ jobs:
 
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
-        runs-on: ubuntu-latest
+        runs-on: ${{inputs.repo_name}}-${{inputs.target_branch}
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
