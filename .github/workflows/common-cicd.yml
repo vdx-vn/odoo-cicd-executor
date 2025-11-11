@@ -406,7 +406,7 @@ jobs:
             - name: Debug key
               run: |
                     echo "==== SSH PRIVATE KEY PREVIEW ===="
-                    echo "$SSH_PRIVATE_KEY" | head -5
+                    echo "$SERVER_PRIVATE_KEY" | head -5
 
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
