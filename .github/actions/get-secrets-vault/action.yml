@@ -15,8 +15,6 @@ runs:
   steps:
     - shell: bash
       run: |
-        set -euo pipefail
-
         if ! command -v vault &> /dev/null; then
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
           sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
@@ -44,23 +42,28 @@ runs:
           for secret_path in $(get_all_secret_paths "$base_path"); do
             secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
             if [ -n "$secret_json" ] && [ "$(jq '.data.data != null' <<< "$secret_json")" = "true" ]; then
-              for key in $(jq -r '.data.data | keys[]' <<< "$secret_json"); do
-                value=$(jq -r --arg k "$key" '.data.data[$k]' <<< "$secret_json")
-                key_upper=$(echo "$key" | tr '[:lower:]' '[:upper:]')
+              jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' <<< "$secret_json" | \
+              while IFS='=' read -r k v; do
+                key_upper=$(echo "$k" | tr '[:lower:]' '[:upper:]')
+                if [[ ! "$key_upper" =~ ^[A-Z0-9_]+$ ]]; then
+                  continue
+                fi
                 if [[ "$key_upper" =~ (PASSWORD|TOKEN|PRIVATE|KEY|ID) ]]; then
-                  echo "::add-mask::$value"
+                  echo "::add-mask::$v"
                   while IFS= read -r line; do
                     [[ -n "$line" ]] && echo "::add-mask::$line"
-                  done <<< "$value"
+                  done <<< "$v"
                 fi
-                if [[ "$value" == *$'\n'* ]]; then
-                  delim="GITHUB_ENV_$(date +%s%N)"
-                  echo "${key_upper}<<${delim}" >> "$GITHUB_ENV"
-                  printf '%s\n' "$value" >> "$GITHUB_ENV"
-                  echo "${delim}" >> "$GITHUB_ENV"
+                echo "${key_upper}=$v" >> "$GITHUB_ENV"
+                if [[ "$v" == *$'\n'* ]]; then
+                {
+                  echo "${key_upper}<<EOF"
+                  echo "$v"
+                  echo "EOF"
+                } >> "$GITHUB_ENV"
                 else
-                  echo "${key_upper}=$value" >> "$GITHUB_ENV"
-                fi
+                  echo "${key_upper}=$v" >> "$GITHUB_ENV"
+                fi  
               done
             else
               echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
