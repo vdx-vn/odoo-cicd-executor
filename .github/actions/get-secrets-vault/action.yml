@@ -54,11 +54,9 @@ runs:
                   done <<< "$v"
                 fi
                 if [[ "$v" == *$'\n'* ]]; then
-                  {
-                    echo "${key_upper}<<EOF"
-                    echo "$v"
-                    echo "EOF"
-                  } >> "$GITHUB_ENV"
+                  echo "${key_upper}<<EOF" >> "$GITHUB_ENV"
+                  echo "$v" >> "$GITHUB_ENV"
+                  echo "EOF" >> "$GITHUB_ENV"
                 else
                   echo "${key_upper}=$v" >> "$GITHUB_ENV"
                 fi
