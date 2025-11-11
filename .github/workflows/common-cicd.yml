@@ -403,6 +403,11 @@ jobs:
                   token: ${{ secrets.VAULT_TOKEN }}
                   secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
+            - name: Debug key
+              run: |
+                    echo "==== SSH PRIVATE KEY PREVIEW ===="
+                    echo "$SSH_PRIVATE_KEY" | head -5
+
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run

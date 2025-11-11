@@ -63,7 +63,7 @@ runs:
                 } >> "$GITHUB_ENV"
                 else
                   echo "${key_upper}=$v" >> "$GITHUB_ENV"
-                fi  
+                fi
               done
             else
               echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
