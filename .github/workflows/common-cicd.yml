@@ -383,7 +383,7 @@ jobs:
 
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
-        runs-on: ${{inputs.repo_name}}-${{inputs.target_branch}}
+        runs-on: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         outputs:
@@ -599,7 +599,7 @@ jobs:
 
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
-        runs-on: ${{inputs.repo_name}}-${{inputs.target_branch}}
+        runs-on: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
