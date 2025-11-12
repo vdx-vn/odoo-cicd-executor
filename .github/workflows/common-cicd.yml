@@ -381,10 +381,23 @@ jobs:
                       send_file_notification "${{env.WORKSPACE}}/sast-report.md" "🔒SAST Security Scan Issues🔒"
                     fi
 
+    prepare-runner-label:
+        name: Prepare runner label
+        runs-on: ubuntu-latest
+        outputs:
+            runner_label: ${{ steps.set-runner-label.outputs.runner_label }}
+        steps:
+            - name: Generate runner label
+              id: set-runner-label
+              run: |
+                  runner_label=$(echo "${{ inputs.repo_name }}" | sed 's/\//-/g')-${{ inputs.target_branch }}
+                  echo "runner_label=$runner_label" >> $GITHUB_OUTPUT
+
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
-        runs-on: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        runs-on: ${{ needs.prepare-runner-label.outputs.runner_label }}
         if: inputs.action == 'deploy'
+        needs: prepare-runner-label
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         outputs:
           server_latest_backup_file_path: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_path }}
@@ -599,10 +612,10 @@ jobs:
 
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
-        runs-on: ${{inputs.repo_name}}/${{inputs.target_branch}}
+        runs-on: ${{ needs.prepare-runner-label.outputs.runner_label }}
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
+        needs: [ unit-test-at-install, unit-test-post-install, integration-test, prepare-runner-label ]
         steps:
             -   uses: actions/checkout@v4
             -   name: get-secrets-vault
