@@ -477,7 +477,7 @@ jobs:
                     "${{secrets.SERVER_DB_PASSWORD}}" \
                     "${{env.ODOO_IMAGE_TAG}}" \
                     ${{ env.GITHUB_RUN_ATTEMPT }} \
-                    "${{ (env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH != '_') && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}" 2>/dev/null)
+                    "${{ (env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH != '_') && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}")
                   echo "script-output=$output" >> $GITHUB_OUTPUT
 
             - name: Update server backup file path variable
