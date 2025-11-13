@@ -495,7 +495,7 @@ jobs:
             - name: Set job output from ENV
               id: set-latest-backup-path
               run: |
-                  file_name=$(basename "$server_latest_backup_file_path")
+                  file_name=$(basename "$SERVER_LATEST_BACKUP_FILE_PATH")
                   echo "server_latest_backup_file_name=$file_name"
                   echo "server_latest_backup_file_name=$file_name" >> "$GITHUB_OUTPUT"
 
@@ -560,7 +560,7 @@ jobs:
 
             - name: Debug check output
               run: |
-                  echo "server_latest_backup_file_path=${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}"
+                  echo "server_latest_backup_file_name=${{ needs.prepare-backup.outputs.server_latest_backup_file_name }}"
 
             - name: Download backup file from MinIO
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
@@ -573,7 +573,7 @@ jobs:
                   fi
                   minio_alias="backup-minio"
                   minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
-                  backup_file_name=$(basename "${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}")
+                  backup_file_name=${{ needs.prepare-backup.outputs.server_latest_backup_file_name }}
                   echo "Backup file name detected: $backup_file_name"
                   if [ -z "$backup_file_name" ]; then
                       echo "❌ Error: backup_file_name is empty" >&2
