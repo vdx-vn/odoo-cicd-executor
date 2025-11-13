@@ -177,28 +177,18 @@ create_zip_file_backup() {
 
 upload_backup_to_minio() {
     local backup_file_path="$1"
-    if [[ -z "$backup_file_path" ]]; then
-        return 1
-    fi
-    if [[ ! -f "$backup_file_path" ]]; then
-        return 1
+    if [[ -z "$backup_file_path" || ! -f "$backup_file_path" ]]; then
+        exit 1
     fi
     local backup_file_name=$(basename "$backup_file_path")
-    if command -v mc &> /dev/null; then
-        local minio_alias="backup-minio"
-        local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
-        
-        mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >&2 2>&1 || {
-            return 1
-        }
-        mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" >&2 2>&1 || true
-        if mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name" >&2; then
-        else
-            return 1
-        fi
-    else
-        return 1
+    if ! command -v mc &> /dev/null; then
+        exit 1
     fi
+    local minio_alias="backup-minio"
+    local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
+    mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" 2>/dev/null || exit 1
+    mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" 2>/dev/null || true
+    mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name" 2>/dev/null || exit 1
 }
 
 get_file_size() {
