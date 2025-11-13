@@ -177,13 +177,7 @@ create_zip_file_backup() {
 
 upload_backup_to_minio() {
     local backup_file_path="$1"
-    if [[ -z "$backup_file_path" || ! -f "$backup_file_path" ]]; then
-        exit 1
-    fi
     local backup_file_name=$(basename "$backup_file_path")
-    if ! command -v mc ; then
-        exit 1
-    fi
     local minio_alias="backup-minio"
     local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
     mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
