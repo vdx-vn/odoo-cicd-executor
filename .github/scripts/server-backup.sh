@@ -10,8 +10,8 @@ main() {
     backup_file_path=$(create_backup_inside_container)
     host_backup_path=$(copy_backup_to_host "$backup_file_path")
     backup_file_size=$(get_file_size "$host_backup_path")
+    upload_backup_to_minio "$host_backup_path"
     echo "${host_backup_path}|${backup_file_size}"
-    upload_backup_to_minio "$host_backup_path" >&2
     delete_old_backup_files_inside_container
 }
 
