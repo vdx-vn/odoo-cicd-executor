@@ -10,8 +10,8 @@ main() {
     backup_file_path=$(create_backup_inside_container)
     host_backup_path=$(copy_backup_to_host "$backup_file_path")
     backup_file_size=$(get_file_size "$host_backup_path")
-    upload_backup_to_minio "$host_backup_path"
     echo "${host_backup_path}|${backup_file_size}"
+    upload_backup_to_minio "$host_backup_path"
     delete_old_backup_files_inside_container
 }
 
@@ -180,8 +180,7 @@ upload_backup_to_minio() {
     if [[ -z "$backup_file_path" || ! -f "$backup_file_path" ]]; then
         exit 1
     fi
-    local backup_file_name
-    backup_file_name=$(basename "$backup_file_path")
+    local backup_file_name=$(basename "$backup_file_path")
     if ! command -v mc &> /dev/null; then
         exit 1
     fi
