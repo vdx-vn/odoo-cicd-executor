@@ -474,7 +474,7 @@ jobs:
                   output=$(bash ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh \
                     "${{env.SERVER_DEPLOY_PATH}}" \
                     "${{env.SERVER_ODOO_DB_NAME}}" \
-                    "${{secrets.SERVER_DB_PASSWORD}}" \
+                    "${{env.SERVER_DB_PASSWORD}}" \
                     "${{env.ODOO_IMAGE_TAG}}" \
                     ${{ env.GITHUB_RUN_ATTEMPT }} \
                     "${{ (env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH != '_') && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}")
@@ -576,14 +576,14 @@ jobs:
                   backup_file_name=${{ needs.prepare-backup.outputs.server_latest_backup_file_name }}
                   echo "Backup file name detected: $backup_file_name"
                   if [ -z "$backup_file_name" ]; then
-                      echo "❌ Error: backup_file_name is empty" >&2
+                      echo "Error: backup_file_name is empty" >&2
                       exit 1
                   fi
-                  mc alias set "$minio_alias" "$minio_endpoint" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}" || {
+                  mc alias set "$minio_alias" "$minio_endpoint" "${{ env.MINIO_ACCESS_KEY }}" "${{ env.MINIO_SECRET_KEY }}" || {
                       echo "Error: Failed to configure MinIO alias" >&2
                       exit 1
                   }
-                  if mc cp "$minio_alias/${{ vars.MINIO_BACKUP_BUCKET }}/$backup_file_name" "${{ env.LOCAL_BACKUP_FILE_PATH }}"; then
+                  if mc cp "$minio_alias/${{ env.MINIO_BACKUP_BUCKET }}/$backup_file_name" "${{ env.LOCAL_BACKUP_FILE_PATH }}"; then
                       echo "Successfully downloaded $backup_file_name from MinIO"
                   else
                       echo "Error: Failed to download $backup_file_name from MinIO" >&2
