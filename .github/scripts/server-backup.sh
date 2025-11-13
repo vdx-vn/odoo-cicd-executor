@@ -180,7 +180,8 @@ upload_backup_to_minio() {
     if [[ -z "$backup_file_path" || ! -f "$backup_file_path" ]]; then
         exit 1
     fi
-    local backup_file_name=$(basename "$backup_file_path")
+    local backup_file_name
+    backup_file_name=$(basename "$backup_file_path")
     if ! command -v mc &> /dev/null; then
         exit 1
     fi
