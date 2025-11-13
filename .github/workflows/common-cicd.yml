@@ -566,6 +566,10 @@ jobs:
             #       local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
             #       server_file: ${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}
 
+            - name: Debug check output
+              run: |
+                  echo "server_latest_backup_file_path=${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}"
+
             - name: Download backup file from MinIO
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
               run: |
