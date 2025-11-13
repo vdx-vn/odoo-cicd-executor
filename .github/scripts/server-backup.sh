@@ -10,9 +10,8 @@ main() {
     backup_file_path=$(create_backup_inside_container)
     host_backup_path=$(copy_backup_to_host "$backup_file_path")
     backup_file_size=$(get_file_size "$host_backup_path")
-
     echo "${host_backup_path}|${backup_file_size}"
-
+    upload_backup_to_minio
     delete_old_backup_files_inside_container
 }
 
@@ -174,6 +173,50 @@ create_zip_file_backup() {
     new_backup_zip_file_path="${sub_backup_folder_name}.zip"
     execute_command_inside_odoo_container "cd $sub_backup_folder && zip -rq ../${new_backup_zip_file_path} . && rm -rf $sub_backup_folder_name"
     echo "${docker_backup_folder}/${new_backup_zip_file_path}"
+}
+
+upload_backup_to_minio() {
+    local backup_file_path="$1"
+    local backup_file_name=$(basename "$backup_file_path")
+    
+    # Check if MinIO client (mc) is available
+    if command -v mc &> /dev/null; then
+        # Use MinIO client
+        # Configure alias if not already configured
+        local minio_alias="backup-minio"
+        local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"  # Default or set MINIO_ENDPOINT env var
+        
+        # Set alias (this will fail if already exists, but that's OK)
+        mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" 2>/dev/null || true
+        
+        # Ensure bucket exists
+        mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" 2>/dev/null || true
+        
+        # Upload file
+        if mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name"; then
+            echo "Successfully uploaded $backup_file_name to MinIO bucket $MINIO_BACKUP_BUCKET"
+        else
+            echo "Warning: Failed to upload $backup_file_name to MinIO" >&2
+            return 1
+        fi
+    elif command -v aws &> /dev/null; then
+        # Fallback to AWS CLI (S3-compatible)
+        local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
+        
+        export AWS_ACCESS_KEY_ID="$MINIO_ACCESS_KEY"
+        export AWS_SECRET_ACCESS_KEY="$MINIO_SECRET_KEY"
+        
+        if aws s3 cp "$backup_file_path" "s3://$MINIO_BACKUP_BUCKET/$backup_file_name" --endpoint-url "$minio_endpoint"; then
+            echo "Successfully uploaded $backup_file_name to MinIO bucket $MINIO_BACKUP_BUCKET"
+        else
+            echo "Warning: Failed to upload $backup_file_name to MinIO" >&2
+            return 1
+        fi
+    else
+        echo "Warning: Neither 'mc' nor 'aws' command found. Cannot upload to MinIO." >&2
+        echo "Please install MinIO client (mc) or AWS CLI (aws) to enable backup upload." >&2
+        return 1
+    fi
 }
 
 get_file_size() {

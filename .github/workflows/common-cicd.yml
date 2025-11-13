@@ -467,22 +467,6 @@ jobs:
                     echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
                   fi
 
-#            - name: Upload backup script file to server
-#              uses: ./.github/actions/scp-ssh
-#              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
-#              with:
-#                  direction: "upload"
-#                  host: ${{env.SERVER_HOST}}
-#                  port: ${{env.SERVER_SSH_PORT}}
-#                  user: ${{env.SERVER_USER}}
-#                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-#                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-#                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-#                  proxy_user: ${{env.PROXY_SERVER_USER}}
-#                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-#                  local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
-#                  server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-
             - name: Backup Odoo on server
               id: backup-on-server
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
