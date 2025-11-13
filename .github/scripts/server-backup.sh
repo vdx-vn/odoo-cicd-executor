@@ -180,9 +180,9 @@ upload_backup_to_minio() {
     local backup_file_name=$(basename "$backup_file_path")
     local minio_alias="backup-minio"
     local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
-    mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
-    mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" || true
-    mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name"
+    mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" &>/dev/null
+    mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" &>/dev/null
+    mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name" &>/dev/null
 }
 
 get_file_size() {
