@@ -577,7 +577,12 @@ jobs:
                   fi
                   minio_alias="backup-minio"
                   minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
-                  backup_file_name="${{ steps.extract-backup-name.outputs.backup_file_name }}"
+                  backup_file_name=$(basename "${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}")
+                  echo "Backup file name detected: $backup_file_name"
+                  if [ -z "$backup_file_name" ]; then
+                      echo "❌ Error: backup_file_name is empty" >&2
+                      exit 1
+                  fi
                   mc alias set "$minio_alias" "$minio_endpoint" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}" || {
                       echo "Error: Failed to configure MinIO alias" >&2
                       exit 1
