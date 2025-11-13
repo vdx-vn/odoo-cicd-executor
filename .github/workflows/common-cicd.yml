@@ -617,7 +617,7 @@ jobs:
         runs-on: ${{ needs.prepare-runner-label.outputs.runner_label }}
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [ unit-test-at-install, unit-test-post-install, integration-test, prepare-runner-label ]
+        needs: [ integration-test, prepare-runner-label ]
         steps:
             -   uses: actions/checkout@v4
             -   name: get-secrets-vault
@@ -633,39 +633,21 @@ jobs:
                 with:
                     name: "Deploy to Server"
 
-            -   name: "Upload deploy script file to server"
-                uses: ./.github/actions/scp-ssh
-                with:
-                    direction: "upload"
-                    host: ${{env.SERVER_HOST}}
-                    port: ${{env.SERVER_SSH_PORT}}
-                    user: ${{env.SERVER_USER}}
-                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                    proxy_host: ${{env.PROXY_SERVER_HOST}}
-                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                    proxy_user: ${{env.PROXY_SERVER_USER}}
-                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                    local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
-                    server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-
             -   name: "Deploy to server"
-                uses: ./.github/actions/ssh-script
                 id: deploy_to_server
                 env:
                     SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
                     SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
                     SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
-                with:
-                    host: ${{env.SERVER_HOST}}
-                    port: ${{env.SERVER_SSH_PORT}}
-                    user: ${{env.SERVER_USER}}
-                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                    proxy_host: ${{env.PROXY_SERVER_HOST}}
-                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                    proxy_user: ${{env.PROXY_SERVER_USER}}
-                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                    script: |
-                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.IGNORED_AUTO_INSTALL }}"
+                run: |
+                    bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh \
+                      "${{env.SERVER_DOCKER_COMPOSE_PATH}}" \
+                      "${{env.SERVER_CUSTOM_ADDONS_PATH}}" \
+                      "${{env.SERVER_CONFIG_FILE}}" \
+                      "${{ env.SERVER_ODOO_URL }}" \
+                      "${{ env.SERVER_ODOO_DB_NAME }}" \
+                      "${{ env.SERVER_DB_PASSWORD }}" \
+                      "${{ env.IGNORED_AUTO_INSTALL }}"
 
             -   name: Update Check Run
                 uses: ./.github/actions/update-check-run
