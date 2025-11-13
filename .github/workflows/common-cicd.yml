@@ -519,7 +519,7 @@ jobs:
     integration-test:
         name: _Integration Test_${{inputs.repo_name}}
         needs: prepare-backup
-        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+        runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
@@ -550,27 +550,44 @@ jobs:
                     echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
                   fi
 
-            - name: Override server host/port if self-hosted
-              if: needs.prepare-backup.outputs.use_self_hosted == 'true'
-              run: |
-                  echo "SERVER_HOST=${{ env.SERVER_SH_HOST }}"  >> $GITHUB_ENV
-                  echo "SERVER_SSH_PORT=${{ env.SERVER_SH_PORT }}" >> $GITHUB_ENV
+            # - name: Download backup file
+            #   uses: ./.github/actions/scp-ssh
+            #   if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
+            #   with:
+            #       direction: "download"
+            #       host: ${{env.SERVER_HOST}}
+            #       port: ${{env.SERVER_SSH_PORT}}
+            #       user: ${{env.SERVER_USER}}
+            #       ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
+            #       proxy_host: ${{env.PROXY_SERVER_HOST}}
+            #       proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
+            #       proxy_user: ${{env.PROXY_SERVER_USER}}
+            #       proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
+            #       local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
+            #       server_file: ${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}
 
-            - name: Download backup file
-              uses: ./.github/actions/scp-ssh
+            - name: Download backup file from MinIO
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
-              with:
-                  direction: "download"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
-                  server_file: ${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}
+              run: |
+                  if ! command -v mc &> /dev/null; then
+                      echo "Installing MinIO client..."
+                      wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /tmp/mc
+                      chmod +x /tmp/mc
+                      sudo mv /tmp/mc /usr/local/bin/mc || export PATH="/tmp:$PATH"
+                  fi
+                  minio_alias="backup-minio"
+                  minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
+                  backup_file_name="${{ steps.extract-backup-name.outputs.backup_file_name }}"
+                  mc alias set "$minio_alias" "$minio_endpoint" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}" || {
+                      echo "Error: Failed to configure MinIO alias" >&2
+                      exit 1
+                  }
+                  if mc cp "$minio_alias/${{ vars.MINIO_BACKUP_BUCKET }}/$backup_file_name" "${{ env.LOCAL_BACKUP_FILE_PATH }}"; then
+                      echo "Successfully downloaded $backup_file_name from MinIO"
+                  else
+                      echo "Error: Failed to download $backup_file_name from MinIO" >&2
+                      exit 1
+                  fi
 
             - name: Run Integration test
               id: run_integration_test
