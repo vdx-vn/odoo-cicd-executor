@@ -181,14 +181,14 @@ upload_backup_to_minio() {
         exit 1
     fi
     local backup_file_name=$(basename "$backup_file_path")
-    if ! command -v mc &> /dev/null; then
+    if ! command -v mc ; then
         exit 1
     fi
     local minio_alias="backup-minio"
     local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
-    mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" 2>/dev/null || exit 1
-    mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" 2>/dev/null || true
-    mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name" 2>/dev/null || exit 1
+    mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
+    mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" || true
+    mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name"
 }
 
 get_file_size() {
