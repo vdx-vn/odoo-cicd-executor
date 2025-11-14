@@ -425,9 +425,6 @@ jobs:
               with:
                   name: "Prepare backup"
 
-            - name: Test Preparation
-              uses: ./.github/actions/prepare-test-data
-
               # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
               # so this case, we should generate a new DB backup
             - name: Make decision to create a new backup on server
