@@ -98,6 +98,9 @@ env:
     #SERVER_ODOO_URL: ${{ vars.SERVER_ODOO_URL }}
     #SERVER_ODOO_DB_NAME: ${{ vars.SERVER_ODOO_DB_NAME }}
     #SERVER_BACKUP_PATH: ${{ vars.SERVER_BACKUP_PATH }} # add _ to this environment variable to always create backup file from server
+    #MINIO_BACKUP_BUCKET: ${{ vars.MINIO_BACKUP_BUCKET }} 
+    #MINIO_ACCESS_KEY: ${{ vars.MINIO_ACCESS_KEY }}
+    #MINIO_SECRET_KEY: ${{ vars.MINIO_SECRET_KEY }}
 
     # ===== Handle Input for actions/github-script ======
     INPUT_REPO_NAME: ${{inputs.repo_name}}
@@ -378,13 +381,26 @@ jobs:
                       send_file_notification "${{env.WORKSPACE}}/sast-report.md" "🔒SAST Security Scan Issues🔒"
                     fi
 
+    prepare-runner-label:
+        name: Prepare runner label
+        runs-on: ubuntu-latest
+        outputs:
+            runner_label: ${{ steps.set-runner-label.outputs.runner_label }}
+        steps:
+            - name: Generate runner label
+              id: set-runner-label
+              run: |
+                  runner_label=$(echo "${{ inputs.repo_name }}" | sed 's/\//-/g')-${{ inputs.target_branch }}
+                  echo "runner_label=$runner_label" >> $GITHUB_OUTPUT
+
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
-        runs-on: ubuntu-latest
+        runs-on: ${{ needs.prepare-runner-label.outputs.runner_label }}
         if: inputs.action == 'deploy'
+        needs: prepare-runner-label
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         outputs:
-          server_latest_backup_file_path: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_path }}
+          server_latest_backup_file_name: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_name }}
           check_run_id: ${{ steps.create-check-run.outputs.check-run-id }}
           use_self_hosted: ${{ steps.determine-runner.outputs.use_self_hosted }}
         env:
@@ -403,19 +419,11 @@ jobs:
                   token: ${{ secrets.VAULT_TOKEN }}
                   secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
-            - name: Debug key
-              run: |
-                    echo "==== SSH PRIVATE KEY PREVIEW ===="
-                    echo "$SERVER_PRIVATE_KEY" | head -5
-
             - name: Create Check Run
               uses: ./.github/actions/create-check-run
               id: create-check-run
               with:
                   name: "Prepare backup"
-
-            - name: Test Preparation
-              uses: ./.github/actions/prepare-test-data
 
               # if we have to rerun this job, so run_attempt > 1 and reason maybe is the backup DB have some problem
               # so this case, we should generate a new DB backup
@@ -431,26 +439,17 @@ jobs:
                 fi
 
             - name: Get the latest backup file from existing backup path on server
-              uses: ./.github/actions/ssh-script
               id: get-latest-backup-file
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  set-output: 1
-                  script: |
-                      latest_file=\$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
-                      if [[ -n \$latest_file ]]; then
-                        file_path=${{ env.SERVER_BACKUP_PATH }}/\$latest_file
-                        file_size=\$(stat -c%s \$file_path)
-                        echo \$file_path\|\$file_size
-                      fi
+              run: |
+                latest_file=$(ls ${{ env.SERVER_BACKUP_PATH }} | grep -E '${{env.SERVER_ODOO_DB_NAME}}_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\.zip' | sort -r | head -n 1)
+                if [[ -n $latest_file ]]; then
+                  file_path=${{ env.SERVER_BACKUP_PATH }}/$latest_file
+                  file_size=$(stat -c%s $file_path)
+                  echo "script-output=$file_path|$file_size" >> $GITHUB_OUTPUT
+                else
+                  echo "script-output=" >> $GITHUB_OUTPUT
+                fi
 
             - name: Update server backup file path variable
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 0 }}
@@ -465,44 +464,18 @@ jobs:
                     echo "NEED_NEW_SERVER_BACKUP_FILE=1" >> $GITHUB_ENV
                   fi
 
-            - name: Upload backup script file to server
-              uses: ./.github/actions/scp-ssh
-              if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
-              with:
-                  direction: "upload"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh
-                  server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-
             - name: Backup Odoo on server
-              uses: ./.github/actions/ssh-script
               id: backup-on-server
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
-              with:
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  set-output: 1
-                  script: |
-                      bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-backup.sh \
-                        "${{env.SERVER_DEPLOY_PATH}}" \
-                        "${{env.SERVER_ODOO_DB_NAME}}" \
-                        "${{secrets.SERVER_DB_PASSWORD}}" \
-                        "${{env.ODOO_IMAGE_TAG}}" \
-                        ${{ env.GITHUB_RUN_ATTEMPT }} \
-                        "${{ (env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH != '_') && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}"
+              run: |
+                  output=$(bash ${{ env.CICD_SCRIPTS_PATH }}/server-backup.sh \
+                    "${{env.SERVER_DEPLOY_PATH}}" \
+                    "${{env.SERVER_ODOO_DB_NAME}}" \
+                    "${{env.SERVER_DB_PASSWORD}}" \
+                    "${{env.ODOO_IMAGE_TAG}}" \
+                    ${{ env.GITHUB_RUN_ATTEMPT }} \
+                    "${{ (env.SERVER_BACKUP_PATH != '' && env.SERVER_BACKUP_PATH != '_') && env.SERVER_BACKUP_PATH || env.SERVER_TEMPORARY_BACKUP_PATH }}")
+                  echo "script-output=$output" >> $GITHUB_OUTPUT
 
             - name: Update server backup file path variable
               if: ${{ env.NEED_NEW_SERVER_BACKUP_FILE == 1 }}
@@ -519,17 +492,8 @@ jobs:
             - name: Set job output from ENV
               id: set-latest-backup-path
               run: |
-                  echo "server_latest_backup_file_path=$SERVER_LATEST_BACKUP_FILE_PATH" >> "$GITHUB_OUTPUT"
-
-            - name: Determine runner based on backup size
-              id: determine-runner
-              run: |
-                threshold=$((8*1024*1024*1024))
-                if [ "$SERVER_LATEST_BACKUP_FILE_SIZE" -gt "$threshold" ]; then
-                  echo "use_self_hosted=true" >> "$GITHUB_OUTPUT"
-                else
-                  echo "use_self_hosted=false" >> "$GITHUB_OUTPUT"
-                fi
+                  file_name=$(basename "$SERVER_LATEST_BACKUP_FILE_PATH")
+                  echo "server_latest_backup_file_name=$file_name" >> "$GITHUB_OUTPUT"
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
@@ -543,7 +507,7 @@ jobs:
     integration-test:
         name: _Integration Test_${{inputs.repo_name}}
         needs: prepare-backup
-        runs-on: ${{ needs.prepare-backup.outputs.use_self_hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+        runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
@@ -574,27 +538,33 @@ jobs:
                     echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
                   fi
 
-            - name: Override server host/port if self-hosted
-              if: needs.prepare-backup.outputs.use_self_hosted == 'true'
-              run: |
-                  echo "SERVER_HOST=${{ env.SERVER_SH_HOST }}"  >> $GITHUB_ENV
-                  echo "SERVER_SSH_PORT=${{ env.SERVER_SH_PORT }}" >> $GITHUB_ENV
-
-            - name: Download backup file
-              uses: ./.github/actions/scp-ssh
+            - name: Download backup file from MinIO
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
-              with:
-                  direction: "download"
-                  host: ${{env.SERVER_HOST}}
-                  port: ${{env.SERVER_SSH_PORT}}
-                  user: ${{env.SERVER_USER}}
-                  ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                  proxy_host: ${{env.PROXY_SERVER_HOST}}
-                  proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                  proxy_user: ${{env.PROXY_SERVER_USER}}
-                  proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                  local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
-                  server_file: ${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}
+              run: |
+                  if ! command -v mc &> /dev/null; then
+                      echo "Installing MinIO client..."
+                      wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /tmp/mc
+                      chmod +x /tmp/mc
+                      sudo mv /tmp/mc /usr/local/bin/mc || export PATH="/tmp:$PATH"
+                  fi
+                  minio_alias="backup-minio"
+                  minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
+                  backup_file_name=${{ needs.prepare-backup.outputs.server_latest_backup_file_name }}
+                  echo "Backup file name detected: $backup_file_name"
+                  if [ -z "$backup_file_name" ]; then
+                      echo "Error: backup_file_name is empty" >&2
+                      exit 1
+                  fi
+                  mc alias set "$minio_alias" "$minio_endpoint" "${{ env.MINIO_ACCESS_KEY }}" "${{ env.MINIO_SECRET_KEY }}" || {
+                      echo "Error: Failed to configure MinIO alias" >&2
+                      exit 1
+                  }
+                  if mc cp "$minio_alias/${{ env.MINIO_BACKUP_BUCKET }}/$backup_file_name" "${{ env.LOCAL_BACKUP_FILE_PATH }}"; then
+                      echo "Successfully downloaded $backup_file_name from MinIO"
+                  else
+                      echo "Error: Failed to download $backup_file_name from MinIO" >&2
+                      exit 1
+                  fi
 
             - name: Run Integration test
               id: run_integration_test
@@ -620,10 +590,10 @@ jobs:
 
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
-        runs-on: ubuntu-latest
+        runs-on: ${{ needs.prepare-runner-label.outputs.runner_label }}
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [ unit-test-at-install, unit-test-post-install, integration-test ]
+        needs: [ integration-test, prepare-runner-label ]
         steps:
             -   uses: actions/checkout@v4
             -   name: get-secrets-vault
@@ -639,39 +609,21 @@ jobs:
                 with:
                     name: "Deploy to Server"
 
-            -   name: "Upload deploy script file to server"
-                uses: ./.github/actions/scp-ssh
-                with:
-                    direction: "upload"
-                    host: ${{env.SERVER_HOST}}
-                    port: ${{env.SERVER_SSH_PORT}}
-                    user: ${{env.SERVER_USER}}
-                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                    proxy_host: ${{env.PROXY_SERVER_HOST}}
-                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                    proxy_user: ${{env.PROXY_SERVER_USER}}
-                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                    local_file: ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh
-                    server_file: ${{ env.SERVER_CICD_SCRIPT_FOLDER }}
-
             -   name: "Deploy to server"
-                uses: ./.github/actions/ssh-script
                 id: deploy_to_server
                 env:
                     SERVER_CUSTOM_ADDONS_PATH: ${{env.SERVER_DEPLOY_PATH}}/..
                     SERVER_CONFIG_FILE: ${{env.SERVER_DEPLOY_PATH}}/etc/odoo.conf
                     SERVER_DOCKER_COMPOSE_PATH: ${{env.SERVER_DEPLOY_PATH}}
-                with:
-                    host: ${{env.SERVER_HOST}}
-                    port: ${{env.SERVER_SSH_PORT}}
-                    user: ${{env.SERVER_USER}}
-                    ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-                    proxy_host: ${{env.PROXY_SERVER_HOST}}
-                    proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-                    proxy_user: ${{env.PROXY_SERVER_USER}}
-                    proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-                    script: |
-                        bash ${{ env.SERVER_CICD_SCRIPT_FOLDER }}/server-deploy.sh "${{env.SERVER_DOCKER_COMPOSE_PATH}}" "${{env.SERVER_CUSTOM_ADDONS_PATH}}" "${{env.SERVER_CONFIG_FILE}}" "${{ env.SERVER_ODOO_URL }}" "${{ env.SERVER_ODOO_DB_NAME }}" "${{ env.SERVER_DB_PASSWORD }}" "${{ env.IGNORED_AUTO_INSTALL }}"
+                run: |
+                    bash ${{ env.CICD_SCRIPTS_PATH }}/server-deploy.sh \
+                      "${{env.SERVER_DOCKER_COMPOSE_PATH}}" \
+                      "${{env.SERVER_CUSTOM_ADDONS_PATH}}" \
+                      "${{env.SERVER_CONFIG_FILE}}" \
+                      "${{ env.SERVER_ODOO_URL }}" \
+                      "${{ env.SERVER_ODOO_DB_NAME }}" \
+                      "${{ env.SERVER_DB_PASSWORD }}" \
+                      "${{ env.IGNORED_AUTO_INSTALL }}"
 
             -   name: Update Check Run
                 uses: ./.github/actions/update-check-run
