@@ -496,7 +496,6 @@ jobs:
               id: set-latest-backup-path
               run: |
                   file_name=$(basename "$SERVER_LATEST_BACKUP_FILE_PATH")
-                  echo "server_latest_backup_file_name=$file_name"
                   echo "server_latest_backup_file_name=$file_name" >> "$GITHUB_OUTPUT"
 
             - name: Update Check Run
@@ -541,26 +540,6 @@ jobs:
                   if [[ ${{ env.IGNORE_INTEGRATION_TEST }} == "true" ]]; then
                     echo "IGNORE_INTEGRATION_TEST_STEPS=1" >> $GITHUB_ENV                
                   fi
-
-            # - name: Download backup file
-            #   uses: ./.github/actions/scp-ssh
-            #   if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
-            #   with:
-            #       direction: "download"
-            #       host: ${{env.SERVER_HOST}}
-            #       port: ${{env.SERVER_SSH_PORT}}
-            #       user: ${{env.SERVER_USER}}
-            #       ssh_key_text: ${{ secrets.SERVER_PRIVATE_KEY }}
-            #       proxy_host: ${{env.PROXY_SERVER_HOST}}
-            #       proxy_port: ${{env.PROXY_SERVER_SSH_PORT}}
-            #       proxy_user: ${{env.PROXY_SERVER_USER}}
-            #       proxy_ssh_key_text: ${{ secrets.PROXY_SERVER_PRIVATE_KEY }}
-            #       local_file: ${{ env.LOCAL_BACKUP_FILE_PATH }}
-            #       server_file: ${{ needs.prepare-backup.outputs.server_latest_backup_file_path }}
-
-            - name: Debug check output
-              run: |
-                  echo "server_latest_backup_file_name=${{ needs.prepare-backup.outputs.server_latest_backup_file_name }}"
 
             - name: Download backup file from MinIO
               if: ${{ env.IGNORE_INTEGRATION_TEST_STEPS != 1}}
