@@ -412,12 +412,14 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - name: Set Vault Addr
+            - name: Set self-hosted runner usage
               run: |
                 if [ "${{ needs.prepare-runner-label.outputs.runner_label }}" != "ubuntu-latest" ]; then
                   echo "VAULT_ADDR=http://192.168.98.112:8200/" >> $GITHUB_ENV
+                  echo "MINIO_ENDPOINT=http://192.168.98.125:9000/" >> $GITHUB_ENV
                 else
                   echo "VAULT_ADDR=${{ secrets.VAULT_ADDR }}" >> $GITHUB_ENV
+                  echo "MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}" >> $GITHUB_ENV
                 fi
 
             - name: get-secrets-vault
