@@ -423,7 +423,7 @@ jobs:
             - name: get-secrets-vault
               uses: ./.github/actions/get-secrets-vault
               with:
-                  vault_addr: ${{ secrets.VAULT_ADDR }}
+                  vault_addr: ${{ env.VAULT_ADDR }}
                   token: ${{ secrets.VAULT_TOKEN }}
                   secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
@@ -615,7 +615,7 @@ jobs:
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
                 with:
-                    vault_addr: ${{ secrets.VAULT_ADDR }}
+                    vault_addr: ${{ env.VAULT_ADDR }}
                     token: ${{ secrets.VAULT_TOKEN }}
                     secret_paths: ${{ secrets.VAULT_SECRET_PATHS }}
 
