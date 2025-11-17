@@ -505,6 +505,7 @@ jobs:
                   file_name=$(basename "$SERVER_LATEST_BACKUP_FILE_PATH")
                   encoded=$(printf "%s" "$file_name" | base64 | base64)
                   safe="safe_${encoded}"
+                  echo "server_latest_backup_file_name=$safe" >> $GITHUB_OUTPUT
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
