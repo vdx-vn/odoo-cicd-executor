@@ -503,11 +503,8 @@ jobs:
               id: set-latest-backup-path
               run: |
                   file_name=$(basename "$SERVER_LATEST_BACKUP_FILE_PATH")
-                  {
-                    echo "server_latest_backup_file_name<<EOF"
-                    echo "$file_name"
-                    echo "EOF"
-                  } >> "$GITHUB_OUTPUT"
+                  encoded=$(printf "%s" "$file_name" | base64)
+                  echo "server_latest_backup_file_name=$encoded" >> "$GITHUB_OUTPUT"
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
@@ -563,7 +560,8 @@ jobs:
                   fi
                   minio_alias="backup-minio"
                   minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
-                  backup_file_name=${{ needs.prepare-backup.outputs.server_latest_backup_file_name }}
+                  encoded_name="${{ needs.prepare-backup.outputs.server_latest_backup_file_name }}"
+                  backup_file_name=$(echo "$encoded_name" | base64 --decode)
                   echo "Backup file name detected: $backup_file_name"
                   if [ -z "$backup_file_name" ]; then
                       echo "Error: backup_file_name is empty" >&2
