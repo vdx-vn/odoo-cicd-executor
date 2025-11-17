@@ -412,6 +412,14 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+            - name: Set Vault Addr
+              run: |
+                if [ "${{ needs.prepare-runner-label.outputs.runner_label }}" != "ubuntu-latest" ]; then
+                  echo "VAULT_ADDR=http://192.168.98.112:8200" >> $GITHUB_ENV
+                else
+                  echo "VAULT_ADDR=${{ secrets.VAULT_ADDR }}" >> $GITHUB_ENV
+                fi
+
             - name: get-secrets-vault
               uses: ./.github/actions/get-secrets-vault
               with:
@@ -596,6 +604,14 @@ jobs:
         needs: [ integration-test, prepare-runner-label ]
         steps:
             -   uses: actions/checkout@v4
+            - name: Set Vault Addr
+              run: |
+                if [ "${{ needs.prepare-runner-label.outputs.runner_label }}" != "ubuntu-latest" ]; then
+                  echo "VAULT_ADDR=http://192.168.98.112:8200" >> $GITHUB_ENV
+                else
+                  echo "VAULT_ADDR=${{ secrets.VAULT_ADDR }}" >> $GITHUB_ENV
+                fi                
+
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
                 with:
