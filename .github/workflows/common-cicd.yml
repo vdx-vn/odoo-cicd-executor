@@ -415,7 +415,7 @@ jobs:
             - name: Set Vault Addr
               run: |
                 if [ "${{ needs.prepare-runner-label.outputs.runner_label }}" != "ubuntu-latest" ]; then
-                  echo "VAULT_ADDR=http://192.168.98.112:8200" >> $GITHUB_ENV
+                  echo "VAULT_ADDR=http://192.168.98.112:8200/" >> $GITHUB_ENV
                 else
                   echo "VAULT_ADDR=${{ secrets.VAULT_ADDR }}" >> $GITHUB_ENV
                 fi
@@ -607,7 +607,7 @@ jobs:
             - name: Set Vault Addr
               run: |
                 if [ "${{ needs.prepare-runner-label.outputs.runner_label }}" != "ubuntu-latest" ]; then
-                  echo "VAULT_ADDR=http://192.168.98.112:8200" >> $GITHUB_ENV
+                  echo "VAULT_ADDR=http://192.168.98.112:8200/" >> $GITHUB_ENV
                 else
                   echo "VAULT_ADDR=${{ secrets.VAULT_ADDR }}" >> $GITHUB_ENV
                 fi                
