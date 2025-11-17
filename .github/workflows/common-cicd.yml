@@ -503,7 +503,11 @@ jobs:
               id: set-latest-backup-path
               run: |
                   file_name=$(basename "$SERVER_LATEST_BACKUP_FILE_PATH")
-                  echo "server_latest_backup_file_name=$file_name" >> "$GITHUB_OUTPUT"
+                  {
+                    echo "server_latest_backup_file_name<<EOF"
+                    echo "$file_name"
+                    echo "EOF"
+                  } >> "$GITHUB_OUTPUT"
 
             - name: Update Check Run
               uses: ./.github/actions/update-check-run
