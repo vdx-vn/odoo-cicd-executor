@@ -402,7 +402,6 @@ jobs:
         outputs:
           server_latest_backup_file_name: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_name }}
           check_run_id: ${{ steps.create-check-run.outputs.check-run-id }}
-          use_self_hosted: ${{ steps.determine-runner.outputs.use_self_hosted }}
         env:
           LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
           SERVER_TEMPORARY_BACKUP_PATH: /tmp/odoo/backup/${{inputs.repo_name}}/${{inputs.target_branch}}
@@ -414,15 +413,12 @@ jobs:
             - uses: actions/checkout@v4
             - name: Set self-hosted runner usage
               run: |
-                server_host="${{ env.SERVER_HOST }}"
-                if [[ "$server_host" == "103.214.9.19" ]]; then
-                  echo "Server is in LAN, use internal Vault + MinIO"
-                  echo "VAULT_ADDR=http://192.168.98.112:8200/" >> $GITHUB_ENV
-                  echo "MINIO_ENDPOINT=http://192.168.98.125:9000/" >> $GITHUB_ENV
-                else
-                  echo "Server is public or not in LAN, use public Vault + MinIO"
+                if curl --silent --head --fail --connect-timeout 3 https://vdx.vn > /dev/null; then
                   echo "VAULT_ADDR=${{ secrets.VAULT_ADDR }}" >> $GITHUB_ENV
                   echo "MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}" >> $GITHUB_ENV
+                else
+                  echo "VAULT_ADDR=http://192.168.98.112:8200" >> $GITHUB_ENV
+                  echo "MINIO_ENDPOINT=http://192.168.98.125:9000" >> $GITHUB_ENV
                 fi
 
             - name: get-secrets-vault
@@ -516,7 +512,7 @@ jobs:
               id: update-check-run
               with:
                   check-run-id: ${{steps.create-check-run.outputs.check-run-id}}
-                  conclusion: ${{ steps.determine-runner.conclusion == 'success' && 'success' || 'failure' }}
+                  conclusion: ${{ steps.set-latest-backup-path.conclusion == 'success' && 'success' || 'failure' }}
 
 
     integration-test:
@@ -613,18 +609,15 @@ jobs:
         needs: [ prepare-runner-label ]
         steps:
             -   uses: actions/checkout@v4
-            - name: Set self-hosted runner usage
-              run: |
-                server_host="${{ env.SERVER_HOST }}"
-                if [[ "$server_host" == "103.214.9.19" ]]; then
-                  echo "Server is in LAN, use internal Vault + MinIO"
-                  echo "VAULT_ADDR=http://192.168.98.112:8200/" >> $GITHUB_ENV
-                  echo "MINIO_ENDPOINT=http://192.168.98.125:9000/" >> $GITHUB_ENV
-                else
-                  echo "Server is public or not in LAN, use public Vault + MinIO"
-                  echo "VAULT_ADDR=${{ secrets.VAULT_ADDR }}" >> $GITHUB_ENV
-                  echo "MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}" >> $GITHUB_ENV
-                fi                
+            -   name: Set self-hosted runner usage
+                run: |
+                    if curl --silent --head --fail --connect-timeout 3 https://vdx.vn > /dev/null; then
+                      echo "VAULT_ADDR=${{ secrets.VAULT_ADDR }}" >> $GITHUB_ENV
+                      echo "MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}" >> $GITHUB_ENV
+                    else
+                      echo "VAULT_ADDR=http://192.168.98.112:8200" >> $GITHUB_ENV
+                      echo "MINIO_ENDPOINT=http://192.168.98.125:9000" >> $GITHUB_ENV
+                    fi        
 
             -   name: get-secrets-vault
                 uses: ./.github/actions/get-secrets-vault
