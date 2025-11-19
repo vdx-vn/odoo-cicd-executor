@@ -493,7 +493,8 @@ jobs:
     deploy-server:
         name: _Deploy Server_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        if: inputs.action == 'deploy'
+#        if: inputs.action == 'deploy'
+        if: false
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
 #        needs: [ integration-test ]
         steps:

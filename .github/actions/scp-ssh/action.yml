@@ -56,8 +56,14 @@ runs:
                   fi
                   mkdir -p ~/.ssh
                   touch ~/.ssh/config
-                  echo > ~/.ssh/config
-                  cat << EOF > ~/.ssh/config
+                  awk '
+                      $1 == "Host" && $2 == "server" {skip=1}
+                      $1 == "Host" && $2 != "server" {skip=0}
+                      skip == 1 {next}
+                      {print}
+                  ' ~/.ssh/config > ~/.ssh/config.tmp
+                  mv ~/.ssh/config.tmp ~/.ssh/config
+                  cat << EOF >> ~/.ssh/config
                   Host server
                       HostName ${{inputs.host}}
                       User ${{inputs.user}}
