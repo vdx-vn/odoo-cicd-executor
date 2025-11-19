@@ -428,7 +428,7 @@ jobs:
     integration-test:
         name: _Integration Test_${{inputs.repo_name}}
         needs: prepare-backup
-        runs-on: integration-test
+        runs-on: dv-integration-test
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         env:
             LOCAL_BACKUP_FILE_PATH: ${{github.workspace}}/odoo.zip
