@@ -387,7 +387,8 @@ function random_sad_emojis() {
 }
 
 function get_odoo_container_id {
-    docker ps -q -a | xargs docker inspect --format '{{.Id}} {{.Config.Image}}' | awk -v img="${ODOO_IMAGE_TAG}" '$2 == img {print $1}'
+    cd "$SERVER_DEPLOY_PATH" || exit 1
+    docker compose ps -q odoo | xargs docker inspect --format '{{.Id}} {{.Config.Image}}' | awk -v img="${ODOO_IMAGE_TAG}" '$2 == img {print $1}'
 }
 
 function docker_odoo_exec {
