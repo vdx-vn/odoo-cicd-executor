@@ -175,20 +175,6 @@ create_zip_file_backup() {
     echo "${docker_backup_folder}/${new_backup_zip_file_path}"
 }
 
-#upload_backup_to_minio() {
-#    local backup_file_path="$1"
-#    local backup_file_name=$(basename "$backup_file_path")
-#    local minio_alias="backup-minio"
-#    local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
-#    mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" &>/dev/null
-#    mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" &>/dev/null
-#    local old_backup_file
-#    old_backup_file=$(mc ls "$minio_alias/$MINIO_BACKUP_BUCKET" | awk '{print $5}' | grep "^${db_name}_" | sort | tail -n 1)
-#    if [[ -n "$old_backup_file" ]]; then
-#        mc rm "$minio_alias/$MINIO_BACKUP_BUCKET/$old_backup_file" &>/dev/null
-#    fi
-#    mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name" &>/dev/null
-#}
 upload_backup_to_minio() {
     local backup_file_path="$1"
     local backup_file_name=$(basename "$backup_file_path")
