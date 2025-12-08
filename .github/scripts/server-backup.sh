@@ -10,9 +10,8 @@ main() {
     backup_file_path=$(create_backup_inside_container)
     host_backup_path=$(copy_backup_to_host "$backup_file_path")
     backup_file_size=$(get_file_size "$host_backup_path")
-
     echo "${host_backup_path}|${backup_file_size}"
-
+    upload_backup_to_minio "$host_backup_path"
     delete_old_backup_files_inside_container
 }
 
@@ -174,6 +173,34 @@ create_zip_file_backup() {
     new_backup_zip_file_path="${sub_backup_folder_name}.zip"
     execute_command_inside_odoo_container "cd $sub_backup_folder && zip -rq ../${new_backup_zip_file_path} . && rm -rf $sub_backup_folder_name"
     echo "${docker_backup_folder}/${new_backup_zip_file_path}"
+}
+
+upload_backup_to_minio() {
+    local backup_file_path="$1"
+    local backup_file_name=$(basename "$backup_file_path")
+    local minio_alias="backup-minio"
+    local minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
+    local MAX_BACKUPS_TO_KEEP=3
+
+    if ! command -v mc >/dev/null 2>&1; then
+        mkdir -p "$HOME/bin"
+        wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O "$HOME/bin/mc"
+        chmod +x "$HOME/bin/mc"
+        export PATH="$HOME/bin:$PATH"
+    fi
+
+    mc alias set "$minio_alias" "$minio_endpoint" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >/dev/null
+    mc mb "$minio_alias/$MINIO_BACKUP_BUCKET" >/dev/null
+    mc cp "$backup_file_path" "$minio_alias/$MINIO_BACKUP_BUCKET/$backup_file_name" >/dev/null
+    mc ls "$minio_alias/$MINIO_BACKUP_BUCKET" \
+        | awk '{print $NF}' \
+        | grep "^${db_name}_" \
+        | sort -r \
+        | tail -n +$((MAX_BACKUPS_TO_KEEP + 1)) \
+        | while read -r file_to_delete; do
+            [[ -n "$file_to_delete" ]] && \
+                mc rm "$minio_alias/$MINIO_BACKUP_BUCKET/$file_to_delete" >/dev/null
+        done
 }
 
 get_file_size() {

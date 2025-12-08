@@ -5,7 +5,6 @@ unused-import
 unreachable
 no-else-raise
 use-implicit-booleaness-not-len
-unused-variable
 missing-final-newline
 pointless-string-statement
 pointless-statement

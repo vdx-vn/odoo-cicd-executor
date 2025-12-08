@@ -1,0 +1,63 @@
+name: 'get-secrets-vault'
+description: 'Export all key-value pairs from Vault secret path(s) to environment'
+inputs:
+  vault_addr:
+    required: true
+    description: 'Vault address'
+  token:
+    required: true
+    description: 'Vault token'
+  secret_paths:
+    required: true
+    description: 'Comma-separated list of Vault secret paths (KV v2)'
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        if ! command -v vault &> /dev/null; then
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install vault -y
+        fi
+
+        export VAULT_ADDR="${{ inputs.vault_addr }}"
+        export VAULT_TOKEN="${{ inputs.token }}"
+
+        get_all_secret_paths() {
+          local base_path="$1"
+          local children
+          children=$(vault kv list -mount="kv" -format=json "$base_path" 2>/dev/null | jq -r '.[]' || true)
+          for child in $children; do
+            if [[ "$child" == */ ]]; then
+              get_all_secret_paths "${base_path}${child}"
+            else
+              echo "${base_path}${child}"
+            fi
+          done
+        }
+
+        IFS=',' read -ra PATHS <<< "${{ inputs.secret_paths }}"
+        for base_path in "${PATHS[@]}"; do
+          for secret_path in $(get_all_secret_paths "$base_path"); do
+            secret_json=$(vault kv get -mount="kv" -format=json "$secret_path" 2>/dev/null || echo "")
+            if [ -n "$secret_json" ] && [ "$(jq '.data.data != null' <<< "$secret_json")" = "true" ]; then
+              jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' <<< "$secret_json" | \
+              while IFS='=' read -r k v; do
+                key_upper=$(echo "$k" | tr '[:lower:]' '[:upper:]')
+                if [[ ! "$key_upper" =~ ^[A-Z0-9_]+$ ]]; then
+                  continue
+                fi
+                if [[ "$key_upper" =~ (PASSWORD|TOKEN|PRIVATE|KEY|ID) ]]; then
+                  echo "::add-mask::$v"
+                  while IFS= read -r line; do
+                    [[ -n "$line" ]] && echo "::add-mask::$line"
+                  done <<< "$v"
+                fi
+                echo "${key_upper}=$v" >> "$GITHUB_ENV"
+              done
+            else
+              echo "[get-secrets-vault] Warning: No data or cannot access $secret_path" >&2
+            fi
+          done
+        done
