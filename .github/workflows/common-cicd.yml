@@ -278,7 +278,7 @@ jobs:
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
         runs-on: ubuntu-latest
-        if: inputs.action == 'deploy'
+        if: false
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         outputs:
           server_latest_backup_file_path: ${{ steps.set-latest-backup-path.outputs.server_latest_backup_file_path }}
