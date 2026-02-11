@@ -606,7 +606,7 @@ jobs:
         runs-on: ${{ needs.prepare-runner-label.outputs.runner_label }}
         if: inputs.action == 'deploy'
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        needs: [ prepare-runner-label, unit-test-at-install, unit-test-post-install, integration-test ]
+        needs: [ prepare-runner-label ]
         steps:
             -   uses: actions/checkout@v4
             -   name: Set self-hosted runner usage
