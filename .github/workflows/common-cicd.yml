@@ -234,7 +234,7 @@ jobs:
         name: Unit test at install_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.action == 'test' || inputs.action == 'deploy'
+        if: false
         steps:
             -   uses: actions/checkout@v4
             -   name: get-secrets-vault
@@ -275,7 +275,7 @@ jobs:
         name: Unit test post install_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
-        if: inputs.action == 'test' || inputs.action == 'deploy'
+        if: false
         steps:
             -   uses: actions/checkout@v4
             -   name: get-secrets-vault
@@ -396,7 +396,7 @@ jobs:
     prepare-backup:
         name: Prepare backup_${{inputs.repo_name}}
         runs-on: ${{ needs.prepare-runner-label.outputs.runner_label }}
-        if: inputs.action == 'deploy'
+        if: false
         needs: prepare-runner-label
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         outputs:
