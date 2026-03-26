@@ -560,18 +560,16 @@ jobs:
                   fi
                   minio_alias="backup-minio"
                   minio_endpoint="${MINIO_ENDPOINT:-https://minio.vdx.vn}"
-                  encoded_safe="${{ needs.prepare-backup.outputs.server_latest_backup_file_name }}"
-                  encoded="${encoded_safe#safe_}"   
-                  backup_file_name=$(printf "%s" "$encoded" | base64 --decode | base64 --decode)
-                  echo "Backup file name detected: $backup_file_name"
-                  if [ -z "$backup_file_name" ]; then
-                      echo "Error: backup_file_name is empty" >&2
-                      exit 1
-                  fi
                   mc alias set "$minio_alias" "$minio_endpoint" "${{ env.MINIO_ACCESS_KEY }}" "${{ env.MINIO_SECRET_KEY }}" || {
                       echo "Error: Failed to configure MinIO alias" >&2
                       exit 1
                   }
+                  backup_file_name=$(mc ls "$minio_alias/${{ env.MINIO_BACKUP_BUCKET }}" | grep '\.zip$' | sort | tail -n 1 | awk '{print $NF}')
+                  echo "Backup file name detected: $backup_file_name"
+                  if [ -z "$backup_file_name" ]; then
+                      echo "Error: No backup file found in bucket ${{ env.MINIO_BACKUP_BUCKET }}" >&2
+                      exit 1
+                  fi
                   if mc cp "$minio_alias/${{ env.MINIO_BACKUP_BUCKET }}/$backup_file_name" "${{ env.LOCAL_BACKUP_FILE_PATH }}"; then
                       echo "Successfully downloaded $backup_file_name from MinIO"
                   else
