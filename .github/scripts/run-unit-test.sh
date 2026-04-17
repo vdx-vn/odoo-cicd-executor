@@ -5,11 +5,7 @@ source "${CICD_UTILS_SCRIPTS_PATH}"
 function populate_variables() {
     declare -g test_type=$1
     declare -g type_message
-    if [[ $test_type == 'at_install' ]]; then
-        type_message="At Install"
-    else
-        type_message="Post Install"
-    fi
+    type_message="Unit test"
 }
 
 function set_list_addons {
@@ -35,11 +31,7 @@ function update_config_file {
     --log-level error " >>$ODOO_CONFIG_FILE
 
     tagged_custom_addons=$(echo $custom_addons | sed "s/,/,\//g" | sed "s/^/\//")
-    if [[ $test_type == 'at_install' ]]; then
-        test_tags="${tagged_custom_addons},-post_install"
-    else
-        test_tags="${tagged_custom_addons}"
-    fi
+    test_tags="${tagged_custom_addons}"
 
     echo -en " --init ${custom_addons} \
         --without-demo all \
@@ -57,7 +49,7 @@ function main() {
     sad_emojis=$(random_sad_emojis)
     failed_message=$(
         cat <<EOF
-❌🐞❌ ${type_message}: A few unit test cases for the <${PR_URL}|PR #${PR_NUMBER}> did not pass! $sad_emojis
+❌🐞❌ Unit test: A few unit test cases for the <${PR_URL}|PR #${PR_NUMBER}> did not pass! $sad_emojis
 Please take a look at the attached log file🔬
 EOF
     )
