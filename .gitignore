@@ -121,3 +121,5 @@ cython_debug/
 .idea
 .vscode
 .worktrees/
+.claude
+docs
