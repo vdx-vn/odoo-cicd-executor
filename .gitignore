@@ -120,3 +120,4 @@ cython_debug/
 #.idea/
 .idea
 .vscode
+.worktrees/
