@@ -44,7 +44,9 @@ function main() {
     set_list_addons
     update_config_file
     start_containers
-    wait_until_odoo_shutdown
+    if ! odoo_exit_code=$(wait_until_odoo_shutdown); then
+        exit 1
+    fi
 
     sad_emojis=$(random_sad_emojis)
     failed_message=$(
@@ -56,7 +58,7 @@ EOF
 
     telegram_failed_message=$(create_telegram_failed_message "$type_message" "$PR_NUMBER" "$PR_URL" "$COMMIT_AUTHOR" "$sad_emojis")
 
-    analyze_log_file "$failed_message" "$telegram_failed_message"
+    analyze_log_file "$odoo_exit_code" "$failed_message" "$telegram_failed_message"
 }
 
 main "$@"

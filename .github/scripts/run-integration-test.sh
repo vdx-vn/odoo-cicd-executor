@@ -161,7 +161,9 @@ function main() {
     update_config_file
     start_containers
     restore_backup
-    wait_until_odoo_shutdown
+    if ! odoo_exit_code=$(wait_until_odoo_shutdown); then
+        exit 1
+    fi
 
     sad_emojis=$(random_sad_emojis)
 
@@ -174,7 +176,7 @@ EOF
 
     telegram_failed_message=$(create_telegram_failed_message "Integration Test" "$PR_NUMBER" "$PR_URL" "$COMMIT_AUTHOR" "$sad_emojis")
 
-    analyze_log_file "$failed_message" "$telegram_failed_message"
+    analyze_log_file "$odoo_exit_code" "$failed_message" "$telegram_failed_message"
 }
 
 main "$@"
