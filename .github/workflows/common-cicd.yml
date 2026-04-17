@@ -231,7 +231,7 @@ jobs:
                 if: ${{always()}}
 
     unit-test:
-        name: Unit test at install_${{inputs.repo_name}}
+        name: Unit test_${{inputs.repo_name}}
         runs-on: ubuntu-latest
         environment: ${{inputs.repo_name}}/${{inputs.target_branch}}
         if: inputs.action == 'test' || inputs.action == 'deploy'
@@ -248,7 +248,7 @@ jobs:
                 uses: ./.github/actions/create-check-run
                 id: create-check-run
                 with:
-                    name: "Unit test at install"
+                    name: "Unit test"
 
             -   name: Test Preparation
                 uses: ./.github/actions/prepare-test-data
