@@ -139,18 +139,28 @@ function wait_until_odoo_shutdown {
     # and we can start analyze the log file
     maximum_waiting_time=3600 # maximum wait time is 60', in case if there is an unexpected problem
     odoo_container_id=$(get_odoo_container_id)
-    if [ -z $odoo_container_id ]; then
+    if [ -z "$odoo_container_id" ]; then
         echo "Can't find the Odoo container, stop pipeline immediately!"
         exit 1
     fi
     sleep_block=5
     total_waited_time=0
     while (($total_waited_time <= $maximum_waiting_time)); do
-        container_exited_id=$(docker ps -q --filter "id=$odoo_container_id" --filter "status=exited")
-        if [[ -n $container_exited_id ]]; then break; fi
+        container_exited_id=$(docker ps -aq --filter "id=$odoo_container_id" --filter "status=exited")
+        if [[ -n "$container_exited_id" ]]; then
+            odoo_exit_code=$(docker inspect --format='{{.State.ExitCode}}' "$odoo_container_id")
+            if [ -z "$odoo_exit_code" ]; then
+                echo "Can't get Odoo container exit code, stop pipeline immediately!"
+                exit 1
+            fi
+            echo "$odoo_exit_code"
+            return 0
+        fi
         total_waited_time=$((total_waited_time + sleep_block))
         sleep $sleep_block
     done
+    echo "Timed out waiting for Odoo container to exit after ${maximum_waiting_time} seconds."
+    exit 1
 }
 
 function get_github_job_url {
@@ -396,25 +406,22 @@ function docker_odoo_exec {
 }
 
 function analyze_log_file {
-    failed_message=$1
-    telegram_failed_message=$2
-    success_message=$3
-    [ -z $success_message ] && success_message="We passed all test cases, well done!"
+    odoo_exit_code=$1
+    failed_message=$2
+    telegram_failed_message=$3
+    success_message=$4
+    [ -z "$success_message" ] && success_message="We passed all test cases, well done!"
 
-    [ -f ${ODOO_LOG_FILE_HOST} ]
-    if [ $? -ne 0 ]; then
+    if [ "$odoo_exit_code" -eq 0 ]; then
         show_separator "$success_message"
         return 0
     fi
 
-    grep -m 1 -P '^[0-9-\s:,]+(ERROR|CRITICAL)' $ODOO_LOG_FILE_HOST >/dev/null 2>&1
-    error_exist=$?
-    if [ $error_exist -eq 0 ]; then
-        cat $ODOO_LOG_FILE_HOST
+    if [ -f "$ODOO_LOG_FILE_HOST" ]; then
+        cat "$ODOO_LOG_FILE_HOST"
         send_file_notification "$ODOO_LOG_FILE_HOST" "$failed_message" "$telegram_failed_message"
-        exit 1
     fi
-    show_separator "$success_message"
+    exit 1
 }
 
 function start_db_container() {
