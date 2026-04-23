@@ -150,6 +150,7 @@ jobs:
                     
                     echo "================="
                     cat $pylint_config_file
+                    echo "================="
                     
                     cd ${{env.REPO_PATH}}
                     pylint \
