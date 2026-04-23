@@ -201,24 +201,18 @@ function update_ignore_file_config_pylint {
     ignore_addons=$1
     config_file=$2
 
-    # convert addons -> regex patterns
-    # e.g: tests -> .*/tests/.*
     new_patterns=$(get_ignore_file_command_pylint "$ignore_addons")
 
-    # extract existing ignore-paths line
     existing=$(grep '^ignore-paths' "$config_file")
-
-    # extract content inside []
     existing_values=$(echo "$existing" | sed -E 's/.*\[(.*)\].*/\1/')
 
-    # merge old + new
     merged="${existing_values}, ${new_patterns}"
-
-    # rebuild line
     new_line="ignore-paths = [${merged}]"
 
-    # replace in file
-    sed -i "s|^ignore-paths.*|${new_line}|" "$config_file"
+    # escape sed-sensitive chars
+    escaped_new_line=$(printf '%s\n' "$new_line" | sed 's/[&|]/\\&/g')
+
+    sed -i "s#^ignore-paths.*#$escaped_new_line#" "$config_file"
 }
 
 # ===== Ruff ======
