@@ -173,46 +173,54 @@ function get_github_job_url {
 }
 
 # ====== Pylint =======
-function get_ignore_file_command_pylint {
-    ignore_addons=$1
-    if [ -z "${ignore_addons:-}" ]; then
-        echo "ignore-paths = []"
-        return 0
-    fi
-    command=
-    if [[ -n $ignore_addons ]]; then
-        backup_IFS=$IFS
-        IFS=","
-        for addon_name in $ignore_addons; do
-            if [[ -z $command ]]; then
-                command="\"$addon_name/.*\\.py\""
-            else
-                command+=";\"$addon_name/.*\\.py\""
-            fi
-        done
-        IFS=$backup_IFS
-    fi
-    command=$(echo $command | sed "s/;/,/g")
-    command="ignore-paths = [$command]"
-    echo $command
+get_ignore_file_command_pylint() {
+    local ignore_addons="$1"
+    local result=""
+    local addon
+
+    IFS=',' read -ra addons <<< "$ignore_addons"
+    for addon in "${addons[@]}"; do
+        addon=$(echo "$addon" | xargs)
+        [ -z "$addon" ] && continue
+
+        pattern="\"(^|.*/)${addon}/.*\""
+
+        if [ -n "$result" ]; then
+            result="${result}, ${pattern}"
+        else
+            result="${pattern}"
+        fi
+    done
+
+    echo "$result"
 }
+update_ignore_file_config_pylint() {
+    local ignore_addons="$1"
+    local config_file="$2"
 
-function update_ignore_file_config_pylint {
-    ignore_addons=$1
-    config_file=$2
-
+    local new_patterns
     new_patterns=$(get_ignore_file_command_pylint "$ignore_addons")
 
-    existing=$(grep '^ignore-paths' "$config_file")
-    existing_values=$(echo "$existing" | sed -E 's/.*\[(.*)\].*/\1/')
+    local existing_line
+    existing_line=$(grep '^ignore-paths[[:space:]]*=' "$config_file")
 
-    merged="${existing_values}, ${new_patterns}"
-    new_line="ignore-paths = [${merged}]"
+    local existing_values
+    existing_values=$(echo "$existing_line" | sed -E 's/^[^[]*\[(.*)\][[:space:]]*$/\1/')
 
-    # escape sed-sensitive chars
-    escaped_new_line=$(printf '%s\n' "$new_line" | sed 's/[&|]/\\&/g')
+    local merged
+    if [ -n "$existing_values" ] && [ -n "$new_patterns" ]; then
+        merged="${existing_values}, ${new_patterns}"
+    elif [ -n "$existing_values" ]; then
+        merged="${existing_values}"
+    else
+        merged="${new_patterns}"
+    fi
 
-    sed -i "s#^ignore-paths.*#$escaped_new_line#" "$config_file"
+    local new_line="ignore-paths = [${merged}]"
+    local escaped_new_line
+    escaped_new_line=$(printf '%s\n' "$new_line" | sed 's/[&#]/\\&/g')
+
+    sed -i "s#^ignore-paths[[:space:]]*=.*#${escaped_new_line}#" "$config_file"
 }
 
 # ===== Ruff ======
