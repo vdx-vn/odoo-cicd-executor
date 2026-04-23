@@ -147,6 +147,10 @@ jobs:
                     
                     python -m pip install --upgrade pip
                     pip install pylint
+                    
+                    echo "================="
+                    cat $pylint_config_file
+                    
                     cd ${{env.REPO_PATH}}
                     pylint \
                     --rcfile "$pylint_config_file" \
