@@ -1,0 +1,38 @@
+name: SCA fork private pytest
+run-name: sca-test-${{ inputs.request_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Immutable GitLab project 67 source SHA
+        required: true
+        type: string
+      request_id:
+        description: Correlation ID (67-pipeline-job)
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sca-test-${{ inputs.request_id }}
+  cancel-in-progress: false
+jobs:
+  pytest:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/production'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Execute private tests (summary only; no artifacts)
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          REQUEST_ID: ${{ inputs.request_id }}
+          SOURCE_USER: ${{ secrets.SCA_TEST_SOURCE_USER }}
+          SOURCE_TOKEN: ${{ secrets.SCA_TEST_SOURCE_TOKEN }}
+          TEMPLATE_USER: ${{ secrets.SCA_TEST_TEMPLATE_USER }}
+          TEMPLATE_TOKEN: ${{ secrets.SCA_TEST_TEMPLATE_TOKEN }}
+          REGISTRY_USER: ${{ secrets.SCA_TEST_REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.SCA_TEST_REGISTRY_PASSWORD }}
+        run: python3 .github/scripts/sca_test_executor.py
